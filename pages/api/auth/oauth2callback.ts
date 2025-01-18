@@ -1,70 +1,40 @@
 import { oauth } from "@/pages/api/connect-yt";
+import { Request, Response } from "express";
+const Youtube = require("youtube-api");
 
 export default async function handler(req: Request, res: Response) {
   const queryString = req.url.split("?")[1];
   const code = new URLSearchParams(queryString).get("code") || "";
-  
-    oauth.getToken(code, (err, tokens) => {
+
+  // Get the tokens
+  oauth.getToken(code, async (err: any, tokens: string) => {
     if (err) {
-      console.log('err');
+      console.log("err");
       return;
     }
 
+    // Set the credentials
     oauth.setCredentials(tokens);
-    res.cookie('tokens', tokens, {
-      // set cookie for a year
-      maxAge: new Date(Date.now() + 2592000),
-      domain:
-        process.env.NODE_ENV === 'development'
-          ? 'localhost'
-          : 'mern-yt-uploader-5be9c88deb19.herokuapp.com',
-    });
-    return (userPlaylistId = youtube.channels
-      .list({
-        part: ['contentDetails'],
-        mine: true,
-      })
-      .then(
-        response => {
-          const playlistId =
-            response.data.items[0].contentDetails.relatedPlaylists.uploads;
 
-          res.cookie('userPlaylistId', playlistId, {
-            // set cookie for a year
-            maxAge: new Date(Date.now() + 2592000),
-            domain:
-              process.env.NODE_ENV === 'development'
-                ? 'localhost'
-                : 'mern-yt-uploader-5be9c88deb19.herokuapp.com',
-          });
-          // hack to close the window
-          res.send('<script>window.close();</script>');
+    // Set the tokens in a cookie
+    res.setHeader(
+      "Set-Cookie",
+      `tokens=${encodeURIComponent(JSON.stringify(tokens))}; Path=/`
+    );
 
-          if (req.query.state) {
-            const {
-              filename,
-              title,
-              description,
-              videoQue,
-              scheduleDate,
-              categoryId,
-              tags,
-            } = JSON.parse(req.query.state);
-            return sendToYT(
-              youtube,
-              videoQue,
-              filename,
-              title,
-              description,
-              scheduleDate,
-              categoryId,
-              tags,
-            );
-          }
-        },
-        err => {
-          console.error('Execute error', err);
-        },
-      ));
+    // Get the user's playlists
+    const userPlaylists = await Youtube.playlists.list({
+      part: ["contentDetails"],
+      mine: true,
+    }).then((response: { data: { items: any[] } }) => response.data.items);
+
+    const playlistId = userPlaylists[0].id;
+    console.log('-------playlistId', playlistId);
+    
+    // Set the playlistId in a cookie
+    res.setHeader('Set-Cookie', `userPlaylistId=${playlistId}; Path=/`);
+
+    // Hack to close the window
+    res.send("<script>window.close();</script>");
   });
 }

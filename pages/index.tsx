@@ -11,8 +11,10 @@ export default function Home() {
       headers: {
         'Content-Type': 'application/json',
       },
-      // body: JSON.stringify({ prompt }),
-    })//.then((res) => res.json());
+    }).then(async (res) => {
+      const oAuthCallback = await res.json();
+      window.open(oAuthCallback.url, '_blank', 'location=yes,height=570,width=520,scrollbars=yes,status=yes');
+    });
 
     console.log('connect')
   }
@@ -45,12 +47,21 @@ export default function Home() {
       <h1>Carrot Cake</h1>
       <button onClick={() => connect()}>Connect to YT</button>
       <>
-      {!!videos && videos.map((video) => (
-        <div key={video.id}>
+      {!!videos && videos.map((video:{snippet:{title:string, description:string, thumbnails:{medium:{url:string}}}}) => (
+        <>
+        <div>
+          <button onClick={() => {
+            Cookie.remove("userPlaylistId");
+            Cookie.remove("tokens");
+            setVideos([]);
+          }}>Disconnect YT</button>
+        </div>
+        <div>
           <h2>{video.snippet.title}</h2>
           <p>{video.snippet.description}</p>
           <img src={video.snippet.thumbnails.medium.url} alt="" />
         </div>
+        </>
       ))}
       </>
     </main>

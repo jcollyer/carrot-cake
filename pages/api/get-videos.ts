@@ -1,17 +1,8 @@
-import { oauth } from "@/pages/api/connect-yt";
 const Youtube = require("youtube-api");
+import { Request, Response } from "express";
 
-export default async function handler(req, res) {
+export default async function handler(req:Request, res:Response) {
   const { playlistId } = req.body;
-  const { cookie } = req.headers;
-  const jsTokenCookie = cookie.split("; ").find((token) => {
-    return token.startsWith("tokens=");
-  });
-  const jsonTokens = JSON.parse(
-    decodeURIComponent(jsTokenCookie.split("tokens=j%3A")[1])
-  );
-
-  oauth.setCredentials(jsonTokens);
 
   Youtube.playlistItems
     .list({
@@ -19,7 +10,7 @@ export default async function handler(req, res) {
       playlistId: playlistId,
     })
     .then(
-      (response) => {
+      (response:{data:{items:any[]}}) => {
         const playlistItems = response.data.items;
         const videoIds = playlistItems.map(
           (pItem) => pItem.contentDetails.videoId
@@ -30,7 +21,7 @@ export default async function handler(req, res) {
             id: videoIds,
           })
           .then(
-            (response) => {
+            (response:{data:{items:any[]}}) => {
               const videos = response.data.items;
               // Get scheduled and published videos
               const scheduledVideos = videos.filter((video) => {
@@ -41,12 +32,12 @@ export default async function handler(req, res) {
               });
               res.send(scheduledVideos);
             },
-            (err) => {
+            (err:string) => {
               console.error("Execute error", err);
             }
           );
       },
-      (err) => {
+      (err:string) => {
         console.error("Execute error", err);
       }
     );

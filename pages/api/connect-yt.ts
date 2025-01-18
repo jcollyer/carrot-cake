@@ -1,6 +1,5 @@
 import { Request, Response } from "express";
 const Youtube = require("youtube-api");
-const opn = require("opn");
  
 const isDev = process.env.NODE_ENV === "development";
 const scope =
@@ -21,6 +20,5 @@ export default async function handler(req: Request, res: Response) {
     scope,
   });
 
-  opn(oAuthUrl);
-  // res.status(200).json({});
+  res.status(200).json({url: oAuthUrl});
 }
