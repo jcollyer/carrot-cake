@@ -15,7 +15,6 @@ export default function Home() {
       const oAuthCallback = await res.json();
       window.open(oAuthCallback.url, '_blank', 'location=yes,height=570,width=520,scrollbars=yes,status=yes');
     });
-
     console.log('connect')
   }
 
