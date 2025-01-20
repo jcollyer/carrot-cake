@@ -46,22 +46,22 @@ export default function Home() {
       <h1>Carrot Cake</h1>
       <button onClick={() => connect()}>Connect to YT</button>
       <>
-      {!!videos && videos.map((video:{snippet:{title:string, description:string, thumbnails:{medium:{url:string}}}}) => (
-        <>
-        <div>
-          <button onClick={() => {
-            Cookie.remove("userPlaylistId");
-            Cookie.remove("tokens");
-            setVideos([]);
-          }}>Disconnect YT</button>
-        </div>
-        <div>
-          <h2>{video.snippet.title}</h2>
-          <p>{video.snippet.description}</p>
-          <img src={video.snippet.thumbnails.medium.url} alt="" />
-        </div>
-        </>
-      ))}
+        {!!videos && videos.map((video: { snippet: { title: string, description: string, thumbnails: { medium: { url: string } } } }) => (
+          <div key={video.snippet.title}>
+            <div>
+              <button onClick={() => {
+                Cookie.remove("userPlaylistId");
+                Cookie.remove("tokens");
+                setVideos([]);
+              }}>Disconnect YT</button>
+            </div>
+            <div>
+              <h2>{video.snippet.title}</h2>
+              <p>{video.snippet.description}</p>
+              <img src={video.snippet.thumbnails.medium.url} alt="" />
+            </div>
+          </div>
+        ))}
       </>
     </main>
   );
