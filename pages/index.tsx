@@ -22,7 +22,6 @@ export default function Home() {
 
   const getVideos = async () => {
     const tokens = Cookie.get('tokens');
-
     await fetch('/api/get-videos', {
       method: 'POST',
       headers: {
