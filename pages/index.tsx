@@ -1,12 +1,15 @@
 'use client'
 import { useEffect, useState } from "react";
-import Cookie from "js-cookie";
+import { getCookie, setCookie, deleteCookie } from 'cookies-next'
 
 export default function Home() {
+  const tokens = getCookie('tokens');
+  const playlistId = getCookie('userPlaylistId');
+
   const [videos, setVideos] = useState([]);
 
   const connect = async () => {
-    await fetch('/api/connect-yt', {
+    await fetch('/api/youtube/connect-yt', {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',
@@ -15,15 +18,23 @@ export default function Home() {
       const oAuthCallback = await res.json();
       window.open(oAuthCallback.url, '_blank', 'location=yes,height=570,width=520,scrollbars=yes,status=yes');
     });
-    console.log('connect')
   }
 
-  const playlistId = Cookie.get('userPlaylistId');
+  const getPlaylistId = async () => {
+    await fetch('/api/youtube/get-playlist-id', {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+        cookie: `tokens=${tokens}`,
+      },
+    }).then(async (res) => {
+      const { playlistId } = await res.json();
+      setCookie('userPlaylistId', playlistId);
+    });
+  }
 
   const getVideos = async () => {
-    const tokens = Cookie.get('tokens');
-
-    await fetch('/api/get-videos', {
+    await fetch('/api/youtube/get-videos', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -35,6 +46,11 @@ export default function Home() {
       setVideos(videos);
     });
   }
+
+  useEffect(() => {
+    if (tokens)
+      getPlaylistId();
+  }, [tokens]);
 
   useEffect(() => {
     if (playlistId)
@@ -50,8 +66,8 @@ export default function Home() {
           <div key={video.snippet.title}>
             <div>
               <button onClick={() => {
-                Cookie.remove("userPlaylistId");
-                Cookie.remove("tokens");
+                deleteCookie("userPlaylistId");
+                deleteCookie("tokens");
                 setVideos([]);
               }}>Disconnect YT</button>
             </div>
