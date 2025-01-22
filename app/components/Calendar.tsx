@@ -2,11 +2,11 @@ import { Dispatch, SetStateAction, useState } from 'react';
 import moment from 'moment';
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import  Week from '@/app/components/Week';
-import Categories from '@/app/utils/categories';
-import type { Video } from '@/types/video';
+import { Categories } from '@/app/utils/categories';
+import type { YouTubeVideo } from '@/types/video';
 
 type Props = {
-  scheduledVideos: Video[];
+  scheduledVideos: YouTubeVideo[];
   setLocallScheduledVideoData: Dispatch<SetStateAction<never[]>>;
 };
 
@@ -14,7 +14,7 @@ export function Calendar({ scheduledVideos, setLocallScheduledVideoData }: Props
   const [month, setMonth] = useState(moment());
   const [selected, setSelected] = useState(moment().startOf('day'));
   const [duck, setDuck] = useState(0);
-  const [editVideoSelected, setEditVideoSelected] = useState<Video>({});
+  const [editVideoSelected, setEditVideoSelected] = useState<YouTubeVideo>({});
 
   const previous = () => {
     setDuck(duck - 1);

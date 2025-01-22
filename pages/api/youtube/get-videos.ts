@@ -1,5 +1,5 @@
 const Youtube = require("youtube-api");
-import { oauth } from "./connect-yt";
+import { oauth } from "@/pages/api/youtube/connect-yt";
 import { Request, Response } from "express";
 import { getTokensCookie } from "@/app/utils";
 

@@ -59,7 +59,7 @@ export default function Home() {
   }, [playlistId]);
 
   return (
-    <main className="pt-16">
+    <main>
       <h1>Carrot Cake</h1>
       <button onClick={() => connect()}>Connect to YT</button>
       <button onClick={() => {

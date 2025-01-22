@@ -1,4 +1,4 @@
-export interface Video {
+export interface YouTubeVideo {
     id?: string;
     title?: string;
     description?: string;

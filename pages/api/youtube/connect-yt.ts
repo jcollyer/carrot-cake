@@ -2,7 +2,7 @@ import { Request, Response } from "express";
 const Youtube = require("youtube-api");
  
 const isDev = process.env.NODE_ENV === "development";
-const scope =
+export const scope =
   "https://www.googleapis.com/auth/youtube.readonly https://www.googleapis.com/auth/youtube.upload https://www.googleapis.com/auth/youtube";
 
 export const oauth = Youtube.authenticate({

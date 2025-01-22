@@ -16,6 +16,7 @@
     "next": "15.1.4",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
+    "react-dropzone": "^14.3.5",
     "youtube-api": "^3.0.1"
   },
   "devDependencies": {
