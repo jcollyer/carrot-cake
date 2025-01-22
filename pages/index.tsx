@@ -1,6 +1,7 @@
 'use client'
 import { useEffect, useState } from "react";
 import { getCookie, setCookie, deleteCookie } from 'cookies-next'
+import Calendar from '@/app/components/Calendar';
 
 export default function Home() {
   const tokens = getCookie('tokens');
@@ -58,27 +59,18 @@ export default function Home() {
   }, [playlistId]);
 
   return (
-    <main>
+    <main className="pt-16">
       <h1>Carrot Cake</h1>
       <button onClick={() => connect()}>Connect to YT</button>
-      <>
-        {!!videos && videos.map((video: { snippet: { title: string, description: string, thumbnails: { medium: { url: string } } } }) => (
-          <div key={video.snippet.title}>
-            <div>
-              <button onClick={() => {
-                deleteCookie("userPlaylistId");
-                deleteCookie("tokens");
-                setVideos([]);
-              }}>Disconnect YT</button>
-            </div>
-            <div>
-              <h2>{video.snippet.title}</h2>
-              <p>{video.snippet.description}</p>
-              <img src={video.snippet.thumbnails.medium.url} alt="" />
-            </div>
-          </div>
-        ))}
-      </>
+      <button onClick={() => {
+        deleteCookie("userPlaylistId");
+        deleteCookie("tokens");
+        setVideos([]);
+      }}>Disconnect YT</button>
+      {videos.length > 0 && <Calendar
+        scheduledVideos={videos}
+        setLocallScheduledVideoData={setVideos}
+      />}
     </main>
   );
 }
