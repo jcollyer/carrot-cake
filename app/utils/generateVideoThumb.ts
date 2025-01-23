@@ -9,11 +9,13 @@ const generateVideoThumbnail = (file: any) =>
 
     video.onloadeddata = () => {
       const ctx = canvas.getContext("2d");
+      const height = 120
+      const width = 80
 
-      canvas.width = video.videoWidth;
-      canvas.height = video.videoHeight;
+      canvas.width = width;
+      canvas.height = height;
 
-      ctx?.drawImage(video, 0, 0, video.videoWidth, video.videoHeight);
+      ctx?.drawImage(video, 0, 0, width, height);
       video.pause();
       return resolve(canvas.toDataURL("image/png"));
     };

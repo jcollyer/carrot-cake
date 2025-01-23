@@ -4,9 +4,9 @@ import { SquarePlus } from 'lucide-react';
 import { useDropzone } from 'react-dropzone';
 import moment from 'moment';
 import { getCookie } from 'cookies-next'
-import { Categories, CategoriesType} from '@/app/utils/categories';
+import { Categories, CategoriesType } from '@/app/utils/categories';
 import generateVideoThumb from '@/app/utils/generateVideoThumb';
-const transparentImage = require('@/public/transparent.png');    
+const transparentImage = require('@/public/transparent.png');
 
 type VideoUploadProps = {
   id: number,
@@ -45,7 +45,7 @@ export default function UploadPage() {
         setVideos((videos: VideoUploadProps[]) => [
           ...videos,
           {
-            id: index,
+            id: videos.length,
             file,
             title: '',
             description: '',
@@ -62,34 +62,28 @@ export default function UploadPage() {
   const { getRootProps, getInputProps, isDragActive } = useDropzone({ onDrop });
 
   const updateInput = (event: React.ChangeEvent<any>, inputName: string, isImageUpload?: boolean) => {
-    let updatedVideos;
     const updatedCurrentVideo = {
       ...videos[activeIndex],
       [`${inputName}`]: isImageUpload
         ? URL.createObjectURL(event?.target?.files[0])
         : event.currentTarget.value,
     };
-    if (allActive) {
-      updatedVideos = videos.map(video => {
-        const editAll = {
-          ...video,
-          [`${inputName}`]: event.currentTarget.value,
-        };
-        return video.id !== updatedCurrentVideo.id
-          ? editAll
-          : updatedCurrentVideo;
-      });
-    } else {
-      updatedVideos = videos.map(video =>
-        video.id !== updatedCurrentVideo.id ? video : updatedCurrentVideo,
-      );
-    }
-
+    
+    const updateVideo = (video:VideoUploadProps) => ({
+      ...video,
+      [`${inputName}`]: event.currentTarget.value,
+    });
+    
+    const updatedVideos = videos.map(video =>
+      allActive || video.id === updatedCurrentVideo.id
+        ? updateVideo(video)
+        : video
+    );
+    
     setVideos(updatedVideos);
   };
 
-  const uploadVideo = async (formData:any, uploadConfig:any, tokens:string | undefined) => {
-    console.log('----------', {formData, uploadConfig, tokens});
+  const uploadVideo = async (formData: any, uploadConfig: any, tokens: string | undefined) => {
     await fetch('/api/youtube/upload-videos', {
       method: 'POST',
       headers: {
@@ -173,7 +167,7 @@ export default function UploadPage() {
         <div className="mt-2 mb-5">
           {videos?.map((video, index) => (
             <div
-              key={video.id}
+              key={index}
               className={`${activeIndex === index ? 'active bg-gray-100' : ''
                 } flex flex-row p-4 border-b border-slate-400`}
               style={{ background: 'rgba(255,255,255, 0.4)' }}
@@ -256,9 +250,9 @@ export default function UploadPage() {
                       className="outline-0 bg-transparent border-slate-400 rounded"
                       name="category"
                       value={videos[activeIndex]?.category}
-                      // placeholder="Category"
+                    // placeholder="Category"
                     >
-                      {Categories.map((item:CategoriesType) => (
+                      {Categories.map((item: CategoriesType) => (
                         <option key={item.label} value={item.label}>
                           {item.label}
                         </option>
