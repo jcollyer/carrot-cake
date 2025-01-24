@@ -40,6 +40,7 @@ export default function UploadPage() {
   const onDrop = useCallback((acceptedFiles: any) => {
     if (acceptedFiles.length) {
       acceptedFiles.forEach(async (file: any, index: number) => {
+
         const thumbnail = await generateVideoThumb(file);
 
         setVideos((videos: VideoUploadProps[]) => [
@@ -68,62 +69,75 @@ export default function UploadPage() {
         ? URL.createObjectURL(event?.target?.files[0])
         : event.currentTarget.value,
     };
-    
-    const updateVideo = (video:VideoUploadProps) => ({
+
+    const updateVideo = (video: VideoUploadProps) => ({
       ...video,
       [`${inputName}`]: event.currentTarget.value,
     });
-    
+
     const updatedVideos = videos.map(video =>
       allActive || video.id === updatedCurrentVideo.id
         ? updateVideo(video)
         : video
     );
-    
+
     setVideos(updatedVideos);
   };
 
-  const uploadVideo = async (formData: any, uploadConfig: any, tokens: string | undefined) => {
-    await fetch('/api/youtube/upload-videos', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        cookie: `tokens=${tokens}`,
-      },
-      body: JSON.stringify(formData),
-    }).then(async res => {
-      const response = await res.json();
-      if (response.url) {
-        window.open(
-          response.url,
-          'SomeAuthentication',
-          'width=672,height=660,modal=yes,alwaysRaised=yes',
-        );
-      }
-    });
-  }
-
-  const onSubmit = (event: React.ChangeEvent<any>) => {
+  const onSubmit = async (event: React.ChangeEvent<any>) => {
     event.preventDefault();
     if (videos.length) {
+      // console.log('----??', JSON.stringify(videos))
       const formData = new FormData();
-      videos.forEach(video => {
-        const selectedCategory = Categories.filter(c => c.label === video.category)[0]?.id;
-        formData.append('file', video.file);
-        formData.append('title', video.title || '');
-        formData.append('description', video.description || '');
-        formData.append(
-          'scheduleDate',
-          video.scheduleDate || new Date().toDateString(),
-        );
-        formData.append('categoryId', selectedCategory || '');
-        formData.append('tags', video.tags);
-        formData.append('thumbnail', video.thumbnail);
-      });
-      formData.append('playlistToken', userPlaylistId as string);
-      formData.append('tokens', tokens as string);
+      formData.append('file', videos[0].file);
+      formData.append('title', videos[0].title);
+      formData.append('description', videos[0].description);
+      formData.append('categoryId', videos[0].category);
+      formData.append('tags', videos[0].tags);
+      formData.append('scheduleDate', videos[0].scheduleDate);
 
-      uploadVideo(formData, uploadConfig, tokens as string);
+      try {
+        const response = await fetch('/api/youtube/upload-videos', {
+          method: 'POST',
+          headers: {
+            // 'Content-Type': 'application/json',
+            cookie: `tokens=${tokens}`,
+          },
+          body: formData,
+        });
+
+        if (!response.ok) {
+          throw new Error('File upload failed');
+        }
+
+        const data = await response.json();
+        console.log('File uploaded successfully:', data);
+
+      } catch (error) {
+        console.error('Error uploading file:', error);
+      }
+
+
+
+
+      // await fetch('/api/youtube/upload-videos', {
+      //   method: 'POST',
+      //   headers: {
+      //     'Content-Type': 'application/json',
+      //     cookie: `tokens=${tokens}userPlaylistId=${userPlaylistId}`,
+      //   },
+      //   body: JSON.stringify(videos),
+      // })
+      // .then(async res => {
+      //   const response = await res.json();
+      //   if (response.url) {
+      //     window.open(
+      //       response.url,
+      //       'SomeAuthentication',
+      //       'width=672,height=660,modal=yes,alwaysRaised=yes',
+      //     );
+      //   }
+      // });
 
       setVideos([]);
     }
@@ -139,6 +153,27 @@ export default function UploadPage() {
             {...getRootProps()}
           >
             <input {...getInputProps()} name="file" />
+            {/* <input type="file" onChange={async (event) => {
+              event.preventDefault();
+
+              console.log('-----', event.target.files)
+              // const thumbnail = await generateVideoThumb(file);
+
+              // setVideos((videos: VideoUploadProps[]) => [
+              //   ...videos,
+              //   {
+              //     id: videos.length,
+              //     file,
+              //     title: '',
+              //     description: '',
+              //     scheduleDate: '',
+              //     category: '',
+              //     tags: '',
+              //     thumbnail: thumbnail || transparentImage,
+              //   },
+              // ]);
+            }
+            } /> */}
             <SquarePlus className="mr-4" />
             {isDragActive ? (
               <p>Drop the files here ...</p>
