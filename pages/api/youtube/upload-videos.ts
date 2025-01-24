@@ -4,10 +4,10 @@ import { oauth, scope } from "@/pages/api/youtube/connect-yt";
 import { getTokensCookie } from "@/app/utils";
 import { Formidable } from "formidable";
 import fs from "fs";
-import { v4 as uuidv4 } from 'uuid';
-import multer from "multer"
+import { v4 as uuidv4 } from "uuid";
+import multer from "multer";
 import { send } from "process";
-
+import {getCategoryIdFromLabel} from '@/app/utils/categories';
 
 // const storage = multer.diskStorage({
 //   destination: function (req, file, cb) {
@@ -27,13 +27,13 @@ import { send } from "process";
 const upload = multer({
   storage: multer.memoryStorage(), // Store file in memory
   limits: { fieldSize: 25 * 1024 * 1024 },
-}).single('file');
+}).array("file");
 
 const sendToYT = (video) => {
-  const {fields, file} = video;
+  const { fields, file } = video;
   // const jsonTokens = getTokensCookie(JSON.stringify(fields.tokens[0]));
 
-  // console.log("---------sendToYT--->",fields.tokens[0]);
+  console.log("---------sendToYT--->", fields, file);
   Youtube.videos.insert(
     {
       // auth: fields.tokens[0],
@@ -41,23 +41,25 @@ const sendToYT = (video) => {
       notifySubscribers: false,
       requestBody: {
         snippet: {
-          title: "the title",
-          description: "description here",
-          categoryId: 24,
-          tags:["surfing", "Santa Cruz"],
+          title: fields.title,
+          description: fields.description,
+          categoryId: fields.categoryId,
+          tags: fields.tags,
         },
         status: {
           privacyStatus: "private",
-          // publishAt: !!fields.scheduleDate[0]? new Date(fields.scheduleDate[0]).toISOString() : new Date().toISOString(),
+          publishAt: !!fields.scheduleDate
+            ? new Date(fields.scheduleDate).toISOString()
+            : new Date().toISOString(),
         },
       },
       media: {
         body: fs.createReadStream(file.filepath),
       },
     },
-    (err: string, response:any) => {
+    (err: string, response: any) => {
       if (err) {
-        console.log('The API returned an error: ' + err);
+        console.log("The API returned an error: " + err);
       }
       console.log(response);
       console.log("Done");
@@ -71,21 +73,19 @@ export const config = {
   },
 };
 
-
 export default async function handler(req: Request, res: Response) {
-  if (req.method === 'POST') {
-    console.log('---res.',req.headers)
+  if (req.method === "POST") {
     const data = await new Promise((resolve, reject) => {
       const form = new Formidable();
-      
+
       form.parse(req, (err, fields, files) => {
-        if (err) reject({ err })
-          resolve({ err, fields, files })
-      }) 
-    })
+        if (err) reject({ err });
+        resolve({ err, fields, files });
+      });
+    });
     // console.log('-------form data--', data)
-    const uploadMiddleware = upload//.single('file'); // 'file' is the field name;
-    
+    const uploadMiddleware = upload;
+
     uploadMiddleware(req, res, async (err) => {
       const { cookie } = req.headers;
       const jsonTokens = getTokensCookie(cookie);
@@ -97,19 +97,36 @@ export default async function handler(req: Request, res: Response) {
       // }
       // Access the uploaded file
       // const files = req.files;
-      const {fields, files} = data;
-      const {file} = files;
-      const video = {fields, file: file[0]};
-      console.log('-------endpoint hit', file[0])
-      sendToYT(video)
+      // const {fields, files} = data;
+      // const {file} = files;
+      // const video = {fields, file: file[0]};
+      let numberOfVideos = data.files.files.length;
+      console.log("-------endpoint hit", numberOfVideos);
+      // let video =
+      while (numberOfVideos > 0) {
+        --numberOfVideos;
+        console.log('-------??',data.fields.categoryId[numberOfVideos])
+        const video = {
+          fields: {
+            title: data.fields.title[numberOfVideos],
+            description: data.fields.description[numberOfVideos],
+            categoryId: getCategoryIdFromLabel(data.fields.categoryId[numberOfVideos]),
+            tags: data.fields.tags[numberOfVideos],
+            scheduleDate: data.fields.scheduleDate[numberOfVideos],
+          },
+          file: data.files.files[numberOfVideos],
+        };
+        console.log('---videos', video)
+        sendToYT(video);
+      }
 
       // Do something with the file, e.g., upload to cloud storage
       // ...
 
-      res.status(200).json({ message: 'File uploaded successfully' });
+      res.status(200).json({ message: "File uploaded successfully" });
     });
   } else {
-    res.status(405).json({ error: 'Method Not Allowed' });
+    res.status(405).json({ error: "Method Not Allowed" });
   }
 
   // const videos = req.body;

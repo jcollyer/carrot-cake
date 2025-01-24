@@ -65,3 +65,15 @@ export const Categories:CategoriesType[] = [
     label: "Nonprofits & Activism",
   },
 ];
+
+export const getCategoryIdFromLabel = (categoryLabel:string) => {
+  const cat = Categories.find((category) => {
+    console.log('---category', category.label, categoryLabel)
+      if (category.label === categoryLabel) {
+        return category
+      }
+  })
+  console.log('------cat', cat)
+  return cat?.id
+}
+

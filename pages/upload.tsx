@@ -87,14 +87,15 @@ export default function UploadPage() {
   const onSubmit = async (event: React.ChangeEvent<any>) => {
     event.preventDefault();
     if (videos.length) {
-      // console.log('----??', JSON.stringify(videos))
       const formData = new FormData();
-      formData.append('file', videos[0].file);
-      formData.append('title', videos[0].title);
-      formData.append('description', videos[0].description);
-      formData.append('categoryId', videos[0].category);
-      formData.append('tags', videos[0].tags);
-      formData.append('scheduleDate', videos[0].scheduleDate);
+      videos.forEach((video) => {
+        formData.append('files', video.file);
+        formData.append('title', video.title);
+        formData.append('description', video.description);
+        formData.append('categoryId', video.category);
+        formData.append('tags', video.tags);
+        formData.append('scheduleDate', video.scheduleDate);
+      })
 
       try {
         const response = await fetch('/api/youtube/upload-videos', {
