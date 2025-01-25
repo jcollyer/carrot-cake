@@ -3,7 +3,7 @@ export type CategoriesType = {
   label: string;
 };
 
-export const Categories:CategoriesType[] = [
+export const Categories: CategoriesType[] = [
   {
     id: "1",
     label: "Film & Animation",
@@ -66,14 +66,6 @@ export const Categories:CategoriesType[] = [
   },
 ];
 
-export const getCategoryIdFromLabel = (categoryLabel:string) => {
-  const cat = Categories.find((category) => {
-    console.log('---category', category.label, categoryLabel)
-      if (category.label === categoryLabel) {
-        return category
-      }
-  })
-  console.log('------cat', cat)
-  return cat?.id
-}
-
+export const getCategoryIdFromLabel = (categoryLabel?: string) =>
+  Categories.find((category) => category.label === categoryLabel && category)
+    ?.id;

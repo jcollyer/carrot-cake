@@ -2,29 +2,19 @@ import { useCallback, useState } from 'react';
 import { FilePlus } from 'lucide-react';
 import { SquarePlus } from 'lucide-react';
 import { useDropzone } from 'react-dropzone';
-import moment from 'moment';
 import { getCookie } from 'cookies-next'
 import { Categories, CategoriesType } from '@/app/utils/categories';
+import { VideoProps } from '@/types/video'
+import {getCategoryIdFromLabel} from '@/app/utils/categories'
+import moment from 'moment';
 import generateVideoThumb from '@/app/utils/generateVideoThumb';
 const transparentImage = require('@/public/transparent.png');
 
-type VideoUploadProps = {
-  id: number,
-  file: any,
-  title: string,
-  description: string,
-  scheduleDate: string,
-  category: string,
-  tags: string,
-  thumbnail: string,
-};
-
 export default function UploadPage() {
-  const userPlaylistId = getCookie('userPlaylistId');
   const tokens = getCookie('tokens');
   const [activeIndex, setActiveIndex] = useState<number>(0);
   const [allActive, setAllActive] = useState(false);
-  const [videos, setVideos] = useState<VideoUploadProps[]>([]);
+  const [videos, setVideos] = useState<VideoProps[]>([]);
   const [progress, setProgress] = useState(0);
 
   const uploadConfig = {
@@ -43,7 +33,7 @@ export default function UploadPage() {
 
         const thumbnail = await generateVideoThumb(file);
 
-        setVideos((videos: VideoUploadProps[]) => [
+        setVideos((videos: VideoProps[]) => [
           ...videos,
           {
             id: videos.length,
@@ -70,7 +60,7 @@ export default function UploadPage() {
         : event.currentTarget.value,
     };
 
-    const updateVideo = (video: VideoUploadProps) => ({
+    const updateVideo = (video: VideoProps) => ({
       ...video,
       [`${inputName}`]: event.currentTarget.value,
     });
@@ -92,7 +82,7 @@ export default function UploadPage() {
         formData.append('files', video.file);
         formData.append('title', video.title);
         formData.append('description', video.description);
-        formData.append('categoryId', video.category);
+        formData.append('categoryId', getCategoryIdFromLabel(video.category) || "1");
         formData.append('tags', video.tags);
         formData.append('scheduleDate', video.scheduleDate);
       })
@@ -101,7 +91,6 @@ export default function UploadPage() {
         const response = await fetch('/api/youtube/upload-videos', {
           method: 'POST',
           headers: {
-            // 'Content-Type': 'application/json',
             cookie: `tokens=${tokens}`,
           },
           body: formData,
@@ -113,34 +102,11 @@ export default function UploadPage() {
 
         const data = await response.json();
         console.log('File uploaded successfully:', data);
+        setVideos([]);
 
       } catch (error) {
         console.error('Error uploading file:', error);
       }
-
-
-
-
-      // await fetch('/api/youtube/upload-videos', {
-      //   method: 'POST',
-      //   headers: {
-      //     'Content-Type': 'application/json',
-      //     cookie: `tokens=${tokens}userPlaylistId=${userPlaylistId}`,
-      //   },
-      //   body: JSON.stringify(videos),
-      // })
-      // .then(async res => {
-      //   const response = await res.json();
-      //   if (response.url) {
-      //     window.open(
-      //       response.url,
-      //       'SomeAuthentication',
-      //       'width=672,height=660,modal=yes,alwaysRaised=yes',
-      //     );
-      //   }
-      // });
-
-      setVideos([]);
     }
   };
 
@@ -154,27 +120,6 @@ export default function UploadPage() {
             {...getRootProps()}
           >
             <input {...getInputProps()} name="file" />
-            {/* <input type="file" onChange={async (event) => {
-              event.preventDefault();
-
-              console.log('-----', event.target.files)
-              // const thumbnail = await generateVideoThumb(file);
-
-              // setVideos((videos: VideoUploadProps[]) => [
-              //   ...videos,
-              //   {
-              //     id: videos.length,
-              //     file,
-              //     title: '',
-              //     description: '',
-              //     scheduleDate: '',
-              //     category: '',
-              //     tags: '',
-              //     thumbnail: thumbnail || transparentImage,
-              //   },
-              // ]);
-            }
-            } /> */}
             <SquarePlus className="mr-4" />
             {isDragActive ? (
               <p>Drop the files here ...</p>
@@ -286,7 +231,6 @@ export default function UploadPage() {
                       className="outline-0 bg-transparent border-slate-400 rounded"
                       name="category"
                       value={videos[activeIndex]?.category}
-                    // placeholder="Category"
                     >
                       {Categories.map((item: CategoriesType) => (
                         <option key={item.label} value={item.label}>
