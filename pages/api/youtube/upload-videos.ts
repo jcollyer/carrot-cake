@@ -4,10 +4,11 @@ import { getTokensCookie } from "@/app/utils";
 import { Formidable } from "formidable";
 import { VideoUploadProps } from '@/types/video'
 const Youtube = require("youtube-api");
+
 import fs from "fs";
 import multer from "multer";
 
-const upload = multer({
+const uploadMulter = multer({
   storage: multer.memoryStorage(), // Store file in memory
   limits: { fieldSize: 25 * 1024 * 1024 },
 }).array("file");
@@ -69,7 +70,7 @@ export default async function handler(req: Request, res: Response) {
       });
     });
 
-    const uploadMiddleware = upload;
+    const uploadMiddleware = uploadMulter;
 
     uploadMiddleware(req, res, async (err) => {
       const { cookie } = req.headers;

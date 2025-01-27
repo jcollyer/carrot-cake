@@ -1,4 +1,4 @@
-import { useCallback, useState } from 'react';
+import { useCallback, useRef, useState } from 'react';
 import { FilePlus } from 'lucide-react';
 import { SquarePlus } from 'lucide-react';
 import { useDropzone } from 'react-dropzone';
@@ -6,6 +6,8 @@ import { getCookie } from 'cookies-next'
 import { Categories, CategoriesType } from '@/app/utils/categories';
 import { VideoProps } from '@/types/video'
 import {getCategoryIdFromLabel} from '@/app/utils/categories'
+import { upload } from '@vercel/blob/client';
+import { type PutBlobResult } from '@vercel/blob';
 import moment from 'moment';
 import generateVideoThumb from '@/app/utils/generateVideoThumb';
 const transparentImage = require('@/public/transparent.png');
@@ -16,6 +18,8 @@ export default function UploadPage() {
   const [allActive, setAllActive] = useState(false);
   const [videos, setVideos] = useState<VideoProps[]>([]);
   const [progress, setProgress] = useState(0);
+  const inputFileRef = useRef<HTMLInputElement>(null);
+  const [blob, setBlob] = useState<PutBlobResult | null>(null);
 
   const uploadConfig = {
     onUploadProgress: (progressEvent: any) => {
@@ -30,6 +34,15 @@ export default function UploadPage() {
   const onDrop = useCallback((acceptedFiles: any) => {
     if (acceptedFiles.length) {
       acceptedFiles.forEach(async (file: any, index: number) => {
+        console.log('--------file--', file.name, file)
+        
+        const newBlob = await upload(file.name, file, {
+          access: 'public',
+          handleUploadUrl: '/api/vercel/blob',
+        });
+
+        setBlob(newBlob);
+        
 
         const thumbnail = await generateVideoThumb(file);
 
@@ -113,6 +126,32 @@ export default function UploadPage() {
   return (
     <div className="flex flex-col max-w-3xl mx-auto p-6">
       <h3 className="text-center text-3xl">Upload Video</h3>
+      <form
+        onSubmit={async (event) => {
+          event.preventDefault();
+ 
+          if (!inputFileRef.current?.files) {
+            throw new Error('No file selected');
+          }
+ 
+          const file = inputFileRef.current.files[0];
+ 
+          const newBlob = await upload(file.name, file, {
+            access: 'public',
+            handleUploadUrl: '/api/vercel/blob',
+          });
+ 
+          setBlob(newBlob);
+        }}
+      >
+        <input name="file" ref={inputFileRef} type="file" required />
+        <button type="submit">Upload</button>
+      </form>
+      {blob && (
+        <div>
+          Blob url: <a href={blob.url}>{blob.url}</a>
+        </div>
+      )}
       <form action="uploadVideo" method="post" encType="multipart/form-data" className="mt-12">
         <div className="flex justify-between bg-[rgba(255,255,255,0.4)]">
           <div
