@@ -5,7 +5,7 @@ import { useDropzone } from 'react-dropzone';
 import { getCookie } from 'cookies-next'
 import { Categories, CategoriesType } from '@/app/utils/categories';
 import { VideoProps } from '@/types/video'
-import {getCategoryIdFromLabel} from '@/app/utils/categories'
+import { getCategoryIdFromLabel } from '@/app/utils/categories'
 import { upload } from '@vercel/blob/client';
 import { type PutBlobResult } from '@vercel/blob';
 import moment from 'moment';
@@ -17,40 +17,62 @@ export default function UploadPage() {
   const [activeIndex, setActiveIndex] = useState<number>(0);
   const [allActive, setAllActive] = useState(false);
   const [videos, setVideos] = useState<VideoProps[]>([]);
-  const [progress, setProgress] = useState(0);
+  const [progress, setProgress] = useState<number[]>([]);
   const inputFileRef = useRef<HTMLInputElement>(null);
   const [blob, setBlob] = useState<PutBlobResult | null>(null);
-
-  const uploadConfig = {
-    onUploadProgress: (progressEvent: any) => {
-      const percentCompleted = Math.round(
-        (progressEvent.loaded * 100) / progressEvent.total,
-      );
-
-      setProgress(percentCompleted);
-    },
-  };
 
   const onDrop = useCallback((acceptedFiles: any) => {
     if (acceptedFiles.length) {
       acceptedFiles.forEach(async (file: any, index: number) => {
         console.log('--------file--', file.name, file)
-        
+
         const newBlob = await upload(file.name, file, {
           access: 'public',
           handleUploadUrl: '/api/vercel/blob',
+          onUploadProgress(e) {
+            setProgress((progress) => {
+              progress[index] = Math.round((e.loaded * 100) / e.total);
+              return [...progress];
+            });
+
+            if (e.loaded === e.total) {
+              setProgress([]);
+            }
+          }
         });
 
         setBlob(newBlob);
-        
+        // setProgress([]);
 
         const thumbnail = await generateVideoThumb(file);
+
+        const blobFile = await fetch(newBlob.url)
+          .then((response) => response.blob())
+          .then((blob) => {
+            const videoFile = new File([blob], file.name, { type: 'video/mp4' });
+
+            // console.log(videoFile); // Logs the File object
+            return videoFile;
+            // // Create a URL for the blob
+            // const url = URL.createObjectURL(blob);
+
+            // // Create a video element and set the source
+            // const video = document.createElement("video");
+            // video.src = url;
+            // video.controls = true;
+
+            // // Append the video element to the DOM
+            // document.body.appendChild(video);
+          });
+
+        // Get the video element url
+        console.log('------blob--', blobFile)
 
         setVideos((videos: VideoProps[]) => [
           ...videos,
           {
             id: videos.length,
-            file,
+            file: blobFile,
             title: '',
             description: '',
             scheduleDate: '',
@@ -126,27 +148,6 @@ export default function UploadPage() {
   return (
     <div className="flex flex-col max-w-3xl mx-auto p-6">
       <h3 className="text-center text-3xl">Upload Video</h3>
-      <form
-        onSubmit={async (event) => {
-          event.preventDefault();
- 
-          if (!inputFileRef.current?.files) {
-            throw new Error('No file selected');
-          }
- 
-          const file = inputFileRef.current.files[0];
- 
-          const newBlob = await upload(file.name, file, {
-            access: 'public',
-            handleUploadUrl: '/api/vercel/blob',
-          });
- 
-          setBlob(newBlob);
-        }}
-      >
-        <input name="file" ref={inputFileRef} type="file" required />
-        <button type="submit">Upload</button>
-      </form>
       {blob && (
         <div>
           Blob url: <a href={blob.url}>{blob.url}</a>
@@ -316,6 +317,14 @@ export default function UploadPage() {
           </div>
         )}
       </form>
+      {progress.length > 0 && progress.map((progress, index) => (
+        <div key={index} className="w-full h-4 mb-4 bg-gray-200 rounded-full dark:bg-gray-700 mt-4">
+          <div
+            className="h-4 bg-gray-400 rounded-full dark:bg-gray-600"
+            style={{ width: `${progress}%` }}
+          />
+        </div>
+      ))}
     </div>
   );
 }

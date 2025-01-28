@@ -6,7 +6,8 @@
     "dev": "next dev --turbopack",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "ngrok": "ngrok http --url=jointly-topical-leech.ngrok-free.app 3000"
   },
   "dependencies": {
     "@vercel/blob": "^0.27.1",

@@ -8,10 +8,10 @@ const Youtube = require("youtube-api");
 import fs from "fs";
 import multer from "multer";
 
-const uploadMulter = multer({
-  storage: multer.memoryStorage(), // Store file in memory
-  limits: { fieldSize: 25 * 1024 * 1024 },
-}).array("file");
+// const uploadMulter = multer({
+//   storage: multer.memoryStorage(), // Store file in memory
+//   limits: { fieldSize: 25 * 1024 * 1024 },
+// }).array("file");
 
 type videoType = {
   fields: VideoUploadProps,
@@ -20,6 +20,7 @@ type videoType = {
 
 const sendToYT = (video:videoType) => {
   const { fields, file } = video;
+  console.log('-----send to yt--->', file);
 
   Youtube.videos.insert(
     {
@@ -70,32 +71,55 @@ export default async function handler(req: Request, res: Response) {
       });
     });
 
-    const uploadMiddleware = uploadMulter;
+    // const uploadMiddleware = uploadMulter;
 
-    uploadMiddleware(req, res, async (err) => {
-      const { cookie } = req.headers;
-      const jsonTokens = getTokensCookie(cookie);
-      oauth.setCredentials(jsonTokens);
+    // uploadMiddleware(req, res, async (err) => {
+    //   const { cookie } = req.headers;
+    //   const jsonTokens = getTokensCookie(cookie);
+    //   oauth.setCredentials(jsonTokens);
 
-      let numberOfVideos = data.files.files.length;
+    //   let numberOfVideos = data.files.files.length;
       
-      while (numberOfVideos > 0) {
-        --numberOfVideos;
+    //   while (numberOfVideos > 0) {
+    //     --numberOfVideos;
 
-        const video = {
-          fields: {
-            title: data.fields.title[numberOfVideos],
-            description: data.fields.description[numberOfVideos],
-            categoryId: data.fields.categoryId[numberOfVideos],
-            tags: data.fields.tags[numberOfVideos],
-            scheduleDate: data.fields.scheduleDate[numberOfVideos],
-          },
-          file: data.files.files[numberOfVideos],
-        };
+    //     const video = {
+    //       fields: {
+    //         title: data.fields.title[numberOfVideos],
+    //         description: data.fields.description[numberOfVideos],
+    //         categoryId: data.fields.categoryId[numberOfVideos],
+    //         tags: data.fields.tags[numberOfVideos],
+    //         scheduleDate: data.fields.scheduleDate[numberOfVideos],
+    //       },
+    //       file: data.files.files[numberOfVideos],
+    //     };
 
-        sendToYT(video as any);
-      }
-    });
+    //     sendToYT(video as any);
+    //   }
+    // });
+
+    const { cookie } = req.headers;
+    const jsonTokens = getTokensCookie(cookie);
+    oauth.setCredentials(jsonTokens);
+
+    let numberOfVideos = data.fields.title.length;
+
+    while (numberOfVideos > 0) {
+      --numberOfVideos;
+      console.log('----------', data.fields)
+      const video = {
+        fields: {
+          title: data.fields.title[numberOfVideos],
+          description: data.fields.description[numberOfVideos],
+          categoryId: data.fields.categoryId[numberOfVideos],
+          tags: data.fields.tags[numberOfVideos],
+          scheduleDate: data.fields.scheduleDate[numberOfVideos],
+        },
+        file: data.files.files[numberOfVideos],
+      };
+
+      sendToYT(video as any);
+    }
   } else {
     res.status(405).json({ error: "Method Not Allowed" });
   }
