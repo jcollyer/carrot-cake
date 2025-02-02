@@ -9,6 +9,7 @@ import { getCategoryIdFromLabel } from '@/app/utils/categories'
 import moment from 'moment';
 import generateVideoThumb from '@/app/utils/generateVideoThumb';
 const transparentImage = require('@/public/transparent.png');
+// const Youtube = require("youtube-api");
 
 export default function UploadPage() {
   const tokens = getCookie('tokens');
