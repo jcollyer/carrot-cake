@@ -11,6 +11,7 @@ import generateVideoThumb from '@/app/utils/generateVideoThumb';
 const transparentImage = require('@/public/transparent.png');
 // const Youtube = require("youtube-api");
 
+
 export default function UploadPage() {
   const tokens = getCookie('tokens');
   const [activeIndex, setActiveIndex] = useState<number>(0);
