@@ -9,7 +9,6 @@ import { getCategoryIdFromLabel } from '@/app/utils/categories'
 import moment from 'moment';
 import generateVideoThumb from '@/app/utils/generateVideoThumb';
 const transparentImage = require('@/public/transparent.png');
-// const Youtube = require("youtube-api");
 
 export default function UploadPage() {
   const tokens = getCookie('tokens');
@@ -43,6 +42,47 @@ export default function UploadPage() {
   }, []);
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({ onDrop });
+  const accessToken = !!tokens && JSON.parse(tokens as string).access_token;
+
+  const upload = async () => {
+    const urlparameters = 'part=snippet%2Cstatus&uploadType=resumable';
+
+    const location = await fetch(`https://www.googleapis.com/upload/youtube/v3/videos?${urlparameters}`, {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${String(accessToken)}`,
+        Accept: 'application/json',
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        snippet: {
+          categoryId: '22',
+          description: 'Description of uploaded video.',
+          title: 'Test video upload.',
+        },
+        status: {
+          privacyStatus: 'private',
+        },
+        data: videos[0].file,
+      }),
+    });
+
+    
+    const videoUrl =  await location.headers.get('Location');
+    console.log('--------location--', {videoUrl, file: videos[0].file})
+
+
+    await fetch(`${videoUrl}`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'video/mp4',
+      },
+      body: videos[0].file,
+    });
+
+
+
+  };
 
   const updateInput = (event: React.ChangeEvent<any>, inputName: string, isImageUpload?: boolean) => {
     const updatedCurrentVideo = {
@@ -104,6 +144,7 @@ export default function UploadPage() {
 
   return (
     <div className="flex flex-col max-w-3xl mx-auto p-6">
+      <button className="bg-gray-100" onClick={upload}>Upload directly</button>
       <h3 className="text-center text-3xl">Upload Video</h3>
       <form action="uploadVideo" method="post" encType="multipart/form-data" className="mt-12">
         <div className="flex justify-between bg-[rgba(255,255,255,0.4)]">
