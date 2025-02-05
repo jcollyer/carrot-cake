@@ -42,48 +42,7 @@ export default function UploadPage() {
   }, []);
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({ onDrop });
-  const accessToken = !!tokens && JSON.parse(tokens as string).access_token;
-
-  const upload = async () => {
-    const urlparameters = 'part=snippet%2Cstatus&uploadType=resumable';
-
-    const location = await fetch(`https://www.googleapis.com/upload/youtube/v3/videos?${urlparameters}`, {
-      method: 'POST',
-      headers: {
-        Authorization: `Bearer ${String(accessToken)}`,
-        Accept: 'application/json',
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        snippet: {
-          categoryId: '22',
-          description: 'Description of uploaded video.',
-          title: 'Test video upload.',
-        },
-        status: {
-          privacyStatus: 'private',
-        },
-        data: videos[0].file,
-      }),
-    });
-
-    
-    const videoUrl =  await location.headers.get('Location');
-    console.log('--------location--', {videoUrl, file: videos[0].file})
-
-
-    await fetch(`${videoUrl}`, {
-      method: 'PUT',
-      headers: {
-        'Content-Type': 'video/mp4',
-      },
-      body: videos[0].file,
-    });
-
-
-
-  };
-
+ 
   const updateInput = (event: React.ChangeEvent<any>, inputName: string, isImageUpload?: boolean) => {
     const updatedCurrentVideo = {
       ...videos[activeIndex],
@@ -108,43 +67,58 @@ export default function UploadPage() {
 
   const onSubmit = async (event: React.ChangeEvent<any>) => {
     event.preventDefault();
-    if (videos.length) {
-      const formData = new FormData();
-      videos.forEach((video) => {
-        formData.append('files', video.file);
-        formData.append('title', video.title);
-        formData.append('description', video.description);
-        formData.append('categoryId', getCategoryIdFromLabel(video.category) || "1");
-        formData.append('tags', video.tags);
-        formData.append('scheduleDate', video.scheduleDate);
-      })
+    const accessToken = !!tokens && JSON.parse(tokens as string).access_token;
+    const urlparameters = 'part=snippet%2Cstatus&uploadType=resumable';
 
-      try {
-        const response = await fetch('/api/youtube/upload-videos', {
+    if (!accessToken) {
+      console.error('No access token found');
+      return;
+    }
+    if(!!videos.length) {
+      videos.forEach(async (video, index) => {
+        const location = await fetch(`https://www.googleapis.com/upload/youtube/v3/videos?${urlparameters}`, {
           method: 'POST',
           headers: {
-            cookie: `tokens=${tokens}`,
+            Authorization: `Bearer ${String(accessToken)}`,
+            Accept: 'application/json',
+            'Content-Type': 'application/json',
           },
-          body: formData,
+          body: JSON.stringify({
+            snippet: {
+              categoryId: getCategoryIdFromLabel(video.category),
+              description: video.description,
+              title: video.title,
+              tags: video.tags.split(', '), // Array of strings
+            },
+            status: {
+              privacyStatus: 'private',
+              publishAt: new Date(video.scheduleDate).toISOString(),
+            },
+          }),
         });
+        
 
-        if (!response.ok) {
-          throw new Error('File upload failed');
+        // Url to upload video file from the location header
+        const videoUrl =  await location.headers.get('Location');
+
+        try {
+          const response = await fetch(`${videoUrl}`, {
+            method: 'PUT',
+            headers: {
+              'Content-Type': 'video/mp4',
+            },
+            body: video.file,
+          });
+          console.log('Video uploaded:', response)
+        } catch (error) {
+          console.error('Error uploading file:', error);
         }
-
-        const data = await response.json();
-        console.log('File uploaded successfully:', data);
-        setVideos([]);
-
-      } catch (error) {
-        console.error('Error uploading file:', error);
-      }
+      });
     }
   };
 
   return (
     <div className="flex flex-col max-w-3xl mx-auto p-6">
-      <button className="bg-gray-100" onClick={upload}>Upload directly</button>
       <h3 className="text-center text-3xl">Upload Video</h3>
       <form action="uploadVideo" method="post" encType="multipart/form-data" className="mt-12">
         <div className="flex justify-between bg-[rgba(255,255,255,0.4)]">
