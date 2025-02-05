@@ -1,4 +1,4 @@
-import { useCallback, useRef, useState } from 'react';
+import { useCallback, useState } from 'react';
 import { FilePlus } from 'lucide-react';
 import { SquarePlus } from 'lucide-react';
 import { useDropzone } from 'react-dropzone';
@@ -15,13 +15,10 @@ export default function UploadPage() {
   const [activeIndex, setActiveIndex] = useState<number>(0);
   const [allActive, setAllActive] = useState(false);
   const [videos, setVideos] = useState<VideoProps[]>([]);
-  const [progress, setProgress] = useState<number[]>([]);
 
   const onDrop = useCallback((acceptedFiles: any) => {
     if (acceptedFiles.length) {
-      acceptedFiles.forEach(async (file: any, index: number) => {
-        console.log('--------file--', file.name, file);
-
+      acceptedFiles.forEach(async (file: any) => {
         const thumbnail = await generateVideoThumb(file);
 
         setVideos((videos: VideoProps[]) => [
@@ -75,7 +72,7 @@ export default function UploadPage() {
       return;
     }
     if(!!videos.length) {
-      videos.forEach(async (video, index) => {
+      videos.forEach(async (video) => {
         const location = await fetch(`https://www.googleapis.com/upload/youtube/v3/videos?${urlparameters}`, {
           method: 'POST',
           headers: {
@@ -96,10 +93,9 @@ export default function UploadPage() {
             },
           }),
         });
-        
 
         // Url to upload video file from the location header
-        const videoUrl =  await location.headers.get('Location');
+        const videoUrl = await location.headers.get('Location');
 
         try {
           const response = await fetch(`${videoUrl}`, {
@@ -137,13 +133,6 @@ export default function UploadPage() {
         </div>
         {!!videos.length && (
           <div>
-            <div className="w-full h-4 mb-4 bg-gray-200 rounded-full dark:bg-gray-700 mt-4">
-              <div
-                className="h-4 bg-gray-400 rounded-full dark:bg-gray-600"
-                style={{ width: `${progress}%` }}
-              />
-            </div>
-
             <p className="float-left mr-3">EDIT ALL</p>
             <input
               type="checkbox"
@@ -284,14 +273,6 @@ export default function UploadPage() {
           </div>
         )}
       </form>
-      {progress.length > 0 && progress.map((progress, index) => (
-        <div key={index} className="w-full h-4 mb-4 bg-gray-200 rounded-full dark:bg-gray-700 mt-4">
-          <div
-            className="h-4 bg-gray-400 rounded-full dark:bg-gray-600"
-            style={{ width: `${progress}%` }}
-          />
-        </div>
-      ))}
     </div>
   );
 }
