@@ -22,6 +22,6 @@ export default async function handler(req: Request, res: Response) {
     );
 
     // Hack to close the window
-    res.send("<script>window.close();</script>");
+    res.send("<script>window.parent.location.reload(); window.close();</script>");
   });
 }

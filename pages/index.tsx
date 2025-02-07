@@ -4,12 +4,19 @@ import { getCookie, setCookie, deleteCookie } from 'cookies-next'
 import Calendar from '@/app/components/Calendar';
 
 export default function Home() {
-  const tokens = getCookie('tokens');
-  const playlistId = getCookie('userPlaylistId');
-
+  const [tokens, setTokens] = useState(getCookie('tokens'));
+  const [playlistToken, setPlaylistToken] = useState(
+    getCookie('userPlaylistId'),
+  );
   const [videos, setVideos] = useState([]);
 
   const connect = async () => {
+    listenCookieChange(({ oldValue, newValue }) => {
+      console.log(`Cookie changed from "${oldValue}" to "${newValue}"`);
+      if (oldValue !== newValue) {
+        setTokens(newValue);
+      }
+    }, 1000);
     await fetch('/api/youtube/connect-yt', {
       method: 'GET',
       headers: {
@@ -31,6 +38,7 @@ export default function Home() {
     }).then(async (res) => {
       const { playlistId } = await res.json();
       setCookie('userPlaylistId', playlistId);
+      setPlaylistToken(playlistId);
     });
   }
 
@@ -41,12 +49,26 @@ export default function Home() {
         'Content-Type': 'application/json',
         cookie: `tokens=${tokens}`,
       },
-      body: JSON.stringify({ playlistId }),
+      body: JSON.stringify({ playlistId: playlistToken }),
     }).then(async (res) => {
       const videos = await res.json();
       setVideos(videos);
     });
   }
+
+  const listenCookieChange = (callback: (values: { oldValue: string, newValue: string }) => void, interval = 1000) => {
+    let lastCookie = getCookie('tokens') as string;
+    setInterval(() => {
+      const tokens = getCookie('tokens') as string;
+      if (tokens !== lastCookie) {
+        try {
+          callback({ oldValue: lastCookie, newValue: tokens });
+        } finally {
+          lastCookie = tokens;
+        }
+      }
+    }, interval);
+  };
 
   useEffect(() => {
     if (tokens)
@@ -54,9 +76,9 @@ export default function Home() {
   }, [tokens]);
 
   useEffect(() => {
-    if (playlistId)
+    if (playlistToken)
       getVideos();
-  }, [playlistId]);
+  }, [playlistToken]);
 
   return (
     <main>
