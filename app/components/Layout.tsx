@@ -6,15 +6,17 @@ export default function Layout({ children }: { children: React.ReactNode }) {
     <div>
       <Head>
         <style>
-          @import url('https://fonts.googleapis.com/css2?family=Questrial&display=swap');
+          @import url('https://fonts.googleapis.com/css2?family=Anton+SC&family=Questrial&display=swap');
         </style>
-        {/* <script src="https://apis.google.com/js/api.js"></script> */}
-        <script src="https://apis.google.com/js/client.js?onload=gapiInit"></script>
-        {/* <script src="https://apis.google.com/js/client:plusone.js" type="application/javascript"></script> */}
       </Head>
-      <Navbar />
-      <div className="pt-16">  
-        {children}
+      <div className="flex flex-col h-screen bg-gray-50">
+        <Navbar />
+        <div className="flx-grow">{children}</div>
+        <footer className="sticky top-full bg-white border-t-[1px] border-gray-200 text-center text-sm py-4">
+          <div>
+            <p>© {new Date().getFullYear()} Carrot Cake</p>
+          </div>
+        </footer>
       </div>
     </div>
   );

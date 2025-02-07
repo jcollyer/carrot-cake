@@ -10,6 +10,7 @@
     "ngrok": "ngrok http --url=jointly-topical-leech.ngrok-free.app 3000"
   },
   "dependencies": {
+    "@tailwindcss/line-clamp": "^0.4.4",
     "cookies-next": "^5.1.0",
     "express": "^4.21.2",
     "lucide-react": "^0.473.0",

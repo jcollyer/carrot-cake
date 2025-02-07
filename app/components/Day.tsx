@@ -5,28 +5,31 @@ type Props = {
     isToday: boolean,
     number: number,
   },
-  select: (day:any) => void,
+  select: (day: any) => void,
   selected: any,
   videoScheduled: any[],
-  editVideo: (video:any) => void,
+  editVideo: (video: any) => void,
 };
 
-export function Day({ day, select, selected, videoScheduled, editVideo }:Props) {
+export function Day({ day, select, selected, videoScheduled, editVideo }: Props) {
   const { date, isCurrentMonth, isToday, number } = day;
   if (videoScheduled.length > 0) {
     const video = videoScheduled[0];
     const { snippet, status } = video;
     return (
       <div
-        className="relative flex-[1] border-l-[solid_1px_#444] text-[white] text-left bg-cover bg-center max-w-[128px] pb-14 hover:bg-gray-200 first-child:border-l-[none] first-child:rounded-l-[10px] last-child:border-l-[none]"
+        className="flex flex-col flex-1 text-left rounded-sm bg-cover bg-center max-w-[128px]"
         style={{
           backgroundImage: `url(${snippet.thumbnails.default.url})`,
         }}
       >
-        <div className="flex justify-center items-center w-6 h-6 bg-gray-200 text-gray-700 text-xs font-bold rounded-full m-2">{number}</div>
-        <p className="mx-3 font-bold truncate">{snippet.title}</p>
-        <p className="mx-3 truncate">{snippet.description}</p>
+        <div className="flex-grow">
+          <div className="flex justify-center items-center w-6 h-6 bg-gray-200 rounded-full mt-2 ml-1">{number}</div>
+          <p className="text-white mx-1 mt-4 mb-2 truncate font-medium text-lg">{snippet.title}</p>
+          <p className="text-white text-sm mx-1 mb-3 line-clamp-2">{snippet.description}</p>
+        </div>
         <button
+          className="w-full font-bold py-0.5 text-gray-700 bg-gray-200 hover:bg-gray-300"
           onClick={() =>
             editVideo({
               id: video.id,
@@ -36,10 +39,8 @@ export function Day({ day, select, selected, videoScheduled, editVideo }:Props) 
               categoryId: snippet.categoryId,
               tags: snippet.tags,
             })}
-          type="button"
-          className="font-bold px-3 border-t border-slate-500 hover:bg-slate-500 bg-gray-500 w-full absolute bottom-0"
         >
-          Edit Video
+          Update
         </button>
       </div>
     );
@@ -48,9 +49,7 @@ export function Day({ day, select, selected, videoScheduled, editVideo }:Props) 
   return (
     <button
       key={date.toString()}
-      className={`flex justify-center items-center flex-[1] border-l-[solid_1px_#333] cursor-pointer [transition:all_0.2s] px-[0] py-[10px] ${isToday ? 'bg-gray-300' : ''}${
-        isCurrentMonth ? '' : 'color-gray-400'
-      }${date.isSame(selected) ? 'bg-blue-600 color-white' : ''}`}
+      className="flex-1 justify-center items-center border-l-[1px] border-gray-100 cursor-pointer py-5"
       onClick={() => select(day)}
       type="button"
     >

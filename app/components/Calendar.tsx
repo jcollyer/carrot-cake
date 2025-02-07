@@ -128,27 +128,27 @@ export function Calendar({ scheduledVideos, setLocallScheduledVideoData }: Props
 
   return (
 
-    <section className="block relative bg-[#ffffff] w-[900px] border-[solid] border-[1px] border-[#cccccc] mt-20 mx-[auto] mb-0 [box-shadow:0_0_15px_0_#c0c0c0] text-[1.3rem] text-center">
-      <header className="text-[#ffffff] cursor-default text-[1.4rem] block font-bold uppercase select-none">
-        <div className="items-center h-[40px] bg-[#444444] flex w-full">
+    <section className="mt-16 bg-white w-[900px] border-[1px] border-gray-200 text-center rounded-md">
+      <header className="text-gray-700 font-lg font-bold uppercase select-none border-t-[1px] border-gray-100">
+        <div className="items-center py-2 bg-gray-200 flex w-full border-b-[1px] border-gray-300">
           <ChevronLeft
-            className="text-[3rem] leading-none"
+            className="text-gray-600"
             onClick={() => previous()}
           />
           <span className="flex-[1]">{month.format('MMMM YYYY')}</span>
           <ChevronRight
-            className="text-[3rem] leading-none"
+            className="text-gray-600"
             onClick={() => next()}
           />
         </div>
-        <div className="flex w-full text-[#444444] font-bold cursor-default text-[1.2rem]">
-          <span className="flex justify-center items-center flex-[1] border-l-[solid_1px_#cccccc] cursor-pointer [transition:all_0.2s] px-[0] py-[10px] h-[45px]">Sun</span>
-          <span className="flex justify-center items-center flex-[1] border-l-[solid_1px_#cccccc] cursor-pointer [transition:all_0.2s] px-[0] py-[10px] h-[45px]">Mon</span>
-          <span className="flex justify-center items-center flex-[1] border-l-[solid_1px_#cccccc] cursor-pointer [transition:all_0.2s] px-[0] py-[10px] h-[45px]">Tue</span>
-          <span className="flex justify-center items-center flex-[1] border-l-[solid_1px_#cccccc] cursor-pointer [transition:all_0.2s] px-[0] py-[10px] h-[45px]">Wed</span>
-          <span className="flex justify-center items-center flex-[1] border-l-[solid_1px_#cccccc] cursor-pointer [transition:all_0.2s] px-[0] py-[10px] h-[45px]">Thu</span>
-          <span className="flex justify-center items-center flex-[1] border-l-[solid_1px_#cccccc] cursor-pointer [transition:all_0.2s] px-[0] py-[10px] h-[45px]">Fri</span>
-          <span className="flex justify-center items-center flex-[1] border-l-[solid_1px_#cccccc] cursor-pointer [transition:all_0.2s] px-[0] py-[10px] h-[45px]">Sat</span>
+        <div className="flex w-full text-gray-600 py-3">
+          <span className="flex-1 border-r-[1px] border-gray-200">Sun</span>
+          <span className="flex-1 border-r-[1px] border-gray-200">Mon</span>
+          <span className="flex-1 border-r-[1px] border-gray-200">Tue</span>
+          <span className="flex-1 border-r-[1px] border-gray-200">Wed</span>
+          <span className="flex-1 border-r-[1px] border-gray-200">Thu</span>
+          <span className="flex-1 border-r-[1px] border-gray-200">Fri</span>
+          <span className="flex-1">Sat</span>
         </div>
       </header>
       {renderWeeks()}
