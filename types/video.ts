@@ -23,20 +23,11 @@ export interface YouTubeVideo {
   };
 }
 
-
-export type VideoUploadProps = {
-  categoryId: string;
-  description: string;
-  scheduleDate: string;
-  tags: string;
-  title: string;
-};
-
 export type VideoProps = {
   description: string;
   category: string;
   file: any;
-  id: number;
+  id?: string;
   scheduleDate: string;
   tags: string;
   title: string;

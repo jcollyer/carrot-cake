@@ -1,14 +1,28 @@
 import { useEffect, useState } from "react";
 import Image from 'next/image';
 import { getCookie, setCookie, deleteCookie } from 'cookies-next'
+import { CircleX } from 'lucide-react';
+import { Categories } from '@/app/utils/categories';
 import Calendar from '@/app/components/Calendar';
+import { getCategoryIdFromLabel } from '@/app/utils/categories'
+import clsx from 'clsx';
+import { VideoProps, YouTubeVideo } from '@/types/video'
 
 export default function Home() {
   const [tokens, setTokens] = useState(getCookie('tokens'));
   const [playlistToken, setPlaylistToken] = useState(
     getCookie('userPlaylistId'),
   );
-  const [videos, setVideos] = useState([]);
+  const [videos, setVideos] = useState<YouTubeVideo[]>([]);
+  const [editVideoSelected, setEditVideoSelected] = useState<VideoProps>({
+    description: '',
+    category: '',
+    file: '',
+    scheduleDate: '',
+    tags: '',
+    title: '',
+    thumbnail: '',
+  });
 
   const connect = async () => {
     listenCookieChange(({ oldValue, newValue }) => {
@@ -70,6 +84,64 @@ export default function Home() {
     }, interval);
   };
 
+  const closeEditVideo = () => {
+    setEditVideoSelected({});
+  };
+
+  const updateEditVideoSelected = (event: React.ChangeEvent<any>, inputName: string) => {
+    setEditVideoSelected({
+      ...editVideoSelected,
+      [`${inputName}`]:
+        inputName === 'scheduleDate'
+          ? `${event.currentTarget.value}T00:00:00Z`
+          : event.currentTarget.value,
+    });
+  };
+
+  const saveEditVideo = () => {
+    fetch('/api/auth/updateVideo', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        videoId: editVideoSelected.id,
+        title: editVideoSelected.title,
+        description: editVideoSelected.description,
+        scheduleDate: editVideoSelected.scheduleDate,
+        categoryId: editVideoSelected.category,
+        tags: editVideoSelected.tags,
+      }),
+    })
+      .then(response => response.json())
+      .then(() => {
+        const updatedScheduledVideos = videos.map(video => {
+          if (video.id === editVideoSelected.id) {
+            return {
+              ...video,
+              snippet: {
+                ...video.snippet,
+                title: editVideoSelected.title,
+                description: editVideoSelected.description,
+                categoryId: getCategoryIdFromLabel(editVideoSelected.category),
+                tags: editVideoSelected.tags,
+              },
+              status: {
+                publishAt: editVideoSelected.scheduleDate,
+              },
+            };
+          }
+          return video;
+        });
+    
+        setEditVideoSelected(updatedScheduledVideos);
+      })
+      .catch(error => {
+        console.error('Error updating video:', error);
+      });
+  };
+
+
   useEffect(() => {
     if (tokens)
       getPlaylistId();
@@ -79,33 +151,118 @@ export default function Home() {
     if (playlistToken)
       getVideos();
   }, [playlistToken]);
-
+  console.log('--------', editVideoSelected, Object.keys(editVideoSelected).length)
   return (
-    <main>
-      <div className="flex flex-col items-center">
-        <h1 className="text-7xl mt-32 text-transparent bg-clip-text bg-gradient-to-r from-red-500 to-orange-500">Carrot Cake</h1>
-        {videos.length === 0 && (<button onClick={() => connect()} className="flex gap-2 mt-6 items-center bg-white hover:bg-gray-100 border border-gray-200 focus:ring-4 focus:outline-none focus:ring-gray-100 rounded-lg px-5 py-2.5">
-          <Image src="/youtube_logo.png" alt="Youtube Logo" width="50" height="20" className="w-12" />
-          <p className="text-lg">Connect to Youtube</p>
-        </button>)}
-      </div>
-      {videos.length > 0 && (
-        <div className="flex flex-col items-center gap-8">
-          <Calendar
-            scheduledVideos={videos}
-            setLocallScheduledVideoData={setVideos}
-          />
-          <button
-            className="text-gray-700 hover:text-gray-400 border border-gray-600 hover:border-gray-400 focus:ring-4 focus:outline-none focus:ring-gray-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center me-2 mb-2 "
-            onClick={() => {
-              deleteCookie("userPlaylistId");
-              deleteCookie("tokens");
-              setVideos([]);
-            }}>
-            Disconnect from Youtube
-          </button>
+    <main className="flex">
+      <div className="w-full">
+        <div className="flex flex-col items-center">
+          <h1 className="text-7xl mt-32 text-transparent bg-clip-text bg-gradient-to-r from-red-500 to-orange-500">Carrot Cake</h1>
+          {videos.length === 0 && (<button onClick={() => connect()} className="flex gap-2 mt-6 items-center bg-white hover:bg-gray-100 border border-gray-200 focus:ring-4 focus:outline-none focus:ring-gray-100 rounded-lg px-5 py-2.5">
+            <Image src="/youtube_logo.png" alt="Youtube Logo" width="50" height="20" className="w-12" />
+            <p className="text-lg">Connect to Youtube</p>
+          </button>)}
         </div>
-      )}
+        {videos.length > 0 && (
+          <div className="flex flex-col items-center gap-8">
+            <Calendar
+              scheduledVideos={videos}
+              setEditVideoSelected={setEditVideoSelected}
+            />
+            <button
+              className="text-gray-700 hover:text-gray-400 border border-gray-600 hover:border-gray-400 focus:ring-4 focus:outline-none focus:ring-gray-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center me-2 mb-2 "
+              onClick={() => {
+                deleteCookie("userPlaylistId");
+                deleteCookie("tokens");
+                setVideos([]);
+              }}>
+              Disconnect from Youtube
+            </button>
+          </div>
+        )}
+      </div>
+      <div className={clsx({ "w-[400px]": Object.keys(editVideoSelected).length > 0 }, "absolute right-0 z-10 w-0 transition-[width] h-screen border-l bg-gray-100 border-gray-200")}>
+        <div className="flex flex-col w-[400px] gap-2 pt-6 px-8 h-full">
+          <div className="flex items-center mb-10">
+            <h3 className="text-gray-700 text-xl font-bold">Edit Video</h3>
+            <CircleX className="ml-auto text-gray-500 hover:text-gray-900 cursor-pointer" size="34" strokeWidth={1} onClick={() => closeEditVideo()} />
+          </div>
+          <div className="flex flex-col gap-6">
+            <div className="flex gap-2 items-center">
+              <p className="font-semibold">Title:</p>
+              <input
+                onChange={event => updateEditVideoSelected(event, 'title')}
+                className="border border-gray-300 outline-0 bg-transparent grow py-1 px-2 rounded"
+                name="title"
+                value={editVideoSelected.title}
+                placeholder="Title"
+              />
+            </div>
+            <div className="flex flex-col gap-2">
+              <p className="font-semibold">Description:</p>
+              <textarea
+                onChange={event => updateEditVideoSelected(event, 'description')}
+                className="border border-gray-300 outline-0 bg-transparent grow h-40 p-2 rounded"
+                name="description"
+                value={editVideoSelected.description}
+                placeholder="Description"
+              />
+            </div>
+            <div className="flex gap-2">
+              <p className="font-semibold">Scheduled Date:</p>
+              <input
+                type="date"
+                onChange={event => updateEditVideoSelected(event, 'scheduleDate')}
+                className="bg-transparent"
+                name="scheduleDate"
+                value={editVideoSelected.scheduleDate && editVideoSelected.scheduleDate.split('T')[0]}
+                placeholder="Schedule Date"
+              />
+            </div>
+            <div className="flex gap-2 items-center">
+              <p className="font-semibold">Category:</p>
+              <select
+                onChange={event => updateEditVideoSelected(event, 'categoryId')}
+                className="outline-0 bg-transparent border-gray-300 border px-1 py-2 rounded w-full"
+                name="categoryId"
+                defaultValue={editVideoSelected.categoryId}
+              // placeholder="CategoryId"
+              >
+                {Categories.map(item => (
+                  <option key={item.label} value={item.id}>
+                    {item.label}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div className="flex flex-col gap-2">
+              <p className="font-semibold">Tags:</p>
+              <textarea
+                name="tags"
+                className="border border-gray-300 outline-0 bg-transparent grow h-32 p-2 rounded"
+                onChange={event => updateEditVideoSelected(event, 'tags')}
+                value={editVideoSelected.tags}
+                placeholder="Tags"
+              />
+            </div>
+          </div>
+          <div className="flex flex-col gap-2 mt-5">
+            <button
+              className="py-2 rounded-lg border text-orange-500 border-orange-500 hover:text-orange-600 hover:border-orange-600"
+              onClick={() => saveEditVideo()}
+              type="button"
+            >
+              Update
+            </button>
+            <button
+              className="py-1 rounded-lg border border-gray-700 hover:border-gray-900"
+              onClick={() => closeEditVideo()}
+              type="button"
+            >
+              Exit
+            </button>
+          </div>
+        </div>
+      </div>
     </main>
   );
 }

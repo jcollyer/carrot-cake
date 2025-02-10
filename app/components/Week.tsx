@@ -60,7 +60,7 @@ export function Week({
   }
 
   return (
-    <div className="flex w-full border-t-[1px] border-gray-100">
+    <div className="flex w-full border-t border-gray-100">
       {days}
     </div>
   );

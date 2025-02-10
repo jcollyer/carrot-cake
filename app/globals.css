@@ -17,8 +17,9 @@
 body {
   color: var(--foreground);
   background: var(--background);
-  font-family: "Questrial", serif;
-  font-weight: 400;
+  font-family: "Mulish", serif;
+  font-optical-sizing: auto;
+  font-weight: 300;
   font-style: normal;
 }
 

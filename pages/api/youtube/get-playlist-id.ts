@@ -28,6 +28,6 @@ export default async function handler(req: Request, res: Response) {
   const playlistId = userPlaylists[0].contentDetails?.relatedPlaylists?.uploads;
 
   // Set the playlistId in a cookie
-  res.setHeader("Set-Cookie", `userPlaylistId=${playlistId}; Path=/`);
+  res.setHeader("Set-Cookie", `userPlaylistId=${playlistId}; Path=/; Max-Age=31536000`);
   res.status(200).json({ playlistId });
 }

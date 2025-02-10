@@ -24,7 +24,6 @@ export default function UploadPage() {
         setVideos((videos: VideoProps[]) => [
           ...videos,
           {
-            id: videos.length,
             file,
             title: '',
             description: '',
@@ -119,7 +118,7 @@ export default function UploadPage() {
       <form action="uploadVideo" method="post" encType="multipart/form-data" className="mt-12">
         <div className="flex justify-between bg-[rgba(255,255,255,0.4)]">
           <div
-            className="w-full h-[180px] border-[1px] border-[solid] border-[#ccc] flex items-center justify-center"
+            className="w-full h-[180px] border border-[solid] border-[#ccc] flex items-center justify-center"
             {...getRootProps()}
           >
             <input {...getInputProps()} name="file" />

@@ -1,3 +1,4 @@
+import { Pencil } from "lucide-react";
 type Props = {
   day: {
     date: any,
@@ -24,12 +25,12 @@ export function Day({ day, select, selected, videoScheduled, editVideo }: Props)
         }}
       >
         <div className="flex-grow">
-          <div className="flex justify-center items-center w-6 h-6 bg-gray-200 rounded-full mt-2 ml-1">{number}</div>
-          <p className="text-white mx-1 mt-4 mb-2 truncate font-medium text-lg">{snippet.title}</p>
-          <p className="text-white text-sm mx-1 mb-3 line-clamp-2">{snippet.description}</p>
+          <div className="flex justify-center items-center w-6 h-6 border text-gray-50 border-gray-50 rounded-full mt-2 ml-1">{number}</div>
+          <p className="text-white mx-1 mt-6 truncate font-bold text-lg">{snippet.title}</p>
+          <p className="text-white text-sm mx-1 line-clamp-2">{snippet.description}</p>
         </div>
         <button
-          className="w-full font-bold py-0.5 text-gray-700 bg-gray-200 hover:bg-gray-300"
+          className="ml-auto mr-2 mb-2"
           onClick={() =>
             editVideo({
               id: video.id,
@@ -40,21 +41,20 @@ export function Day({ day, select, selected, videoScheduled, editVideo }: Props)
               tags: snippet.tags,
             })}
         >
-          Update
+          <Pencil size={16} className="text-gray-100" />
         </button>
       </div>
     );
   }
 
   return (
-    <button
+    <div
       key={date.toString()}
-      className="flex-1 justify-center items-center border-l-[1px] border-gray-100 cursor-pointer py-5"
+      className="flex-1 justify-center items-center border-l border-gray-100 py-5"
       onClick={() => select(day)}
-      type="button"
     >
       {number}
-    </button>
+    </div>
   );
 }
 

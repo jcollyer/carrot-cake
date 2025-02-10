@@ -18,7 +18,7 @@ export default async function handler(req: Request, res: Response) {
     // Set the tokens in a cookie
     res.setHeader(
       "Set-Cookie",
-      `tokens=${encodeURIComponent(JSON.stringify(tokens))}; Path=/`
+      `tokens=${encodeURIComponent(JSON.stringify(tokens))}; Path=/; Max-Age=31536000`
     );
 
     // Hack to close the window
