@@ -17,6 +17,7 @@ export function Day({ day, select, selected, videoScheduled, editVideo }: Props)
   if (videoScheduled.length > 0) {
     const video = videoScheduled[0];
     const { snippet, status } = video;
+
     return (
       <div
         className="flex flex-col flex-1 text-left rounded-sm bg-cover bg-center max-w-[128px]"

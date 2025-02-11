@@ -2,15 +2,14 @@ import { Dispatch, SetStateAction, useState } from 'react';
 import moment from 'moment';
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import  Week from '@/app/components/Week';
-import { Categories } from '@/app/utils/categories';
 import type { YouTubeVideo } from '@/types/video';
 
 type Props = {
   scheduledVideos: YouTubeVideo[];
-  setEditVideoSelected: Dispatch<SetStateAction<any>>;
+  setEditVideo: Dispatch<SetStateAction<any>>;
 };
 
-export function Calendar({ scheduledVideos, setEditVideoSelected }: Props) {
+export function Calendar({ scheduledVideos, setEditVideo }: Props) {
   const [month, setMonth] = useState(moment());
   const [selected, setSelected] = useState(moment().startOf('day'));
   const [duck, setDuck] = useState(0);
@@ -58,7 +57,7 @@ export function Calendar({ scheduledVideos, setEditVideoSelected }: Props) {
             categoryId,
             tags,
           }) =>
-            setEditVideoSelected({
+            setEditVideo({
               id,
               title,
               description,

@@ -1,4 +1,4 @@
-import { Request, Response } from "express";
+import { NextApiRequest, NextApiResponse } from "next";
 const Youtube = require("youtube-api");
  
 const isDev = process.env.NODE_ENV === "development";
@@ -14,7 +14,7 @@ export const oauth = Youtube.authenticate({
     : process.env.REDIRECT_URIS_PROD,
 });
 
-export default async function handler(req: Request, res: Response) {
+export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   const oAuthUrl = oauth.generateAuthUrl({
     access_type: "offline",
     scope,

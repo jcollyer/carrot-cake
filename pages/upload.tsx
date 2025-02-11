@@ -24,11 +24,11 @@ export default function UploadPage() {
         setVideos((videos: VideoProps[]) => [
           ...videos,
           {
+            categoryId: '',
+            description: '',
             file,
             title: '',
-            description: '',
             scheduleDate: '',
-            category: '',
             tags: '',
             thumbnail: thumbnail || transparentImage,
           },
@@ -81,7 +81,7 @@ export default function UploadPage() {
           },
           body: JSON.stringify({
             snippet: {
-              categoryId: getCategoryIdFromLabel(video.category),
+              categoryId: video.categoryId,
               description: video.description,
               title: video.title,
               tags: video.tags.split(', '), // Array of strings
@@ -191,7 +191,7 @@ export default function UploadPage() {
                       'MM/DD/YYYY',
                     )}`}
                   </div>
-                  <div className="mb-2">{`Category: ${video.category}`}</div>
+                  <div className="mb-2">{`Category: ${video.categoryId}`}</div>
                   <div className="mb-2">
                     <span>Tags:</span>
                     {video.tags.split(', ').map(tag => (
@@ -225,7 +225,7 @@ export default function UploadPage() {
                       onChange={event => updateInput(event, 'category')}
                       className="outline-0 bg-transparent border-slate-400 rounded"
                       name="category"
-                      value={videos[activeIndex]?.category}
+                      value={videos[activeIndex]?.categoryId}
                     >
                       {Categories.map((item: CategoriesType) => (
                         <option key={item.label} value={item.label}>

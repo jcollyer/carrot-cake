@@ -25,7 +25,7 @@ export interface YouTubeVideo {
 
 export type VideoProps = {
   description: string;
-  category: string;
+  categoryId: string;
   file: any;
   id?: string;
   scheduleDate: string;

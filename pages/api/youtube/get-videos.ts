@@ -1,9 +1,9 @@
-const Youtube = require("youtube-api");
+import { NextApiRequest, NextApiResponse } from "next";
 import { oauth } from "@/pages/api/youtube/connect-yt";
-import { Request, Response } from "express";
 import { getTokensCookie } from "@/app/utils";
+const Youtube = require("youtube-api");
 
-export default async function handler(req: Request, res: Response) {
+export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   const { body, headers } = req;
   const { cookie } = headers;
   const { playlistId } = body;

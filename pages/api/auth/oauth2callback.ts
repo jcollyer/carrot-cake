@@ -1,5 +1,5 @@
-import { oauth } from "@/pages/api/youtube/connect-yt";
 import { Request, Response } from "express";
+import { oauth } from "@/pages/api/youtube/connect-yt";
 
 export default async function handler(req: Request, res: Response) {
   const queryString = req.url.split("?")[1];
