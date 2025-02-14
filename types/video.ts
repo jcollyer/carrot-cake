@@ -29,7 +29,7 @@ export type VideoProps = {
   file: any;
   id?: string;
   scheduleDate: string;
-  tags: string;
+  tags?: string;
   title: string;
   thumbnail: string;
 }

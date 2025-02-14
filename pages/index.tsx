@@ -50,7 +50,7 @@ export default function Home() {
       },
     }).then(async (res) => {
       const { playlistId } = await res.json();
-      setCookie('userPlaylistId', playlistId);
+      setCookie('userPlaylistId', playlistId, {maxAge: 31536000});
       setPlaylistToken(playlistId);
     });
   }

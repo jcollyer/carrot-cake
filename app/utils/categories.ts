@@ -3,6 +3,11 @@ export type CategoriesType = {
   label: string;
 };
 
+
+export const getCategoryLabelfromId = (categoryId?: string) =>
+  Categories.find((category) => category.id === categoryId && category)
+    ?.label;
+
 export const Categories: CategoriesType[] = [
   {
     id: "1",
@@ -65,7 +70,3 @@ export const Categories: CategoriesType[] = [
     label: "Nonprofits & Activism",
   },
 ];
-
-export const getCategoryIdFromLabel = (categoryLabel?: string) =>
-  Categories.find((category) => category.label === categoryLabel && category)
-    ?.id;

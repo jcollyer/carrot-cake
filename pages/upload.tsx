@@ -5,9 +5,10 @@ import { useDropzone } from 'react-dropzone';
 import { getCookie } from 'cookies-next'
 import { Categories, CategoriesType } from '@/app/utils/categories';
 import { VideoProps } from '@/types/video'
-import { getCategoryIdFromLabel } from '@/app/utils/categories'
-import moment from 'moment';
+import { getCategoryLabelfromId } from '@/app/utils/categories';
 import generateVideoThumb from '@/app/utils/generateVideoThumb';
+import moment from 'moment';
+import clsx from 'clsx';
 const transparentImage = require('@/public/transparent.png');
 
 export default function UploadPage() {
@@ -24,12 +25,12 @@ export default function UploadPage() {
         setVideos((videos: VideoProps[]) => [
           ...videos,
           {
-            categoryId: '',
-            description: '',
+            categoryId: "1",
+            description: "",
             file,
-            title: '',
-            scheduleDate: '',
-            tags: '',
+            title: "",
+            scheduleDate: new Date().toISOString(),
+            tags: undefined,
             thumbnail: thumbnail || transparentImage,
           },
         ]);
@@ -38,25 +39,19 @@ export default function UploadPage() {
   }, []);
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({ onDrop });
- 
-  const updateInput = (event: React.ChangeEvent<any>, inputName: string, isImageUpload?: boolean) => {
-    const updatedCurrentVideo = {
-      ...videos[activeIndex],
-      [`${inputName}`]: isImageUpload
-        ? URL.createObjectURL(event?.target?.files[0])
-        : event.currentTarget.value,
-    };
 
-    const updateVideo = (video: VideoProps) => ({
-      ...video,
-      [`${inputName}`]: event.currentTarget.value,
+  const updateInput = (event: React.ChangeEvent<any>, inputName: string, index: number) => {
+    const updatedVideos = videos.map((video, i) => {
+      if (allActive || i === index) {
+        return {
+          ...video,
+          [`${inputName}`]: inputName === 'thumbnail'
+            ? URL.createObjectURL(event?.target?.files[0])
+            : event.currentTarget.value,
+        }
+      }
+      return video;
     });
-
-    const updatedVideos = videos.map(video =>
-      allActive || video.id === updatedCurrentVideo.id
-        ? updateVideo(video)
-        : video
-    );
 
     setVideos(updatedVideos);
   };
@@ -70,7 +65,7 @@ export default function UploadPage() {
       console.error('No access token found');
       return;
     }
-    if(!!videos.length) {
+    if (!!videos.length) {
       videos.forEach(async (video) => {
         const location = await fetch(`https://www.googleapis.com/upload/youtube/v3/videos?${urlparameters}`, {
           method: 'POST',
@@ -84,7 +79,7 @@ export default function UploadPage() {
               categoryId: video.categoryId,
               description: video.description,
               title: video.title,
-              tags: video.tags.split(', '), // Array of strings
+              tags: video.tags?.split(', '), // Array of strings
             },
             status: {
               privacyStatus: 'private',
@@ -114,7 +109,7 @@ export default function UploadPage() {
 
   return (
     <div className="flex flex-col max-w-3xl mx-auto p-6">
-      <h3 className="text-center text-3xl">Upload Video</h3>
+      <h3 className="text-center text-3xl mt-6 font-semibold text-gray-600">Upload Video</h3>
       <form action="uploadVideo" method="post" encType="multipart/form-data" className="mt-12">
         <div className="flex justify-between bg-[rgba(255,255,255,0.4)]">
           <div
@@ -131,8 +126,8 @@ export default function UploadPage() {
           </div>
         </div>
         {!!videos.length && (
-          <div>
-            <p className="float-left mr-3">EDIT ALL</p>
+          <div className="flex flex-row gap-2 mt-4">
+            <p className="font-semibold">EDIT ALL</p>
             <input
               type="checkbox"
               onClick={() => setAllActive(!allActive)}
@@ -142,117 +137,118 @@ export default function UploadPage() {
         )}
         <div className="mt-2 mb-5">
           {videos?.map((video, index) => (
-            <div
-              key={index}
-              className={`${activeIndex === index ? 'active bg-gray-100' : ''
-                } flex flex-row p-4 border-b border-slate-400`}
-              style={{ background: 'rgba(255,255,255, 0.4)' }}
-            >
-              <div className="border-r border-slate-400 flex-row mr-2 pr-2">
-                <div>{video.file?.name}</div>
-
-                <div>{`${Math.round(video.file.size / 100000) / 10}MB`}</div>
-
-                <div className="relative">
-                  <img
-                    src={video.thumbnail}
-                    alt="thumbnail"
-                    width="55"
-                    className="opacity-50"
-                  />
-
-                  <label htmlFor="thumbnial">
-                    <FilePlus className="top-12 left-4 absolute text-3xl" />
-                  </label>
-                  <input
-                    type="file"
-                    onChange={event => updateInput(event, 'thumbnail', true)}
-                    name="thumbnail"
-                    accept="image/png, image/jpeg, application/octet-stream"
-                    placeholder="thumbnail"
-                    className="hidden"
-                    id="thumbnial"
-                  />
+            <div key={index} className={clsx({ "border-gray-800": activeIndex === index }, "flex flex-row py-2 border-b border-gray-400")}>
+              <div className={clsx({ "border-gray-800": activeIndex === index }, "max-w-44 pr-2 border-r border-gray-400")}>
+                <div className="truncate mb-2">{video.file?.name}</div>
+                <div className="flex gap-2">
+                  <div className="relative mb-2">
+                    <img
+                      src={video.thumbnail}
+                      alt="thumbnail"
+                      className="opacity-50 rounded"
+                    />
+                    <label htmlFor="thumbnial" className="top-10 left-5 absolute cursor-pointer">
+                      <FilePlus strokeWidth={1} className="w-10 h-10 text-gray-700" />
+                    </label>
+                    <input
+                      type="file"
+                      onChange={event => updateInput(event, 'thumbnail', index)}
+                      name="thumbnail"
+                      accept="image/png, image/jpeg, application/octet-stream"
+                      placeholder="thumbnail"
+                      className="hidden"
+                      id="thumbnial"
+                    />
+                  </div>
+                  <div className="font-semibold text-xs pl-2">{`${Math.round(video.file.size / 100000) / 10}MB`}</div>
                 </div>
               </div>
               <div
-                className="flex-row grow"
+                className="flex-row grow pl-2"
                 onClick={() => setActiveIndex(index)}
-                onKeyDown={() => setActiveIndex(index)}
               >
-                <div
-                  className={`${activeIndex !== index ? 'flex' : 'hidden'
-                    } flex-col`}
-                >
-                  <div className="mb-2">{`Title: ${video.title}`}</div>
-                  <div className="mb-2">{`Description: ${video.description}`}</div>
-                  <div className="mb-2">
-                    {`Scheduled Date: ${moment(video.scheduleDate).format(
-                      'MM/DD/YYYY',
-                    )}`}
+                <div className={clsx({ "hidden": activeIndex === index }, "flex flex-col gap-2")}>
+                  <div className="flex gap-2">
+                    <div className="font-semibold mb-2">Title:</div>
+                    <div>{video.title}</div>
                   </div>
-                  <div className="mb-2">{`Category: ${video.categoryId}`}</div>
-                  <div className="mb-2">
-                    <span>Tags:</span>
-                    {video.tags.split(', ').map(tag => (
-                      <span key={tag} className="bg-white rounded-lg px-2 ml-2">
-                        {tag}
-                      </span>
-                    ))}
+                  <div className="flex gap-2">
+                    <div className="font-semibold">Description:</div>
+                    <div className="h-12">{video.description}</div>
+                  </div>
+                  <div className="flex gap-2">
+                    <div className="font-semibold">Category:</div>
+                    <div>{getCategoryLabelfromId(video.categoryId || "1")}</div>
+                  </div>
+                  <div className="flex gap-2">
+                    <div className="font-semibold">Scheduled Date:</div>
+                    <div>
+                      {moment(video.scheduleDate).format('MM/DD/YYYY',)}
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <div className="font-semibold">Tags:</div>
+                    <div className="flex flex-row justify-center gap-1">
+                      {video.tags?.split(', ').map(tag => (
+                        <div key={tag} className="bg-gray-600 text-white rounded-full px-2 py-1 text-xs">{tag}</div>
+                      ))}
+                    </div>
                   </div>
                 </div>
-                <div
-                  className={`${activeIndex === index ? 'flex' : 'hidden'
-                    } flex-col`}
-                >
-                  <input
-                    onChange={event => updateInput(event, 'title')}
-                    className="border-0 outline-0 bg-transparent mb-2"
-                    name="title"
-                    value={videos[activeIndex]?.title}
-                    placeholder="Title:"
-                  />
-                  <textarea
-                    name="description"
-                    className="border-0 outline-0 bg-transparent h-8"
-                    onChange={event => updateInput(event, 'description')}
-                    value={videos[activeIndex]?.description}
-                    placeholder="Description:"
-                  />
-                  <div className="flex mb-3">
-                    <p className="text-slate-400 mr-2">Category:</p>
+
+                <div className={clsx({ "hidden": activeIndex !== index }, "flex flex-col gap-2")}>
+                  <div className="flex gap-2">
+                    <label htmlFor="title" className="font-semibold">Title:</label>
+                    <input
+                      onChange={event => updateInput(event, 'title', index)}
+                      className="border border-gray-300 rounded w-full h-8 px-2 py-1 outline-0 bg-transparent"
+                      name="title"
+                      value={videos[activeIndex]?.title}
+                    />
+                  </div>
+                  <div className="flex gap-2">
+                    <label htmlFor="description" className="font-semibold">Description:</label>
+                    <textarea
+                      name="description"
+                      className="border border-gray-300 outline-0 w-full h-12 px-2 py-1 rounded bg-transparent"
+                      onChange={event => updateInput(event, 'description', index)}
+                      value={videos[activeIndex]?.description}
+                    />
+                  </div>
+                  <div className="flex gap-2">
+                    <label htmlFor="category" className="font-semibold">Category:</label>
                     <select
-                      onChange={event => updateInput(event, 'category')}
-                      className="outline-0 bg-transparent border-slate-400 rounded"
+                      onChange={event => updateInput(event, 'categoryId', index)}
+                      className="outline-0 border-0 bg-transparent rounded"
                       name="category"
                       value={videos[activeIndex]?.categoryId}
                     >
                       {Categories.map((item: CategoriesType) => (
-                        <option key={item.label} value={item.label}>
+                        <option key={item.id} value={item.id}>
                           {item.label}
                         </option>
                       ))}
                     </select>
                   </div>
-                  <div className="flex mb-2">
-                    <p className="text-slate-400 mr-2">Scheduled Date:</p>
+                  <div className="flex gap-2">
+                    <label htmlFor="scheduleDate" className="font-semibold">Scheduled Date:</label>
                     <input
                       type="date"
-                      onChange={event => updateInput(event, 'scheduleDate')}
+                      onChange={event => updateInput(event, 'scheduleDate', index)}
                       className="border-0 outline-0 bg-transparent"
                       name="scheduleDate"
                       value={videos[activeIndex]?.scheduleDate}
-                      placeholder="Schedule Date:"
                     />
                   </div>
-
-                  <textarea
-                    name="tags"
-                    className="border-0 outline-0 bg-transparent h-6"
-                    onChange={event => updateInput(event, 'tags')}
-                    value={videos[activeIndex]?.tags}
-                    placeholder="Tags:"
-                  />
+                  <div className="flex gap-2">
+                    <label htmlFor="tags" className="font-semibold">Tags:</label>
+                    <textarea
+                      name="tags"
+                      className="border border-gray-300 rounded w-full h-8 px-2 py-1 outline-0 bg-transparent "
+                      onChange={event => updateInput(event, 'tags', index)}
+                      value={videos[activeIndex]?.tags}
+                    />
+                  </div>
                 </div>
               </div>
             </div>
@@ -264,7 +260,7 @@ export default function UploadPage() {
             <button
               type="submit"
               onClick={onSubmit}
-              className="font-bold py-2 px-4 rounded border border-slate-400 hover:border-slate-500"
+              className="font-bold py-2 px-4 rounded border border-gray-400 hover:border-gray-500"
             >
               {`Upload ${videos.length} Video${videos.length > 1 ? 's' : ''
                 } to YouTube`}
