@@ -9,9 +9,7 @@ import { VideoProps, YouTubeVideo } from '@/types/video'
 
 export default function Home() {
   const [tokens, setTokens] = useState(getCookie('tokens'));
-  const [playlistToken, setPlaylistToken] = useState(
-    getCookie('userPlaylistId'),
-  );
+  const [playlistToken, setPlaylistToken] = useState(getCookie('userPlaylistId'));
   const [videos, setVideos] = useState<YouTubeVideo[]>([]);
   const [editVideo, setEditVideo] = useState<VideoProps>({
     categoryId: '',
@@ -144,7 +142,7 @@ export default function Home() {
   };
 
   useEffect(() => {
-    if (tokens)
+    if (tokens && !playlistToken)
       getPlaylistId();
   }, [tokens]);
 

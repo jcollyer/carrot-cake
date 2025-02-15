@@ -108,12 +108,12 @@ export default function UploadPage() {
   };
 
   return (
-    <div className="flex flex-col max-w-3xl mx-auto p-6">
+    <div className="flex flex-col max-w-3xl mx-auto mt-12 p-6">
       <h3 className="text-center text-3xl mt-6 font-semibold text-gray-600">Upload Video</h3>
       <form action="uploadVideo" method="post" encType="multipart/form-data" className="mt-12">
-        <div className="flex justify-between bg-[rgba(255,255,255,0.4)]">
+        <div className="flex justify-between">
           <div
-            className="w-full h-[180px] border border-[solid] border-[#ccc] flex items-center justify-center"
+            className="w-full h-[180px] border border-gray-300 flex items-center justify-center"
             {...getRootProps()}
           >
             <input {...getInputProps()} name="file" />

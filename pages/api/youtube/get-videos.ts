@@ -10,7 +10,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   const jsonTokens = getTokensCookie(cookie);
 
-  oauth.setCredentials(jsonTokens);
+  await oauth.setCredentials(jsonTokens);
 
   const playlistItems = await Youtube.playlistItems
     .list({
