@@ -16,7 +16,8 @@ export const oauth = Youtube.authenticate({
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   const oAuthUrl = oauth.generateAuthUrl({
-    access_type: "offline",
+    access_type: 'offline',
+    include_granted_scopes: true,
     scope,
   });
 
