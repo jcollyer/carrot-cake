@@ -1,10 +1,12 @@
-import {AuthContext} from '@/app/components/Layout'
 import { useContext } from "react";
+import {useRouter} from 'next/router'
+import { AuthContext } from '@/app/components/Layout'
 
 const SigninPage = () => {
   const { setAuthenticated } = useContext(AuthContext);
-  
-  const login = (event:React.ChangeEvent<any>) => {
+  const { push } = useRouter();
+
+  const login = (event: React.ChangeEvent<any>) => {
     event.preventDefault();
 
     const email = event.target[0].value;
@@ -20,32 +22,40 @@ const SigninPage = () => {
       const user = await res.json();
       console.log(user);
       setAuthenticated(true)
-      window.location.href = '/';
+      push('/home');
     });
   }
   return (
-    <div>
-      <center>
-        <h1>Log in screen</h1><br /><br />
-        <form onSubmit={login}>
-          <input
-            type="email"
-            placeholder="Enter your email"
-            style={{ color: 'green' }}
-          />
-          <br /><br></br>
-          <input
-            type="password"
-            placeholder="Enter your password"
-            style={{ color: 'green' }}
-          />
-          <br />
-          <button type="submit" className="w-200 p-3 bg-indigo-600 rounded text-white hover:bg-indigo-500">
+    <main className="flex w-full justify-center mt-20">
+      <div className="flex flex-col gap-6 mt-32 w-96">
+        <h3 className="font-semibold text-3xl text-gray-700 text-center mb-4">Log in</h3>
+        <form
+          onSubmit={login}
+          className="flex flex-col gap-6"
+        >
+          <div className="flex gap-2">
+            <label htmlFor="email">Email</label>
+            <input
+              type="email"
+              className="border border-gray-300 outline-0 bg-transparent grow py-1 px-2 rounded"
+            />
+          </div>
+          <div className="flex gap-2">
+            <label htmlFor="password">Password</label>
+            <input
+              type="password"
+              className="border border-gray-300 outline-0 bg-transparent grow py-1 px-2 rounded"
+            />
+          </div>
+          <button
+            type="submit"
+            className="py-2 rounded-lg border text-orange-500 border-orange-500 hover:text-orange-600 hover:border-orange-600"
+          >
             Log In
           </button>
         </form>
-      </center>
-    </div>
+      </div>
+    </main>
   )
 }
 export default SigninPage
