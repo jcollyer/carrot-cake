@@ -17,7 +17,7 @@ function LoggedOut() {
     <main className="flex w-full justify-center mt-20">
       <div className="flex flex-col gap-4">
         <h1 className="text-7xl mt-32 text-transparent bg-clip-text bg-gradient-to-r from-red-500 to-orange-500">Carrot Cake</h1>
-        <Link href="/signin" className="bg-gradient-to-r from-red-500 to-orange-500 text-white font-bold py-2 rounded text-center hover:border border-white">
+        <Link href="/signup" className="bg-gradient-to-r from-red-500 to-orange-500 text-white font-bold py-2 rounded text-center hover:border border-white">
           Sign up
         </Link>
       </div>
