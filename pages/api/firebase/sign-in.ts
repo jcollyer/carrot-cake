@@ -1,23 +1,37 @@
-import { signInWithEmailAndPassword } from "firebase/auth";
-import { auth } from "@/pages/api/firebase/config";
 import { NextApiRequest, NextApiResponse } from "next";
 
-export default async function handler(req:NextApiRequest, res:NextApiResponse) {
+import {
+  getAuth,
+  setPersistence,
+  signInWithEmailAndPassword,
+  browserSessionPersistence,
+} from "firebase/auth";
+
+export default async function handler(
+  req: NextApiRequest,
+  res: NextApiResponse
+) {
   const { email, password } = req.body;
+  const auth = getAuth();
 
   try {
-    signInWithEmailAndPassword(auth, email, password)
-      .then((userCredential) => {
-        // Signed up
-        const user = userCredential.user;
-        // ...
-        res.status(200).json({ user });
+    setPersistence(auth, browserSessionPersistence)
+      .then(() => {
+        return signInWithEmailAndPassword(auth, email, password)
+          .then((userCredential) => {
+            const user = userCredential.user;
+            res.status(200).json({ user });
+          })
+          .catch((error) => {
+            const errorCode = error.code;
+            const errorMessage = error.message;
+            res.status(400).json({ message: errorMessage, errorCode });
+          });
       })
       .catch((error) => {
         const errorCode = error.code;
         const errorMessage = error.message;
-        // ..
-        res.status(400).json({ message: errorMessage });
+        res.status(400).json({ message: errorMessage, errorCode });
       });
   } catch (error: any) {
     res.status(400).json({ message: error.message });

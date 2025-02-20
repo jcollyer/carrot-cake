@@ -20,9 +20,9 @@ const SignupPage = () => {
       },
       body: JSON.stringify({ email, password }),
     }).then(async (res) => {
-      const data = await res.json();
-      console.log(data);
-      push('home');
+      // const data = await res.json();
+
+      push('/home');
     });
   }
 
