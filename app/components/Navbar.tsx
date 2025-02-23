@@ -45,9 +45,14 @@ export default function Navbar() {
             </>
           )}
           {!authenticated && (
-            <li>
-              <Link href="/signin" className={clsx({ "text-orange-600": pathname === "/signin" }, "hover:text-orange-600")}>Log in</Link>
-            </li>
+            <>
+              <li>
+                <Link href="/signin" className={clsx({ "text-orange-600": pathname === "/signin" }, "hover:text-orange-600")}>Log in</Link>
+              </li>
+              <li>
+                <Link href="/signup" className="bg-gradient-to-r from-red-500 to-orange-500 text-white font-bold py-2 px-4 rounded text-center hover:border border-white">Sign up</Link>
+              </li>
+            </>
           )}
         </ul>
       </div>
