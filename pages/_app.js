@@ -1,4 +1,4 @@
-import { createContext, useEffect, useState } from 'react'
+import { createContext, useLayoutEffect, useState } from 'react'
 import "@/app/globals.css";
 import Layout from "@/app/components/Layout";
 
@@ -9,7 +9,7 @@ export const AuthContext = createContext({
 
 export default function MyApp({ Component, pageProps }) {
   const [authenticated, setAuthenticated] = useState(false);
-  useEffect(() => {
+  useLayoutEffect(() => {
     fetch("/api/firebase/get-user", {
       method: "GET",
       headers: {
