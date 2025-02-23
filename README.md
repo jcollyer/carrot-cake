@@ -38,5 +38,10 @@ Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/bui
 
 bug list:
 - clear video after upload success
-- keep logged in
+- keep logged in (race condition, sometimes works)
 - youtube re-auth issue
+- scheduled date bugs
+- remove video list calendar display limit
+
+feature list:
+- add video thumbnail to edit drawer

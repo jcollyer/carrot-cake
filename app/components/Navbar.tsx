@@ -2,7 +2,7 @@ import { useContext } from 'react';
 import Link from 'next/link';
 import Image from 'next/image'
 import { usePathname, useRouter } from 'next/navigation';
-import { AuthContext } from '@/app/components/Layout';
+import { AuthContext } from '@/pages/_app';
 import clsx from 'clsx';
 
 

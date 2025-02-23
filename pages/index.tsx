@@ -1,7 +1,7 @@
 import { useContext, useEffect } from 'react';
 import Link from 'next/link';
 import { Rocket, Goal, Calendar, PencilRuler, Bell, ChartColumnBig } from 'lucide-react';
-import { AuthContext } from '@/app/components/Layout';
+import { AuthContext } from '@/pages/_app';
 import { useRouter } from 'next/router';
 
 type IconType = "Rocket" | "Goal" | "Calendar" | "PencilRuler" | "Bell" | "ChartColumnBig";

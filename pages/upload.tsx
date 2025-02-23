@@ -60,6 +60,7 @@ export default function UploadPage() {
     event.preventDefault();
     const accessToken = !!tokens && JSON.parse(tokens as string).access_token;
     const urlparameters = 'part=snippet%2Cstatus&uploadType=resumable';
+    console.log('accessToken:--------------', accessToken);
 
     if (!accessToken) {
       console.error('No access token found');
@@ -71,8 +72,8 @@ export default function UploadPage() {
           method: 'POST',
           headers: {
             Authorization: `Bearer ${String(accessToken)}`,
-            Accept: 'application/json',
-            'Content-Type': 'application/json',
+            // Accept: 'application/json',
+            // 'Content-Type': 'application/json/',
           },
           body: JSON.stringify({
             snippet: {

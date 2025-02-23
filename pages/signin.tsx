@@ -1,6 +1,6 @@
 import { useContext } from "react";
 import {useRouter} from 'next/router'
-import { AuthContext } from '@/app/components/Layout'
+import { AuthContext } from '@/pages/_app';
 
 const SigninPage = () => {
   const { setAuthenticated } = useContext(AuthContext);

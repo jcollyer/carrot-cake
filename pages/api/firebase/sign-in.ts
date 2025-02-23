@@ -1,18 +1,16 @@
 import { NextApiRequest, NextApiResponse } from "next";
-
 import {
-  getAuth,
   setPersistence,
   signInWithEmailAndPassword,
   browserSessionPersistence,
 } from "firebase/auth";
+import { auth } from "@/pages/api/firebase/config";
 
 export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse
 ) {
   const { email, password } = req.body;
-  const auth = getAuth();
 
   try {
     setPersistence(auth, browserSessionPersistence)

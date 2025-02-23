@@ -8,7 +8,7 @@ import Calendar from '@/app/components/Calendar';
 import clsx from 'clsx';
 import { VideoProps, YouTubeVideo } from '@/types/video'
 import { useContext } from 'react';
-import { AuthContext } from '@/app/components/Layout';
+import { AuthContext } from '@/pages/_app';
 
 export default function Home() {
   const { push } = useRouter();
