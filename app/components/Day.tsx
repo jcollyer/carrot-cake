@@ -1,4 +1,6 @@
 import { Pencil } from "lucide-react";
+import moment from "moment";
+
 type Props = {
   day: {
     date: any,
@@ -37,7 +39,7 @@ export function Day({ day, select, selected, videoScheduled, editVideo }: Props)
               id: video.id,
               title: snippet.title,
               description: snippet.description,
-              scheduleDate: status.publishAt,
+              scheduleDate: moment(status.publishAt).format('YYYY-MM-DD'),
               categoryId: snippet.categoryId,
               tags: snippet.tags,
             })}

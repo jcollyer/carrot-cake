@@ -40,8 +40,8 @@ bug list:
 - clear video after upload success
 - keep logged in (race condition, sometimes works)
 - youtube re-auth issue
-- scheduled date bugs
 
 feature list:
 - add video thumbnail to edit drawer
 - add auth redirect to /upload
+- UI handle multiple videos scheduled on the same day

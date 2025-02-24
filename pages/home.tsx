@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useContext, useEffect, useState } from "react";
 import Image from 'next/image';
 import { useRouter } from 'next/router';
 import { getCookie, setCookie, deleteCookie } from 'cookies-next'
@@ -7,7 +7,6 @@ import { Categories } from '@/app/utils/categories';
 import Calendar from '@/app/components/Calendar';
 import clsx from 'clsx';
 import { VideoProps, YouTubeVideo } from '@/types/video'
-import { useContext } from 'react';
 import { AuthContext } from '@/pages/_app';
 
 export default function Home() {
@@ -226,7 +225,6 @@ export default function Home() {
                 className="bg-transparent"
                 name="scheduleDate"
                 value={editVideo.scheduleDate}
-                placeholder="Schedule Date"
               />
             </div>
             <div className="flex gap-2 items-center">

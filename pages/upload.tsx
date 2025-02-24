@@ -29,7 +29,7 @@ export default function UploadPage() {
             description: "",
             file,
             title: "",
-            scheduleDate: new Date().toISOString(),
+            scheduleDate: moment().format('YYYY-MM-DD'),
             tags: undefined,
             thumbnail: thumbnail || transparentImage,
           },
@@ -60,7 +60,6 @@ export default function UploadPage() {
     event.preventDefault();
     const accessToken = !!tokens && JSON.parse(tokens as string).access_token;
     const urlparameters = 'part=snippet%2Cstatus&uploadType=resumable';
-    console.log('accessToken:--------------', accessToken);
 
     if (!accessToken) {
       console.error('No access token found');
@@ -184,7 +183,7 @@ export default function UploadPage() {
                   <div className="flex gap-2">
                     <div className="font-semibold">Scheduled Date:</div>
                     <div>
-                      {moment(video.scheduleDate).format('MM/DD/YYYY',)}
+                      {moment(video.scheduleDate).format('MM/DD/YYYY')}
                     </div>
                   </div>
                   <div className="flex items-center gap-2">

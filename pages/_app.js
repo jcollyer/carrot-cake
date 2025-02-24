@@ -17,7 +17,6 @@ export default function MyApp({ Component, pageProps }) {
       },
     }).then(async (res) => {
       const data = await res.json();
-      console.log("----layout----", data);
       if (data.user) {
         setAuthenticated(true);
       }
