@@ -16,6 +16,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     .list({
       part: ["status, id, contentDetails"],
       playlistId,
+      maxResults: 50,
     })
     .then((response: { data: { items: any[] } }) => response.data.items);
 
@@ -31,13 +32,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     })
     .then((response: { data: { items: any[] } }) => response.data.items);
 
-  // Get only the videos that are scheduled to be published
-  const scheduledVideos = videos.filter((video: any) => {
-    return (
-      new Date(video.status.publishAt) >= new Date() ||
-      new Date(video.snippet.publishedAt) <= new Date()
-    );
-  });
+  // // Get only the videos that are scheduled to be published
+  // const scheduledVideos = videos.filter((video: any) => {
+  //   return (
+  //     new Date(video.status.publishAt) >= new Date() ||
+  //     new Date(video.snippet.publishedAt) <= new Date()
+  //   );
+  // });
 
-  res.send(scheduledVideos);
+  res.send(videos);
 }

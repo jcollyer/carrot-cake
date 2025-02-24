@@ -41,7 +41,7 @@ bug list:
 - keep logged in (race condition, sometimes works)
 - youtube re-auth issue
 - scheduled date bugs
-- remove video list calendar display limit
 
 feature list:
 - add video thumbnail to edit drawer
+- add auth redirect to /upload

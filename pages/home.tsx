@@ -20,7 +20,7 @@ export default function Home() {
 
   const { authenticated } = useContext(AuthContext);
   const [tokens, setTokens] = useState(getCookie('tokens'));
-  const [playlistToken, setPlaylistToken] = useState(getCookie('userPlaylistId'));
+  const [playlistId, setPlaylistId] = useState(getCookie('userPlaylistId'));
   const [videos, setVideos] = useState<YouTubeVideo[]>([]);
   const [editVideo, setEditVideo] = useState<VideoProps>({
     categoryId: '',
@@ -60,7 +60,7 @@ export default function Home() {
     }).then(async (res) => {
       const { playlistId } = await res.json();
       setCookie('userPlaylistId', playlistId, { maxAge: 31536000 });
-      setPlaylistToken(playlistId);
+      setPlaylistId(playlistId);
     });
   }
 
@@ -71,9 +71,10 @@ export default function Home() {
         'Content-Type': 'application/json',
         cookie: `tokens=${tokens}`,
       },
-      body: JSON.stringify({ playlistId: playlistToken }),
+      body: JSON.stringify({ playlistId }),
     }).then(async (res) => {
       const videos = await res.json();
+      console.log('videos:', videos);
       setVideos(videos);
     });
   }
@@ -153,14 +154,14 @@ export default function Home() {
   };
 
   useEffect(() => {
-    if (tokens && !playlistToken)
+    if (tokens && !playlistId)
       getPlaylistId();
   }, [tokens]);
 
   useEffect(() => {
-    if (playlistToken)
+    if (playlistId)
       getVideos();
-  }, [playlistToken]);
+  }, [playlistId]);
 
   return (
     <main className="flex">
