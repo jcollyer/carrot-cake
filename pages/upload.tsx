@@ -100,6 +100,7 @@ export default function UploadPage() {
             body: video.file,
           });
           console.log('Video uploaded:', response)
+          setVideos([]);
         } catch (error) {
           console.error('Error uploading file:', error);
         }
