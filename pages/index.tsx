@@ -41,12 +41,12 @@ function LoggedOut() {
   return (
     <main className="w-full mt-16 bg-gray-500">
       <div className="flex justify-center w-full bg-white">
-        <div className="flex flex-col items-center py-24 px-64">
+        <div className="flex flex-col gap-4 items-center py-24 px-64">
           <div className="flex gap-1 items-center">
             <Image src="/youtube_logo.png" alt="Carrot Cake Logo" width="20" height="2" className="h-[15px]" />
             <h3 className="font-bold text-gray-600">Youtube Upload & Schedule App</h3>
           </div>
-          <h1 className="text-5xl text-transparent text-center leading-[1.2] mb-5 bg-clip-text bg-gradient-to-r from-red-500 to-orange-500">upload once, schedule for weeks</h1>
+          <h1 className="text-5xl text-transparent text-center leading-[1.2] bg-clip-text bg-gradient-to-r from-red-500 to-orange-500">upload once, schedule for weeks</h1>
           <h2 className="text-xl text-center px-32">Save time. Stay organized. Upload multiple videos at once and manage them effortlessly.</h2>
         </div>
       </div>
