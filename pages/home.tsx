@@ -8,6 +8,7 @@ import Calendar from '@/app/components/Calendar';
 import clsx from 'clsx';
 import { VideoProps, YouTubeVideo } from '@/types/video'
 import { AuthContext } from '@/pages/_app';
+import moment from 'moment';
 
 export default function Home() {
   const { push } = useRouter();
@@ -229,7 +230,7 @@ export default function Home() {
                 onChange={(event) => setEditVideo({ ...editVideo, scheduleDate: event.currentTarget.value })}
                 className="bg-transparent"
                 name="scheduleDate"
-                value={editVideo.scheduleDate}
+                value={moment(editVideo.scheduleDate).format("YYYY-MM-DD")}
               />
             </div>
             <div className="flex gap-2 items-center">

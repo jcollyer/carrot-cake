@@ -11,10 +11,11 @@ export default async function handler(
   const { body, headers } = req;
   const { id, title, description, categoryId, scheduleDate, tags } = body;
   const { cookie } = headers;
-  
+
   const jsonTokens = getTokensCookie(cookie);
-  
+
   oauth.setCredentials(jsonTokens);
+  const inThePast = new Date(scheduleDate) < new Date();
 
   return Youtube.videos
     .update({
@@ -27,17 +28,20 @@ export default async function handler(
           categoryId,
           tags,
         },
-        status: {
-          privacyStatus: "private",
-          publishAt: scheduleDate,
-        },
+        // add status object only if scheduleDate is in the future
+        ...(!inThePast && {
+          status: {
+            privacyStatus: "private",
+            publishAt: scheduleDate,
+          },
+        }),
       },
     })
     .then(
-      (response:{data:YouTubeVideo}) => {
+      (response: { data: YouTubeVideo }) => {
         res.send(response.data);
       },
-      (err:string) => {
+      (err: string) => {
         console.error("Execute error", err);
       }
     );

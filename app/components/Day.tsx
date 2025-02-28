@@ -39,7 +39,7 @@ export function Day({ day, select, selected, videoScheduled, editVideo }: Props)
               id: video.id,
               title: snippet.title,
               description: snippet.description,
-              scheduleDate: moment(status.publishAt).format('YYYY-MM-DD'),
+              scheduleDate: snippet.publishedAt,
               categoryId: snippet.categoryId,
               tags: snippet.tags,
             })}

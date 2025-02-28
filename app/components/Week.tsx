@@ -1,4 +1,5 @@
 import Day from '@/app/components/Day';
+import moment from 'moment';
 
 type Props = {
   date: any,
@@ -27,17 +28,16 @@ export function Week({
       date,
     };
     const videoScheduled = scheduledVideos.filter(
-      /* eslint-disable */
       video => {
         if (video.status.publishAt) {
           return (
-            video.status.publishAt.split('T')[0] === date.format('YYYY-MM-DD')
+            moment(video.status.publishAt).format('YYYY-MM-DD') === date.format('YYYY-MM-DD')
           );
         }
 
         if (video.snippet.publishedAt) {
           return (
-            video.snippet.publishedAt.split('T')[0] ===
+            moment(video.snippet.publishedAt).format('YYYY-MM-DD') ===
             date.format('YYYY-MM-DD')
           );
         }
