@@ -39,9 +39,10 @@ export function Day({ day, select, selected, videoScheduled, editVideo }: Props)
               id: video.id,
               title: snippet.title,
               description: snippet.description,
-              scheduleDate: snippet.publishedAt,
+              scheduleDate: status.publishAt || snippet.publishedAt, // status.publishAt is only available if the video is scheduled for a future date
               categoryId: snippet.categoryId,
               tags: snippet.tags,
+              thumbnail: snippet.thumbnails.high.url,
             })}
         >
           <Pencil size={16} className="text-gray-100" />

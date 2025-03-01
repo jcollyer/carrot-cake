@@ -197,12 +197,13 @@ export default function Home() {
         )}
       </div>
       <div className={clsx({ "w-[400px]": !!editVideo?.description }, "fixed right-0 z-10 w-0 transition-[width] h-screen border-l drop-shadow bg-gray-100 border-gray-50")}>
-        <div className="flex flex-col w-[400px] gap-2 pt-6 px-8 h-full">
-          <div className="flex items-center mb-10">
+        <div className="flex flex-col w-[400px] gap-2 pt-6 px-8 h-full overflow-auto pb-10">
+          <div className="flex items-center mb-2">
             <h3 className="text-gray-700 text-xl font-bold">Edit Video</h3>
             <CircleX className="ml-auto text-gray-500 hover:text-gray-900 cursor-pointer" size="34" strokeWidth={1} onClick={() => closeEditVideo()} />
           </div>
-          <div className="flex flex-col gap-6">
+          <div className="flex flex-col gap-6">          
+            <img src={editVideo.thumbnail} alt="Thumbnail" width="340" height="210" />
             <div className="flex gap-2 items-center">
               <p className="font-semibold">Title:</p>
               <input
@@ -217,7 +218,7 @@ export default function Home() {
               <p className="font-semibold">Description:</p>
               <textarea
                 onChange={(event) => setEditVideo({ ...editVideo, description: event.currentTarget.value })}
-                className="border border-gray-300 outline-0 bg-transparent grow h-40 p-2 rounded"
+                className="border border-gray-300 outline-0 bg-transparent grow h-32 p-2 rounded"
                 name="description"
                 value={editVideo.description}
                 placeholder="Description"
@@ -252,7 +253,7 @@ export default function Home() {
               <p className="font-semibold">Tags:</p>
               <textarea
                 name="tags"
-                className="border border-gray-300 outline-0 bg-transparent grow h-32 p-2 rounded"
+                className="border border-gray-300 outline-0 bg-transparent grow h-16 p-2 rounded"
                 onChange={(event) => setEditVideo({ ...editVideo, tags: event.currentTarget.value })}
                 value={editVideo.tags}
                 placeholder="Tags"

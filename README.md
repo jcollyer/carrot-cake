@@ -41,6 +41,5 @@ bug list:
 - youtube re-auth issue
 
 feature list:
-- add video thumbnail to edit drawer
 - add auth redirect to /upload
 - UI handle multiple videos scheduled on the same day

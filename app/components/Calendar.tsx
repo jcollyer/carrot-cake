@@ -49,22 +49,7 @@ export function Calendar({ scheduledVideos, setEditVideo }: Props) {
           select={day => select(day)}
           selected={selected}
           scheduledVideos={scheduledVideos}
-          editVideo={({
-            id,
-            title,
-            description,
-            scheduleDate,
-            categoryId,
-            tags,
-          }) =>
-            setEditVideo({
-              id,
-              title,
-              description,
-              scheduleDate,
-              categoryId,
-              tags,
-            })}
+          editVideo={setEditVideo}
         />,
       );
       date.add(1, 'w');
