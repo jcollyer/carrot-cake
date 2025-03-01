@@ -1,5 +1,4 @@
 import { Pencil } from "lucide-react";
-import moment from "moment";
 
 type Props = {
   day: {
