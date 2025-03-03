@@ -74,7 +74,6 @@ export default function Home() {
       body: JSON.stringify({ playlistId }),
     }).then(async (res) => {
       const videos = await res.json();
-      console.log('videos:', videos);
       setVideos(videos);
     });
   }

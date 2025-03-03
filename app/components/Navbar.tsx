@@ -19,7 +19,6 @@ export default function Navbar() {
       },
     }).then(async (res) => {
       const data = await res.json();
-      console.log(data);
       setAuthenticated(false)
       if (data.message === 'Successfully signed out') {
         push('/');

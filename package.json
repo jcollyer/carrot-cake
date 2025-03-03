@@ -10,6 +10,8 @@
     "ngrok": "ngrok http --url=jointly-topical-leech.ngrok-free.app 3000"
   },
   "dependencies": {
+    "@neondatabase/serverless": "^0.10.4",
+    "@prisma/client": "^6.4.1",
     "@tailwindcss/line-clamp": "^0.4.4",
     "clsx": "^2.1.1",
     "cookies-next": "^5.1.0",
@@ -32,6 +34,7 @@
     "@types/react-dom": "^19",
     "autoprefixer": "^10.4.20",
     "postcss": "^8",
+    "prisma": "^6.4.1",
     "tailwindcss": "^3.4.1",
     "typescript": "^5"
   }

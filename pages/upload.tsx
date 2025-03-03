@@ -9,13 +9,26 @@ import { getCategoryLabelfromId } from '@/app/utils/categories';
 import generateVideoThumb from '@/app/utils/generateVideoThumb';
 import moment from 'moment';
 import clsx from 'clsx';
+import prisma from "@/lib/prisma";
+import { Reference } from '@prisma/client';
 const transparentImage = require('@/public/transparent.png');
 
-export default function UploadPage() {
+export const getStaticProps = async () => {
+  const references = await prisma.reference.findMany({
+    where: { publish: true },
+  });
+  return {
+    props: { references },
+    revalidate: 10,
+  };
+};
+
+export default function UploadPage({ references }: { references: Reference[] }) {
   const tokens = getCookie('tokens');
   const [activeIndex, setActiveIndex] = useState<number>(0);
   const [allActive, setAllActive] = useState(false);
   const [videos, setVideos] = useState<VideoProps[]>([]);
+  const [localReferences, setLocalReferences] = useState<Reference[]>(references);
 
   const onDrop = useCallback((acceptedFiles: any) => {
     if (acceptedFiles.length) {
@@ -106,6 +119,54 @@ export default function UploadPage() {
         }
       });
     }
+  };
+
+  const setReferencePost = useCallback((value: string, type: string) => {
+    fetch("/api/reference/create", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        referenceTitle: value.split(" ").slice(0, 2).join(" "),
+        referenceValue: value,
+        referenceType: type,
+        publish: true,
+      }),
+    }).then(async (data) => {
+      const newReference = await data.json();
+      setLocalReferences([newReference, ...localReferences]);
+    });
+  }, []);
+
+  const hasKey = (key: string) => {
+    return localReferences.some((reference) => reference.type === key);
+  };
+
+  const setReference = (value: string, key: string) => {
+    const updatedVideos = videos.map((video, i) => {
+      if (allActive || i === activeIndex) {
+        return {
+          ...video,
+          [key]: value,
+        }
+      }
+      return video;
+    });
+
+    setVideos(updatedVideos);
+  };
+
+  const isNewReference = (value: string) => {
+    return !localReferences.some((reference) => reference.value === value);
+  };
+
+  const deleteReference = (id: string) => {
+    fetch(`/api/reference/delete/${id}`, {
+      method: "DELETE",
+    }).then(() => {
+      setLocalReferences(localReferences.filter((reference) => reference.id !== id));
+    });
   };
 
   return (
@@ -206,6 +267,28 @@ export default function UploadPage() {
                       name="title"
                       value={videos[activeIndex]?.title}
                     />
+                    {videos[activeIndex]?.title !== "" && isNewReference(videos[activeIndex]?.title) && <button type="button" onClick={() => setReferencePost(videos[activeIndex]?.title, "title")}>Set Reference</button>}
+                    {hasKey("title") && (
+                      <details>
+                        <summary>References</summary>
+                        <div>
+                          {localReferences
+                            .filter((reference) => reference.type === "title")
+                            .map((ref) =>
+                              <>
+                              <button
+                                type="button"
+                                key={ref.id}
+                                onClick={() => setReference(ref.value, "title")}>
+                                {ref.value}
+                              </button>
+                              <button type="button" onClick={() => deleteReference(ref.id)}>Delete</button>
+                              </>
+                            )
+                          }
+                        </div>
+                      </details>
+                    )}
                   </div>
                   <div className="flex gap-2">
                     <label htmlFor="description" className="font-semibold">Description:</label>
@@ -215,6 +298,26 @@ export default function UploadPage() {
                       onChange={event => updateInput(event, 'description', index)}
                       value={videos[activeIndex]?.description}
                     />
+                    {videos[activeIndex]?.description !== "" && isNewReference(videos[activeIndex]?.description) && <button type="button" onClick={() => setReferencePost(videos[activeIndex]?.description, "description")}>Set Reference</button>}
+                    {hasKey("description") && (
+                      <details>
+                        <summary>References</summary>
+                        <div>
+                          {localReferences
+                            .filter((reference) => reference.type === "description")
+                            .map((ref) =>
+                              <button
+                                type="button"
+                                key={ref.id}
+                                onClick={() => setReference(ref.value, "description")}
+                              >
+                                {ref.value}
+                              </button>
+                            )
+                          }
+                        </div>
+                      </details>
+                    )}
                   </div>
                   <div className="flex gap-2">
                     <label htmlFor="category" className="font-semibold">Category:</label>

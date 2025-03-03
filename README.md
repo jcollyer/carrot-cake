@@ -43,3 +43,4 @@ bug list:
 feature list:
 - add auth redirect to /upload
 - UI handle multiple videos scheduled on the same day
+- add loading UI for video upload proccessing

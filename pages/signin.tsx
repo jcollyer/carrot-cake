@@ -20,7 +20,6 @@ const SigninPage = () => {
       body: JSON.stringify({ email, password }),
     }).then(async (res) => {
       const user = await res.json();
-      console.log(user);
       setAuthenticated(true)
       push('/home');
     });
