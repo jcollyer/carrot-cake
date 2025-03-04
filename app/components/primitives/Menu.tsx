@@ -13,9 +13,6 @@ import {
   import clsx from "clsx";
   import styles from "./Menu.module.css";
   import { forwardRef, type FC } from "react";
-
-
-
   
   // Export everything and override the rest below with some default styles and
   // sensible defaults.
