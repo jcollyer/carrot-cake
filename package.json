@@ -10,6 +10,7 @@
     "ngrok": "ngrok http --url=jointly-topical-leech.ngrok-free.app 3000"
   },
   "dependencies": {
+    "@ariakit/react": "^0.4.15",
     "@neondatabase/serverless": "^0.10.4",
     "@prisma/client": "^6.4.1",
     "@tailwindcss/line-clamp": "^0.4.4",

@@ -1,0 +1,20 @@
+.menuItem[data-active-item].dark {
+    @apply bg-white/5;
+  }
+  
+  .menuItem[data-active-item].light {
+    @apply bg-black/5;
+  }
+  
+  .menuItem[data-active].dark {
+    @apply bg-white/10;
+  }
+  
+  .menuItem[data-active].light {
+    @apply bg-black/10;
+  }
+  
+  .button[data-focus-visible] {
+    @apply ring-2;
+  }
+  

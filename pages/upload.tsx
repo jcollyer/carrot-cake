@@ -1,6 +1,5 @@
 import { useCallback, useState } from 'react';
-import { FilePlus } from 'lucide-react';
-import { SquarePlus } from 'lucide-react';
+import { BookMarked, BookmarkPlus, FilePlus, SquarePlus, Trash2 } from 'lucide-react';
 import { useDropzone } from 'react-dropzone';
 import { getCookie } from 'cookies-next'
 import { Categories, CategoriesType } from '@/app/utils/categories';
@@ -8,6 +7,7 @@ import { VideoProps } from '@/types/video'
 import { getCategoryLabelfromId } from '@/app/utils/categories';
 import generateVideoThumb from '@/app/utils/generateVideoThumb';
 import moment from 'moment';
+import { MenuProvider, Menu, MenuButton, MenuItem } from '@/app/components/primitives/Menu';
 import clsx from 'clsx';
 import prisma from "@/lib/prisma";
 import { Reference } from '@prisma/client';
@@ -169,6 +169,48 @@ export default function UploadPage({ references }: { references: Reference[] }) 
     });
   };
 
+  const keyReferenceAddButton = (activeIndex: number, keyName: string, videos: any) => {
+    const showButton = !!videos[activeIndex][keyName] && videos[activeIndex][keyName] !== "" && isNewReference(videos[activeIndex][keyName]);
+    return showButton ? (
+      <>
+        <button
+          type="button"
+          onClick={() => setReferencePost(videos[activeIndex][keyName], keyName)}
+        >
+          <BookmarkPlus size={24} strokeWidth={1} />
+        </button>
+      </>
+    ) : null;
+  };
+
+  const keyReferenceMenu = (key: string) => (
+    <MenuProvider>
+      <MenuButton>
+        <BookMarked strokeWidth={1} size={24} />
+      </MenuButton>
+      <Menu>
+        {localReferences
+          .filter((reference) => reference.type === key)
+          .map((ref) =>
+            <MenuItem key={ref.id}>
+              <button
+                type="button"
+                key={ref.id}
+                onClick={() => setReference(ref.value, key)}
+                className="truncate max-w-48 mr-2"
+              >
+                {ref.value}
+              </button>
+              <button onClick={() => deleteReference(ref.id)} className="hover:bg-gray-300 rounded p-1">
+                <Trash2 strokeWidth={1} size={18} />
+              </button>
+            </MenuItem>
+          )
+        }
+      </Menu>
+    </MenuProvider>
+  );
+
   return (
     <div className="flex flex-col max-w-3xl mx-auto mt-12 p-6">
       <h3 className="text-center text-3xl mt-6 font-semibold text-gray-600">Upload Video</h3>
@@ -202,7 +244,7 @@ export default function UploadPage({ references }: { references: Reference[] }) 
             <div key={index} className={clsx({ "border-gray-800": activeIndex === index }, "flex flex-row py-2 border-b border-gray-400")}>
               <div className={clsx({ "border-gray-800": activeIndex === index }, "max-w-44 pr-2 border-r border-gray-400")}>
                 <div className="truncate mb-2">{video.file?.name}</div>
-                <div className="flex gap-2">
+                <div className="flex gap-2 items-center">
                   <div className="relative mb-2">
                     <img
                       src={video.thumbnail}
@@ -230,19 +272,19 @@ export default function UploadPage({ references }: { references: Reference[] }) 
                 onClick={() => setActiveIndex(index)}
               >
                 <div className={clsx({ "hidden": activeIndex === index }, "flex flex-col gap-2")}>
-                  <div className="flex gap-2">
+                  <div className="flex gap-2 items-center">
                     <div className="font-semibold mb-2">Title:</div>
                     <div>{video.title}</div>
                   </div>
-                  <div className="flex gap-2">
+                  <div className="flex gap-2 items-center">
                     <div className="font-semibold">Description:</div>
                     <div className="h-12">{video.description}</div>
                   </div>
-                  <div className="flex gap-2">
+                  <div className="flex gap-2 items-center">
                     <div className="font-semibold">Category:</div>
                     <div>{getCategoryLabelfromId(video.categoryId || "1")}</div>
                   </div>
-                  <div className="flex gap-2">
+                  <div className="flex gap-2 items-center">
                     <div className="font-semibold">Scheduled Date:</div>
                     <div>
                       {moment(video.scheduleDate).format('MM/DD/YYYY')}
@@ -259,7 +301,7 @@ export default function UploadPage({ references }: { references: Reference[] }) 
                 </div>
 
                 <div className={clsx({ "hidden": activeIndex !== index }, "flex flex-col gap-2")}>
-                  <div className="flex gap-2">
+                  <div className="flex gap-2 items-center">
                     <label htmlFor="title" className="font-semibold">Title:</label>
                     <input
                       onChange={event => updateInput(event, 'title', index)}
@@ -267,30 +309,10 @@ export default function UploadPage({ references }: { references: Reference[] }) 
                       name="title"
                       value={videos[activeIndex]?.title}
                     />
-                    {videos[activeIndex]?.title !== "" && isNewReference(videos[activeIndex]?.title) && <button type="button" onClick={() => setReferencePost(videos[activeIndex]?.title, "title")}>Set Reference</button>}
-                    {hasKey("title") && (
-                      <details>
-                        <summary>References</summary>
-                        <div>
-                          {localReferences
-                            .filter((reference) => reference.type === "title")
-                            .map((ref) =>
-                              <>
-                              <button
-                                type="button"
-                                key={ref.id}
-                                onClick={() => setReference(ref.value, "title")}>
-                                {ref.value}
-                              </button>
-                              <button type="button" onClick={() => deleteReference(ref.id)}>Delete</button>
-                              </>
-                            )
-                          }
-                        </div>
-                      </details>
-                    )}
+                    {keyReferenceAddButton(activeIndex, "title", videos)}
+                    {hasKey("title") && keyReferenceMenu("title")}
                   </div>
-                  <div className="flex gap-2">
+                  <div className="flex gap-2 items-center">
                     <label htmlFor="description" className="font-semibold">Description:</label>
                     <textarea
                       name="description"
@@ -298,28 +320,10 @@ export default function UploadPage({ references }: { references: Reference[] }) 
                       onChange={event => updateInput(event, 'description', index)}
                       value={videos[activeIndex]?.description}
                     />
-                    {videos[activeIndex]?.description !== "" && isNewReference(videos[activeIndex]?.description) && <button type="button" onClick={() => setReferencePost(videos[activeIndex]?.description, "description")}>Set Reference</button>}
-                    {hasKey("description") && (
-                      <details>
-                        <summary>References</summary>
-                        <div>
-                          {localReferences
-                            .filter((reference) => reference.type === "description")
-                            .map((ref) =>
-                              <button
-                                type="button"
-                                key={ref.id}
-                                onClick={() => setReference(ref.value, "description")}
-                              >
-                                {ref.value}
-                              </button>
-                            )
-                          }
-                        </div>
-                      </details>
-                    )}
+                    {keyReferenceAddButton(activeIndex, "description", videos)}
+                    {hasKey("description") && keyReferenceMenu("description")}
                   </div>
-                  <div className="flex gap-2">
+                  <div className="flex gap-2 items-center">
                     <label htmlFor="category" className="font-semibold">Category:</label>
                     <select
                       onChange={event => updateInput(event, 'categoryId', index)}
@@ -334,7 +338,7 @@ export default function UploadPage({ references }: { references: Reference[] }) 
                       ))}
                     </select>
                   </div>
-                  <div className="flex gap-2">
+                  <div className="flex gap-2 items-center">
                     <label htmlFor="scheduleDate" className="font-semibold">Scheduled Date:</label>
                     <input
                       type="date"
@@ -344,7 +348,7 @@ export default function UploadPage({ references }: { references: Reference[] }) 
                       value={videos[activeIndex]?.scheduleDate}
                     />
                   </div>
-                  <div className="flex gap-2">
+                  <div className="flex gap-2 items-center">
                     <label htmlFor="tags" className="font-semibold">Tags:</label>
                     <textarea
                       name="tags"
@@ -352,6 +356,8 @@ export default function UploadPage({ references }: { references: Reference[] }) 
                       onChange={event => updateInput(event, 'tags', index)}
                       value={videos[activeIndex]?.tags}
                     />
+                    {keyReferenceAddButton(activeIndex, "tags", videos)}
+                    {hasKey("tags") && keyReferenceMenu("tags")}
                   </div>
                 </div>
               </div>
