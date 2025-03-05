@@ -7,18 +7,18 @@ import { Categories } from '@/app/utils/categories';
 import Calendar from '@/app/components/Calendar';
 import clsx from 'clsx';
 import { VideoProps, YouTubeVideo } from '@/types/video'
-import { AuthContext } from '@/pages/_app';
+import { useSession } from "next-auth/react"
 import moment from 'moment';
 
 export default function Home() {
   const { push } = useRouter();
+  const { data: session } = useSession();
   useEffect(() => {
-    if (!authenticated) {
+    if (!session) {
       push('/');
     }
   }, []);
 
-  const { authenticated } = useContext(AuthContext);
   const [tokens, setTokens] = useState(getCookie('tokens'));
   const [playlistId, setPlaylistId] = useState(getCookie('userPlaylistId'));
   const [videos, setVideos] = useState<YouTubeVideo[]>([]);

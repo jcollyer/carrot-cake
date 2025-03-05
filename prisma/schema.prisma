@@ -8,9 +8,22 @@ datasource db {
 }
 
 model Reference {
-  id      String  @id @default(cuid())
-  title   String
-  value   String
-  type    String
-  publish Boolean @default(true)
+  id             String  @id @default(cuid())
+  title          String
+  value          String
+  type           String
+  publish        Boolean @default(true)
+  referenceOwner Owner?  @relation(fields: [ownerId], references: [id])
+  ownerId        String?
+}
+
+model Owner {
+  id         String      @id @default(cuid())
+  name       String?
+  email      String?     @unique
+  createdAt  DateTime    @default(now()) @map(name: "created_at")
+  updatedAt  DateTime    @updatedAt @map(name: "updated_at")
+  references Reference[]
+
+  @@map(name: "owners")
 }

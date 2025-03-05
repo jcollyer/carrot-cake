@@ -1,9 +1,8 @@
 import { useContext, useEffect } from 'react';
 import { useRouter } from 'next/router';
-import Link from 'next/link';
 import Image from 'next/image';
 import { Rocket, Goal, Calendar, PencilRuler, Bell, ChartColumnBig } from 'lucide-react';
-import { AuthContext } from '@/pages/_app';
+import { useSession, signIn } from "next-auth/react"
 
 type IconType = "Rocket" | "Goal" | "Calendar" | "PencilRuler" | "Bell" | "ChartColumnBig";
 
@@ -29,14 +28,14 @@ const FeatureCard = ({ title, description, icon }: { title: string, description:
   )
 };
 function LoggedOut() {
-  const { authenticated } = useContext(AuthContext);
+  const { data: session } = useSession();
   const { push } = useRouter();
 
   useEffect(() => {
-    if (authenticated) {
+    if (session) {
       push('/home');
     }
-  }, [authenticated]);
+  }, [session]);
 
   return (
     <main className="w-full mt-16 bg-gray-500">
@@ -66,9 +65,7 @@ function LoggedOut() {
           <div className="max-w-md flex flex-col gap-1 m-auto mt-12">
             <h3 className="text-2xl text-center font-semibold mt-10 text-gray-600">Start Scheduling Smarter Today!</h3>
             <p className="text-center px-16 leading-[2] mb-8">Sign up now and take control of your YouTube content like never before.</p>
-            <Link href="/signup" className="px-20 m-auto bg-gradient-to-r from-red-500 to-orange-500 text-white font-bold py-2 rounded text-center hover:border border-white">
-              Sign up
-            </Link>
+            <button onClick={() => signIn()} className="px-20 m-auto bg-gradient-to-r from-red-500 to-orange-500 text-white font-bold py-2 rounded text-center hover:border border-white">Sign up</button>
           </div>
         </div>
       </div>

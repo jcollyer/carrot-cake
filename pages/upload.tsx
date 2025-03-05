@@ -16,6 +16,11 @@ const transparentImage = require('@/public/transparent.png');
 export const getStaticProps = async () => {
   const references = await prisma.reference.findMany({
     where: { publish: true },
+    include: {
+      referenceOwner: {
+        select: { name: true, email: true },
+      },
+    },
   });
   return {
     props: { references },
