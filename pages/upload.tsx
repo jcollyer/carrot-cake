@@ -206,7 +206,7 @@ export default function UploadPage({ references }: { references: Reference[] }) 
               >
                 {ref.value}
               </button>
-              <button onClick={() => deleteReference(ref.id)} className="hover:bg-gray-300 rounded p-1">
+              <button type="button" onClick={() => deleteReference(ref.id)} className="hover:bg-gray-300 rounded p-1">
                 <Trash2 strokeWidth={1} size={18} />
               </button>
             </MenuItem>

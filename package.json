@@ -8,7 +8,8 @@
     "start": "next start",
     "lint": "next lint",
     "ngrok": "ngrok http --url=jointly-topical-leech.ngrok-free.app 3000",
-    "postinstall": "prisma generate"
+    "postinstall": "prisma generate",
+    "prisma": "npx prisma generate && npx prisma migrate"
   },
   "dependencies": {
     "@ariakit/react": "^0.4.15",
@@ -24,6 +25,7 @@
     "moment": "^2.30.1",
     "next": "15.1.4",
     "next-auth": "^4.24.11",
+    "nodemailer": "^6.10.0",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
     "react-dropzone": "^14.3.5",
