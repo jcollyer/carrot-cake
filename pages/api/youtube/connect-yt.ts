@@ -15,6 +15,13 @@ export const oauth = Youtube.authenticate({
 });
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+  if (!!req.body.refreshToken){
+    const refreshToken = req.body.refreshToken;
+    await oauth.setCredentials({refresh_token: refreshToken});
+    const tokens = await oauth.refreshAccessToken();
+    res.status(200).json(tokens);
+    return;
+  }
   const oAuthUrl = oauth.generateAuthUrl({
     access_type: 'offline',
     prompt: 'consent',

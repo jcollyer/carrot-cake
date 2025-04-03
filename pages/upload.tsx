@@ -74,6 +74,76 @@ export default function UploadPage({ references }: { references: Reference[] }) 
     setVideos(updatedVideos);
   };
 
+  const tryToUpload = async (accessToken: string, urlparameters: string, video: VideoProps) => {
+    try {
+      const location = await fetch(`https://www.googleapis.com/upload/youtube/v3/videos?${urlparameters}`, {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${String(accessToken)}`,
+        },
+        body: JSON.stringify({
+          snippet: {
+            categoryId: video.categoryId,
+            description: video.description,
+            title: video.title,
+            tags: video.tags?.split(', '), // Array of strings
+          },
+          status: {
+            privacyStatus: 'private',
+            publishAt: new Date(video.scheduleDate).toISOString(),
+          },
+        }),
+      });
+      // Url to upload video file from the location header
+      const videoUrl = await location.headers.get('Location');
+      try {
+        const response = await fetch(`${videoUrl}`, {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'video/mp4',
+          },
+          body: video.file,
+        });
+        console.log('Video uploaded:', response)
+        setVideos([]);
+      } catch (error) {
+        console.error('Error uploading file:', error);
+      }
+    } catch {
+      // If the access token is expired, refresh it and try again
+      try {
+        const refreshToken = JSON.parse(tokens as string)?.refresh_token;
+        const refreshResponse = await fetch('/api/youtube/connect-yt', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ refreshToken }),
+        });
+        
+        if (!refreshResponse) {
+          console.error('No refresh response');
+          return;
+        }
+        const refreshData = await refreshResponse.json();
+        const config = refreshData?.res?.config;
+        const {url, body, headers } = config;
+        
+        await fetch(url, {
+          method: 'POST',
+          headers,
+          body,
+        }).then(async (res) => {
+          const { access_token } = await res.json();
+          // Try uploading the video again with the new access token
+          await tryToUpload(access_token, urlparameters, video);
+        });
+      } catch (error) {
+        console.error('Error refreshing token:', error);
+      }
+    }
+  }
+
   const onSubmit = async (event: React.ChangeEvent<any>) => {
     event.preventDefault();
     const accessToken = !!tokens && JSON.parse(tokens as string).access_token;
@@ -84,44 +154,11 @@ export default function UploadPage({ references }: { references: Reference[] }) 
       return;
     }
     if (!!videos.length) {
+      console.log('-------access token--------', accessToken);
       videos.forEach(async (video) => {
-        const location = await fetch(`https://www.googleapis.com/upload/youtube/v3/videos?${urlparameters}`, {
-          method: 'POST',
-          headers: {
-            Authorization: `Bearer ${String(accessToken)}`,
-            // Accept: 'application/json',
-            // 'Content-Type': 'application/json/',
-          },
-          body: JSON.stringify({
-            snippet: {
-              categoryId: video.categoryId,
-              description: video.description,
-              title: video.title,
-              tags: video.tags?.split(', '), // Array of strings
-            },
-            status: {
-              privacyStatus: 'private',
-              publishAt: new Date(video.scheduleDate).toISOString(),
-            },
-          }),
-        });
+        tryToUpload(accessToken, urlparameters, video);
+       
 
-        // Url to upload video file from the location header
-        const videoUrl = await location.headers.get('Location');
-
-        try {
-          const response = await fetch(`${videoUrl}`, {
-            method: 'PUT',
-            headers: {
-              'Content-Type': 'video/mp4',
-            },
-            body: video.file,
-          });
-          console.log('Video uploaded:', response)
-          setVideos([]);
-        } catch (error) {
-          console.error('Error uploading file:', error);
-        }
       });
     }
   };
