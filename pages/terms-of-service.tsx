@@ -3,7 +3,7 @@ function TermsOfServicePage() {
     <main className="flex w-full justify-center mt-20">
       <div className="flex flex-col gap-6 m-16">
         <h3 className="font-semibold text-3xl text-gray-700 text-center mb-4">Terms of Service</h3>
-        <p><strong>Last Updated:</strong> [Insert Date]</p>
+        <p><strong>Last Updated:</strong> {new Date().getFullYear()}</p>
 
         <p>Welcome to <strong>Carrot Cake</strong> ("Website," "Service," "we," "us," or "our"). By accessing or using our Website, you agree to comply with and be bound by the following Terms of Service ("Terms"). If you do not agree to these Terms, please do not use our Service.</p>
 

@@ -37,10 +37,9 @@ Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/bui
 
 
 bug list:
-- keep logged in (race condition, sometimes works)
-- youtube re-auth issue
+
 
 feature list:
-- add auth redirect to /upload
 - UI handle multiple videos scheduled on the same day
-- add loading UI for video upload proccessing
+- Aadd loading UI for video upload proccessing
+- Add delete video from calendar view
