@@ -12,19 +12,33 @@ import clsx from 'clsx';
 import prisma from "@/lib/prisma";
 import { Reference } from '@prisma/client';
 const transparentImage = require('@/public/transparent.png');
+import { getServerSession } from "next-auth"
+import { authOptions } from "@/pages/api/auth/[...nextauth]"
 
-export const getStaticProps = async () => {
-  const references = await prisma.reference.findMany({
-    where: { publish: true },
-    include: {
-      referenceOwner: {
-        select: { name: true, email: true },
+export const getServerSideProps = async (context:any) => {
+  const session = await getServerSession(context.req, context.res, authOptions);
+  if (!session) {
+    return {
+      redirect: {
+        destination: "/",
+        permanent: false,
+      },
+    };
+  }
+
+  const references = await prisma.user.findUnique({
+    where: {
+      email:session?.user?.email,
+    },
+    select: {
+      references: {
+        select: { id: true, value: true, type: true },
       },
     },
   });
+
   return {
-    props: { references },
-    revalidate: 10,
+    props: references,
   };
 };
 
@@ -33,8 +47,8 @@ export default function UploadPage({ references }: { references: Reference[] }) 
   const [activeIndex, setActiveIndex] = useState<number>(0);
   const [allActive, setAllActive] = useState(false);
   const [videos, setVideos] = useState<VideoProps[]>([]);
-  const [localReferences, setLocalReferences] = useState<Reference[]>(references);
-
+  const [localReferences, setLocalReferences] = useState<Reference[]>(references || []);
+console.log('usersReferences', {references, localReferences});
   const onDrop = useCallback((acceptedFiles: any) => {
     if (acceptedFiles.length) {
       acceptedFiles.forEach(async (file: any) => {
@@ -200,7 +214,7 @@ export default function UploadPage({ references }: { references: Reference[] }) 
   };
 
   const isNewReference = (value: string) => {
-    return !localReferences.some((reference) => reference.value === value);
+    return !localReferences?.some((reference) => reference.value === value);
   };
 
   const deleteReference = (id: string) => {

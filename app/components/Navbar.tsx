@@ -1,14 +1,11 @@
-import { useContext } from 'react';
 import Link from 'next/link';
 import Image from 'next/image'
-import { usePathname, useRouter } from 'next/navigation';
-import { AuthContext } from '@/pages/_app';
 import { useSession, signIn, signOut } from "next-auth/react"
-import clsx from 'clsx';
-
 
 export default function Navbar() {
   const { data: session } = useSession();
+  const { user } = session || {};
+  const { image } = user || {};
 
   return (
     <nav className="fixed h-18 w-full z-10 bg-white border-white drop-shadow">
@@ -23,6 +20,7 @@ export default function Navbar() {
                 <Link href="/upload" className="hover:text-orange-600">Upload</Link>
               </li>
               <li>
+                <img src={image || ""} alt="User Avatar" className="w-10 h-10 rounded-full" />
                 <button onClick={() => signOut({ callbackUrl: "/" })} className="hover:text-orange-600">Log out</button>
               </li>
             </>
