@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import Image from 'next/image'
+import { MenuProvider, Menu, MenuButton, MenuItem, MenuSeparator } from '@/app/components/primitives/Menu';
 import { useSession, signIn, signOut } from "next-auth/react"
 
 export default function Navbar() {
@@ -15,15 +16,20 @@ export default function Navbar() {
         </Link>
         <ul className="flex items-center space-x-4">
           {session && (
-            <>
-              <li>
-                <Link href="/upload" className="hover:text-orange-600">Upload</Link>
-              </li>
-              <li>
+            <MenuProvider>
+              <MenuButton>
                 <img src={image || ""} alt="User Avatar" className="w-10 h-10 rounded-full" />
-                <button onClick={() => signOut({ callbackUrl: "/" })} className="hover:text-orange-600">Log out</button>
-              </li>
-            </>
+              </MenuButton>
+              <Menu>
+                <MenuItem>
+                  <Link href="/upload" className="hover:text-orange-600">Upload</Link>
+                </MenuItem>
+                <MenuSeparator />
+                <MenuItem>
+                  <button onClick={() => signOut({ callbackUrl: "/" })} className="hover:text-orange-600">Log out</button>
+                </MenuItem>
+              </Menu>
+            </MenuProvider>
           )}
           {!session && (
             <>
