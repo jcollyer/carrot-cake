@@ -168,12 +168,7 @@ console.log('usersReferences', {references, localReferences});
       return;
     }
     if (!!videos.length) {
-      console.log('-------access token--------', accessToken);
-      videos.forEach(async (video) => {
-        tryToUpload(accessToken, urlparameters, video);
-       
-
-      });
+      videos.forEach(async (video) => tryToUpload(accessToken, urlparameters, video));
     }
   };
 
@@ -191,7 +186,7 @@ console.log('usersReferences', {references, localReferences});
       }),
     }).then(async (data) => {
       const newReference = await data.json();
-      setLocalReferences([newReference, ...localReferences]);
+      setLocalReferences([...localReferences, newReference]);
     });
   }, []);
 
