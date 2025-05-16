@@ -1,11 +1,12 @@
+import { signOut } from "firebase/auth";
 import NextAuth from "next-auth";
 import GithubProvider from "next-auth/providers/github";
 import GoogleProvider from "next-auth/providers/google";
 
 type SessionProps = {
-  session: any,
-  token: any,
-}
+  session: any;
+  token: any;
+};
 
 export const authOptions = {
   // adapter: PrismaAdapter(prisma),
@@ -21,7 +22,7 @@ export const authOptions = {
     }),
   ],
   callbacks: {
-    session: ({ session, token }:SessionProps) => ({
+    session: ({ session, token }: SessionProps) => ({
       ...session,
       user: {
         ...session.user,

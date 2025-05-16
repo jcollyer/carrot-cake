@@ -1,12 +1,12 @@
 import Link from 'next/link';
 import Image from 'next/image'
+import { Music2, Youtube } from 'lucide-react';
 import { MenuProvider, Menu, MenuButton, MenuItem, MenuSeparator } from '@/app/components/primitives/Menu';
 import { useSession, signIn, signOut } from "next-auth/react"
 
 export default function Navbar() {
   const { data: session } = useSession();
   const { user } = session || {};
-  const { image } = user || {};
 
   return (
     <nav className="fixed h-18 w-full z-10 bg-white border-white drop-shadow">
@@ -18,15 +18,34 @@ export default function Navbar() {
           {session && (
             <MenuProvider>
               <MenuButton>
-                <img src={image || ""} alt="User Avatar" className="w-10 h-10 rounded-full" />
+                <img src={user?.image || ""} alt="User Avatar" className="w-10 h-10 rounded-full" />
               </MenuButton>
               <Menu>
                 <MenuItem>
-                  <Link href="/upload" className="hover:text-orange-600">Upload</Link>
+                  <Link href="/upload-youtube" className="flex items-center gap-2 hover:text-orange-600">
+                    <Youtube size="34" strokeWidth={1} />
+                    YouTube Upload
+                  </Link>
+                </MenuItem>
+                <MenuItem>
+                  <Link href="/upload-tiktok" className="flex items-center gap-2 hover:text-orange-600">
+                    <Music2 size="18" strokeWidth={2} className="w-9" />
+                    TikTok Upload
+                  </Link>
                 </MenuItem>
                 <MenuSeparator />
                 <MenuItem>
-                  <button onClick={() => signOut({ callbackUrl: "/" })} className="hover:text-orange-600">Log out</button>
+                  <button onClick={() => {
+                    // clear previous yt token and userPlaylistId cookies
+                    document.cookie =
+                      "tokens=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+                    document.cookie =
+                      "userPlaylistId=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+                    signOut({ callbackUrl: "/" })
+                  }}
+                    className="hover:text-orange-600">
+                    Log out
+                  </button>
                 </MenuItem>
               </Menu>
             </MenuProvider>

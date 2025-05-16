@@ -3,7 +3,7 @@ import { BookMarked, BookmarkPlus, FilePlus, SquarePlus, Trash2 } from 'lucide-r
 import { useDropzone } from 'react-dropzone';
 import { getCookie } from 'cookies-next'
 import { Categories, CategoriesType } from '@/app/utils/categories';
-import { VideoProps } from '@/types/video'
+import { YTVideoProps } from '@/types/video'
 import { getCategoryLabelfromId } from '@/app/utils/categories';
 import generateVideoThumb from '@/app/utils/generateVideoThumb';
 import moment from 'moment';
@@ -42,11 +42,11 @@ export const getServerSideProps = async (context:any) => {
   };
 };
 
-export default function UploadPage({ references }: { references: Reference[] }) {
+export default function UploadYouTubePage({ references }: { references: Reference[] }) {
   const tokens = getCookie('tokens');
   const [activeIndex, setActiveIndex] = useState<number>(0);
   const [allActive, setAllActive] = useState(false);
-  const [videos, setVideos] = useState<VideoProps[]>([]);
+  const [videos, setVideos] = useState<YTVideoProps[]>([]);
   const [localReferences, setLocalReferences] = useState<Reference[]>(references || []);
 console.log('usersReferences', {references, localReferences});
   const onDrop = useCallback((acceptedFiles: any) => {
@@ -54,7 +54,7 @@ console.log('usersReferences', {references, localReferences});
       acceptedFiles.forEach(async (file: any) => {
         const thumbnail = await generateVideoThumb(file);
 
-        setVideos((videos: VideoProps[]) => [
+        setVideos((videos: YTVideoProps[]) => [
           ...videos,
           {
             categoryId: "1",
@@ -88,7 +88,7 @@ console.log('usersReferences', {references, localReferences});
     setVideos(updatedVideos);
   };
 
-  const tryToUpload = async (accessToken: string, urlparameters: string, video: VideoProps) => {
+  const tryToUpload = async (accessToken: string, urlparameters: string, video: YTVideoProps) => {
     try {
       const location = await fetch(`https://www.googleapis.com/upload/youtube/v3/videos?${urlparameters}`, {
         method: 'POST',

@@ -23,7 +23,7 @@ export interface YouTubeVideo {
   };
 }
 
-export type VideoProps = {
+export type YTVideoProps = {
   description: string;
   categoryId: string;
   file: any;
@@ -31,5 +31,15 @@ export type VideoProps = {
   scheduleDate: string;
   tags?: string;
   title: string;
+  thumbnail: string;
+}
+
+export type TikTokVideoProps = {
+  file: any;
+  title: string;
+  description: string;
+  privacyStatus: string;
+  interactionType: {allowComments: boolean; allowDuet: boolean; allowStitch: boolean};
+  scheduleDate: string;
   thumbnail: string;
 }
