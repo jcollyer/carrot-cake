@@ -1,9 +1,15 @@
-import { useContext, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import Image from 'next/image';
 import { useRouter } from 'next/router';
 import { getCookie, setCookie, deleteCookie } from 'cookies-next'
 import { CircleX } from 'lucide-react';
 import { Categories } from '@/app/utils/categories';
+import {
+  Tabs,
+  TabsContent,
+  TabsList,
+  TabsTrigger,
+} from "@/app/components/primitives/Tabs";
 import Calendar from '@/app/components/Calendar';
 import clsx from 'clsx';
 import { YTVideoProps, YouTubeVideo } from '@/types/video'
@@ -22,6 +28,7 @@ export default function Home() {
   const [tokens, setTokens] = useState(getCookie('tokens'));
   const [playlistId, setPlaylistId] = useState(getCookie('userPlaylistId'));
   const [videos, setVideos] = useState<YouTubeVideo[]>([]);
+  const [connectedTiktok, setConnectedTiktok] = useState(false);
   const [editVideo, setEditVideo] = useState<YTVideoProps>({
     categoryId: '',
     description: '',
@@ -35,6 +42,10 @@ export default function Home() {
 
   const connectTt = async () => {
     console.log('Connecting to TikTok');
+
+    //open a new window with the TikTok connect URL
+    
+    window.open("/ttLogin", '_blank', 'location=yes,height=570,width=520,scrollbars=yes,status=yes');
   }
 
   const connectYt = async () => {
@@ -175,34 +186,68 @@ export default function Home() {
             <>
               <h3 className="text-lg max-w-96 text-center my-8">Connect your Social Media account now to start uploading, scheduling, and managing your videos effortlessly!</h3>
               <div className="flex flex-col gap-2 w-50">
-              <button onClick={() => connectYt()} className="flex gap-4 items-center bg-white hover:bg-gray-100 border border-gray-200 focus:ring-4 focus:outline-none focus:ring-gray-100 rounded-lg px-5 py-2.5">
-                <Image src="/youtube_logo.png" alt="Youtube Logo" width="50" height="20" className="w-12" />
-                <p className="text-lg">Connect to Youtube</p>
-              </button>
-              <button onClick={() => connectTt()} className="flex gap-4 items-center bg-white hover:bg-gray-100 border border-gray-200 focus:ring-4 focus:outline-none focus:ring-gray-100 rounded-lg px-5 py-2.5">
-                <Image src="/tiktok_logo.png" alt="TikTok Logo" width="40" height="15" className="w-9" />
-                <p className="text-lg">Connect to TikTok</p>
-              </button>
+                <button onClick={() => connectYt()} className="flex gap-4 items-center bg-white hover:bg-gray-100 border border-gray-200 focus:ring-4 focus:outline-none focus:ring-gray-100 rounded-lg px-5 py-2.5">
+                  <Image src="/youtube_logo.png" alt="Youtube Logo" width="50" height="20" className="w-12" />
+                  <p className="text-lg">Connect to Youtube</p>
+                </button>
+                <button onClick={() => connectTt()} className="flex gap-4 items-center bg-white hover:bg-gray-100 border border-gray-200 focus:ring-4 focus:outline-none focus:ring-gray-100 rounded-lg px-5 py-2.5">
+                  <Image src="/tiktok_logo.png" alt="TikTok Logo" width="40" height="15" className="w-9" />
+                  <p className="text-lg">Connect to TikTok</p>
+                </button>
               </div>
             </>
           )}
         </div>
         {videos.length > 0 && (
-          <div className="flex flex-col items-center gap-8 mb-16">
-            <Calendar
-              scheduledVideos={videos}
-              setEditVideo={setEditVideo}
-            />
-            <button
-              className="text-gray-700 hover:text-gray-400 border border-gray-600 hover:border-gray-400 focus:ring-4 focus:outline-none focus:ring-gray-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center me-2 mb-2 "
-              onClick={() => {
-                deleteCookie("userPlaylistId");
-                deleteCookie("tokens");
-                setVideos([]);
-              }}>
-              Disconnect
-            </button>
-          </div>
+          <Tabs defaultValue="youtube" className="mt-[3px] max-w-screen-lg mx-auto">
+            <TabsList aria-label="social media opitons" className="px-5">
+              <TabsTrigger value="youtube">YouTube</TabsTrigger>
+              <TabsTrigger value="tiktok">TikTok</TabsTrigger>
+            </TabsList>
+            <TabsContent value="youtube">
+              <div className="flex flex-col items-center gap-8 mb-16 px-4">
+                <Calendar
+                  scheduledVideos={videos}
+                  setEditVideo={setEditVideo}
+                />
+                <button
+                  className="text-gray-700 hover:text-gray-400 border border-gray-600 hover:border-gray-400 focus:ring-4 focus:outline-none focus:ring-gray-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center me-2 mb-2 "
+                  onClick={() => {
+                    deleteCookie("userPlaylistId");
+                    deleteCookie("tokens");
+                    setVideos([]);
+                  }}>
+                  Disconnect from Youtube
+                </button>
+              </div>
+            </TabsContent>
+            <TabsContent value="tiktok">
+              <div className="flex flex-col items-center gap-8 mb-16 px-4">
+                {!!connectedTiktok && (
+                  <>
+                    <div>TikTok calander</div>
+                    <button
+                      className="text-gray-700 hover:text-gray-400 border border-gray-600 hover:border-gray-400 focus:ring-4 focus:outline-none focus:ring-gray-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center me-2 mb-2 "
+                      onClick={() => {
+                        deleteCookie("userPlaylistId");
+                        deleteCookie("tokens");
+                        setVideos([]);
+                      }}>
+                      Disconnect from Tiktok
+                    </button>
+                  </>
+                )}
+                {!connectedTiktok && (
+                  <button
+                    className="text-gray-700 hover:text-gray-400 border border-gray-600 hover:border-gray-400 focus:ring-4 focus:outline-none focus:ring-gray-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center me-2 mb-2 "
+                    onClick={() => connectTt()}>
+                    <Image src="/tiktok.svg" alt="TikTok Logo" width="40" height="15" className="w-9" />
+                    Continue with TikTok
+                  </button>
+                  )}
+              </div>
+            </TabsContent>
+          </Tabs>
         )}
       </div>
       <div className={clsx({ "w-[400px]": !!editVideo?.description }, "fixed right-0 z-10 w-0 transition-[width] h-screen border-l drop-shadow bg-gray-100 border-gray-50")}>
@@ -211,7 +256,7 @@ export default function Home() {
             <h3 className="text-gray-700 text-xl font-bold">Edit Video</h3>
             <CircleX className="ml-auto text-gray-500 hover:text-gray-900 cursor-pointer" size="34" strokeWidth={1} onClick={() => closeEditVideo()} />
           </div>
-          <div className="flex flex-col gap-6">          
+          <div className="flex flex-col gap-6">
             <img src={editVideo.thumbnail} alt="Thumbnail" width="340" height="210" />
             <div className="flex gap-2 items-center">
               <p className="font-semibold">Title:</p>

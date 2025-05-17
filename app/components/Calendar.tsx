@@ -61,7 +61,7 @@ export function Calendar({ scheduledVideos, setEditVideo }: Props) {
   };
 
   return (
-    <section className="mt-16 mx-12 bg-white w-full max-w-[900px] border border-gray-200 text-center rounded-md">
+    <section className="mt-6 bg-white w-full max-w-screen-xl border border-gray-200 text-center rounded-md">
       <header className="text-gray-700 font-lg font-bold uppercase select-none border-t border-gray-100">
         <div className="items-center py-2 bg-gray-200 flex w-full border-b border-gray-300">
           <ChevronLeft
