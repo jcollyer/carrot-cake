@@ -43,9 +43,16 @@ export default function Home() {
   const connectTt = async () => {
     console.log('Connecting to TikTok');
 
-    //open a new window with the TikTok connect URL
-    
-    window.open("/ttLogin", '_blank', 'location=yes,height=570,width=520,scrollbars=yes,status=yes');
+    await fetch('/api/tiktok/connect-tiktok', {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded',
+      },
+    }).then(async (res) => {
+      const oAuthCallback = await res.json();
+      console.log('Response from TikTok connect:', oAuthCallback);
+      window.open(oAuthCallback.url, '_blank', 'location=yes,height=570,width=520,scrollbars=yes,status=yes');
+    });
   }
 
   const connectYt = async () => {
@@ -190,9 +197,11 @@ export default function Home() {
                   <Image src="/youtube_logo.png" alt="Youtube Logo" width="50" height="20" className="w-12" />
                   <p className="text-lg">Connect to Youtube</p>
                 </button>
-                <button onClick={() => connectTt()} className="flex gap-4 items-center bg-white hover:bg-gray-100 border border-gray-200 focus:ring-4 focus:outline-none focus:ring-gray-100 rounded-lg px-5 py-2.5">
-                  <Image src="/tiktok_logo.png" alt="TikTok Logo" width="40" height="15" className="w-9" />
-                  <p className="text-lg">Connect to TikTok</p>
+                <button
+                  className="flex items-center gap-4 text-gray-700 hover:text-gray-400 border border-gray-600 hover:border-gray-400 focus:ring-4 focus:outline-none focus:ring-gray-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center me-2 mb-2 "
+                  onClick={() => connectTt()}>
+                  <Image src="/tiktok.svg" alt="TikTok Logo" width="20" height="8" />
+                  Continue with TikTok
                 </button>
               </div>
             </>
@@ -239,12 +248,12 @@ export default function Home() {
                 )}
                 {!connectedTiktok && (
                   <button
-                    className="text-gray-700 hover:text-gray-400 border border-gray-600 hover:border-gray-400 focus:ring-4 focus:outline-none focus:ring-gray-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center me-2 mb-2 "
+                    className="flex items-center gap-4 text-gray-700 hover:text-gray-400 border border-gray-600 hover:border-gray-400 focus:ring-4 focus:outline-none focus:ring-gray-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center me-2 mb-2 "
                     onClick={() => connectTt()}>
-                    <Image src="/tiktok.svg" alt="TikTok Logo" width="40" height="15" className="w-9" />
+                    <Image src="/tiktok.svg" alt="TikTok Logo" width="20" height="8" />
                     Continue with TikTok
                   </button>
-                  )}
+                )}
               </div>
             </TabsContent>
           </Tabs>
