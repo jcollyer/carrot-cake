@@ -2,7 +2,7 @@ import { NextApiRequest, NextApiResponse } from "next";
 
 const isDev = process.env.NODE_ENV === "development";
 const SERVER_ENDPOINT_REDIRECT = isDev
-  ? process.env.REDIRECT_URIS_TIKTOK_PROD
+  ? process.env.REDIRECT_URIS_TIKTOK_LOCAL
   : process.env.REDIRECT_URIS_TIKTOK_PROD;
 
 function generateRandomString(length: number): string {
