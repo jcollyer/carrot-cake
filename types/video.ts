@@ -32,14 +32,23 @@ export type YTVideoProps = {
   tags?: string;
   title: string;
   thumbnail: string;
-}
+};
 
 export type TikTokVideoProps = {
   file: any;
   title: string;
   description: string;
   privacyStatus: string;
-  interactionType: {allowComments: boolean; allowDuet: boolean; allowStitch: boolean};
+  interactionType: {
+    allowComments: boolean;
+    allowDuet: boolean;
+    allowStitch: boolean;
+  };
   scheduleDate: string;
   thumbnail: string;
-}
+};
+
+export type YouTubeUserInfo = {
+  title?: string;
+  thumbnail?: string;
+};

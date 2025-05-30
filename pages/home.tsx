@@ -12,7 +12,7 @@ import {
 } from "@/app/components/primitives/Tabs";
 import Calendar from '@/app/components/Calendar';
 import clsx from 'clsx';
-import { YTVideoProps, YouTubeVideo } from '@/types/video'
+import { YTVideoProps, YouTubeVideo, YouTubeUserInfo } from '@/types/video'
 import { useSession } from "next-auth/react"
 import moment from 'moment';
 
@@ -39,6 +39,7 @@ export default function Home() {
     title: '',
     thumbnail: '',
   });
+  const [ytUserInfo, setYtUserInfo] = useState<YouTubeUserInfo>({});
 
   const connectTt = async () => {
     console.log('Connecting to TikTok');
@@ -83,6 +84,26 @@ export default function Home() {
       const { playlistId } = await res.json();
       setCookie('userPlaylistId', playlistId, { maxAge: 31536000 });
       setPlaylistId(playlistId);
+    });
+  }
+
+  const getYTChannelInfo = async () => {
+    await fetch('/api/youtube/get-channel', {
+      method: 'GET',
+      headers: {
+        cookie: `tokens=${tokens}`,
+      },
+    }).then(async (res) => {
+      const { data } = await res.json();
+      const {snippet} = data;
+      const {title, thumbnails} = snippet;
+      console.log("thumbnails", thumbnails);
+      const {medium} = thumbnails;
+
+      setYtUserInfo({
+        title,
+        thumbnail: medium.url,
+      });
     });
   }
 
@@ -177,18 +198,18 @@ export default function Home() {
   useEffect(() => {
     if (tokens && !playlistId)
       getPlaylistId();
+      getYTChannelInfo();
   }, [tokens]);
 
   useEffect(() => {
     if (playlistId)
       getVideos();
   }, [playlistId]);
-
+console.log("=------", ytUserInfo)
   return (
     <main className="flex">
       <div className="w-full">
         <div className="flex flex-col items-center">
-          <h1 className="text-7xl mt-32 text-transparent bg-clip-text bg-gradient-to-r from-red-500 to-orange-500">Carrot Cake</h1>
           {videos.length === 0 && (
             <>
               <h3 className="text-lg max-w-96 text-center my-8">Connect your Social Media account now to start uploading, scheduling, and managing your videos effortlessly!</h3>
@@ -207,6 +228,15 @@ export default function Home() {
             </>
           )}
         </div>
+        {!!ytUserInfo && (
+          <div className="flex flex-col items-center gap-4 mt-8 mb-4">
+            {!!ytUserInfo?.thumbnail && <img src={ytUserInfo.thumbnail} alt="YouTube User Thumbnail" width="100" height="100" className="rounded-full" />}
+            {/* {!!ytUserInfo?.thumbnail && <img loading="lazy" src="https://yt3.ggpht.com/j8Dk-lJSrUxcCJF7by6hTy093ydzML6A1P-HnfccPurGz3pw0w7oubwgkTxrYChSY6Xsnn9X3bM=s240-c-k-c0x00ffffff-no-rj" alt="YouTube User Thumbnail" width="100" height="100" className="rounded-full" />} */}
+            {/* {!!ytUserInfo?.thumbnail && <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/a/a4/2019_Toyota_Corolla_Icon_Tech_VVT-i_Hybrid_1.8.jpg/960px-2019_Toyota_Corolla_Icon_Tech_VVT-i_Hybrid_1.8.jpg" alt="YouTube User Thumbnail" width="100" height="100" className="rounded-full" />} */}
+            
+            <h2 className="text-2xl font-bold text-gray-800">{ytUserInfo?.title}</h2>
+          </div>
+        )}
         {videos.length > 0 && (
           <Tabs defaultValue="youtube" className="mt-[3px] max-w-screen-lg mx-auto">
             <TabsList aria-label="social media opitons" className="px-5">
