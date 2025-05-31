@@ -42,9 +42,12 @@ function LoggedOut() {
     <main className="w-full bg-gray-500">
       <div className="flex justify-center w-full bg-white">
         <div className="flex flex-col gap-4 items-center py-24 px-64">
+          <h1 className="text-2xl text-transparent text-center leading-[1.2] bg-clip-text bg-gradient-to-r from-red-500 to-orange-500">CARROT-CAKE APP</h1>
           <div className="flex gap-1 items-center">
             <Image src="/youtube_logo.png" alt="Carrot Cake Logo" width="20" height="2" className="h-[15px]" />
-            <h3 className="font-bold text-gray-600">Youtube Upload & Schedule App</h3>
+            <h3 className="font-bold text-gray-600">Youtube </h3>
+            <Image src="/tiktok.svg" alt="TikTok Logo" width="20" height="6" />
+            <h3 className="font-bold text-gray-600">TikTok Upload & Schedule App</h3>
           </div>
           <h1 className="text-5xl text-transparent text-center leading-[1.2] bg-clip-text bg-gradient-to-r from-red-500 to-orange-500">upload once, schedule for weeks</h1>
           <h2 className="text-xl text-center px-32">Save time. Stay organized. Upload multiple videos at once and manage them effortlessly.</h2>
@@ -52,10 +55,10 @@ function LoggedOut() {
       </div>
       <div className="w-full pb-36 bg-gray-100">
         <div className="max-w-4xl flex flex-col gap-8 m-auto">
-          <h3 className="text-2xl text-center font-semibold mt-10 mb-4 text-gray-600">Key Features Include:</h3>
+          <h3 className="text-2xl text-center font-semibold mt-28 mb-4 text-gray-600">Key Features Include:</h3>
           <div className="flex gap-4 px-8">
             <FeatureCard icon="Rocket" title="Bulk Uploads Made Simple" description="Say goodbye to one-by-one uploads. Schedule multiple videos in a single go!" />
-            <FeatureCard icon="Goal" title="One-Click YouTube Integration" description="Connect your YouTube channel in seconds and manage your content like a pro." />
+            <FeatureCard icon="Goal" title="One-Click YouTube & TikTok Integration" description="Connect your YouTube channel in seconds and manage your content like a pro." />
             <FeatureCard icon="Calendar" title="Interactive Scheduling Calendar" description="See all your past and upcoming videos in one place. Drag, drop, and edit with ease!" />
           </div>
           <div className="flex gap-4 px-8">

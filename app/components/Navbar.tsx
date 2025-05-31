@@ -35,7 +35,7 @@ export default function Navbar() {
                   </Link>
                 </MenuItem>
                 <MenuSeparator />
-                <MenuItem>
+                <MenuItem className="flex justify-center">
                   <button
                     onClick={() => {
                       // clear previous yt token and userPlaylistId cookies

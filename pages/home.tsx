@@ -208,12 +208,13 @@ export default function Home() {
   }, [playlistId]);
   console.log("=------", ytUserInfo)
   return (
-    <main className="flex">
+    <main className="flex mt-8">
       <div className="w-full">
         <div className="flex flex-col items-center">
           {videos.length === 0 && (
-            <>
-              <h3 className="text-lg max-w-96 text-center my-8">Connect your Social Media account now to start uploading, scheduling, and managing your videos effortlessly!</h3>
+            <div className="max-w-96 flex flex-col gap-4 items-center mt-16">
+              <h1 className="text-2xl text-transparent text-center leading-[1.2] bg-clip-text bg-gradient-to-r from-red-500 to-orange-500">CARROT-CAKE APP</h1>
+              <h3 className="text-center">Connect your Social Media account now to start uploading, scheduling, and managing your videos effortlessly!</h3>
               <div className="flex flex-col gap-2 w-50">
                 <Button
                   variant="white"
@@ -222,10 +223,10 @@ export default function Home() {
                   onClick={() => connectYt()}
                 >
                   <Image src="/youtube_logo.png" alt="Youtube Logo" width="50" height="20" className="w-12" />
-                  <p className="text-lg">Connect to Youtube</p>
+                  Continue with Youtube
                 </Button>
                 <Button
-                  variant="secondary"
+                  variant="white"
                   size="xlarge"
                   className="flex gap-4"
                   onClick={() => connectTt()}
@@ -234,7 +235,7 @@ export default function Home() {
                   Continue with TikTok
                 </Button>
               </div>
-            </>
+            </div>
           )}
         </div>
         {videos.length > 0 && (
@@ -290,11 +291,12 @@ export default function Home() {
                 )}
                 {!connectedTiktok && (
                   <Button
-                    variant="secondary"
-                    className="flex items-center gap-4 "
+                    variant="white"
+                    size="xlarge"
+                    className="flex gap-4 mt-4"
                     onClick={() => connectTt()}
                   >
-                    <Image src="/tiktok.svg" alt="TikTok Logo" width="20" height="8" />
+                    <Image src="/tiktok.svg" alt="TikTok Logo" width="40" height="16" />
                     Continue with TikTok
                   </Button>
                 )}
