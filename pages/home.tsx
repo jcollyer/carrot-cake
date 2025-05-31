@@ -206,7 +206,7 @@ export default function Home() {
     if (playlistId)
       getVideos();
   }, [playlistId]);
-  console.log("=------", ytUserInfo)
+
   return (
     <main className="flex mt-8">
       <div className="w-full">

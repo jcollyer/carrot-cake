@@ -46,6 +46,7 @@ export type TikTokVideoProps = {
   };
   scheduleDate: string;
   thumbnail: string;
+  commercialUse: boolean;
 };
 
 export type YouTubeUserInfo = {

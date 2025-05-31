@@ -41,13 +41,23 @@ export const getServerSideProps = async (context: any) => {
   };
 };
 
+const privacyStatusOptions = [
+  { id: 'PUBLIC_TO_EVERYONE', label: 'Public to Everyone' },
+  { id: 'MUTUAL_FOLLOW_FRIENDS', label: 'Mutual Follow Friends' },
+  { id: 'FOLLOWER_OF_CREATOR', label: 'Follower of Creator' },
+  { id: 'SELF_ONLY', label: 'Unlisted' },
+]
+
 export default function UploadTikTokPage({ references }: { references: Reference[] }) {
   const tokens = getCookie('tokens');
   const [activeIndex, setActiveIndex] = useState<number>(0);
-  const [allActive, setAllActive] = useState(false);
+  const [allActive, setAllActive] = useState<boolean>(false);
   const [videos, setVideos] = useState<TikTokVideoProps[]>([]);
   const [localReferences, setLocalReferences] = useState<Reference[]>(references || []);
-  console.log('usersReferences', { references, localReferences });
+  const [disclose, setDisclose] = useState<boolean>(false);
+  const [yourBrand, setYourBrand] = useState<boolean>(true);
+  const [brandedContent, setBrandedContent] = useState<boolean>(false);
+
   const onDrop = useCallback((acceptedFiles: any) => {
     if (acceptedFiles.length) {
       acceptedFiles.forEach(async (file: any) => {
@@ -67,6 +77,7 @@ export default function UploadTikTokPage({ references }: { references: Reference
               allowDuet: false,
               allowStitch: false,
             },
+            commercialUse: false,
           }
         ]);
       });
@@ -91,75 +102,75 @@ export default function UploadTikTokPage({ references }: { references: Reference
     setVideos(updatedVideos);
   };
 
-  const tryToUpload = async (accessToken: string, urlparameters: string, video: TikTokVideoProps) => {
-    try {
-      const location = await fetch(`https://www.googleapis.com/upload/youtube/v3/videos?${urlparameters}`, {
-        method: 'POST',
-        headers: {
-          Authorization: `Bearer ${String(accessToken)}`,
-        },
-        body: JSON.stringify({
-          snippet: {
-            // categoryId: video.categoryId,
-            description: video.description,
-            title: video.title,
-            // tags: video.tags?.split(', '), // Array of strings
-          },
-          status: {
-            privacyStatus: 'private',
-            publishAt: new Date(video.scheduleDate).toISOString(),
-          },
-        }),
-      });
-      // Url to upload video file from the location header
-      const videoUrl = await location.headers.get('Location');
-      try {
-        const response = await fetch(`${videoUrl}`, {
-          method: 'PUT',
-          headers: {
-            'Content-Type': 'video/mp4',
-          },
-          body: video.file,
-        });
-        console.log('Video uploaded:', response)
-        setVideos([]);
-      } catch (error) {
-        console.error('Error uploading file:', error);
-      }
-    } catch {
-      // If the access token is expired, refresh it and try again
-      try {
-        const refreshToken = JSON.parse(tokens as string)?.refresh_token;
-        const refreshResponse = await fetch('/api/youtube/connect-yt', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({ refreshToken }),
-        });
+  // const tryToUpload = async (accessToken: string, urlparameters: string, video: TikTokVideoProps) => {
+  //   try {
+  //     const location = await fetch(`https://www.googleapis.com/upload/youtube/v3/videos?${urlparameters}`, {
+  //       method: 'POST',
+  //       headers: {
+  //         Authorization: `Bearer ${String(accessToken)}`,
+  //       },
+  //       body: JSON.stringify({
+  //         snippet: {
+  //           // privacyStatus: video.privacyStatus,
+  //           description: video.description,
+  //           title: video.title,
+  //           // tags: video.tags?.split(', '), // Array of strings
+  //         },
+  //         status: {
+  //           privacyStatus: 'private',
+  //           publishAt: new Date(video.scheduleDate).toISOString(),
+  //         },
+  //       }),
+  //     });
+  //     // Url to upload video file from the location header
+  //     const videoUrl = await location.headers.get('Location');
+  //     try {
+  //       const response = await fetch(`${videoUrl}`, {
+  //         method: 'PUT',
+  //         headers: {
+  //           'Content-Type': 'video/mp4',
+  //         },
+  //         body: video.file,
+  //       });
+  //       console.log('Video uploaded:', response)
+  //       setVideos([]);
+  //     } catch (error) {
+  //       console.error('Error uploading file:', error);
+  //     }
+  //   } catch {
+  //     // If the access token is expired, refresh it and try again
+  //     try {
+  //       const refreshToken = JSON.parse(tokens as string)?.refresh_token;
+  //       const refreshResponse = await fetch('/api/youtube/connect-yt', {
+  //         method: 'POST',
+  //         headers: {
+  //           'Content-Type': 'application/json',
+  //         },
+  //         body: JSON.stringify({ refreshToken }),
+  //       });
 
-        if (!refreshResponse) {
-          console.error('No refresh response');
-          return;
-        }
-        const refreshData = await refreshResponse.json();
-        const config = refreshData?.res?.config;
-        const { url, body, headers } = config;
+  //       if (!refreshResponse) {
+  //         console.error('No refresh response');
+  //         return;
+  //       }
+  //       const refreshData = await refreshResponse.json();
+  //       const config = refreshData?.res?.config;
+  //       const { url, body, headers } = config;
 
-        await fetch(url, {
-          method: 'POST',
-          headers,
-          body,
-        }).then(async (res) => {
-          const { access_token } = await res.json();
-          // Try uploading the video again with the new access token
-          await tryToUpload(access_token, urlparameters, video);
-        });
-      } catch (error) {
-        console.error('Error refreshing token:', error);
-      }
-    }
-  }
+  //       await fetch(url, {
+  //         method: 'POST',
+  //         headers,
+  //         body,
+  //       }).then(async (res) => {
+  //         const { access_token } = await res.json();
+  //         // Try uploading the video again with the new access token
+  //         await tryToUpload(access_token, urlparameters, video);
+  //       });
+  //     } catch (error) {
+  //       console.error('Error refreshing token:', error);
+  //     }
+  //   }
+  // }
 
   const onSubmit = async (event: React.ChangeEvent<any>) => {
     event.preventDefault();
@@ -171,7 +182,7 @@ export default function UploadTikTokPage({ references }: { references: Reference
       return;
     }
     if (!!videos.length) {
-      videos.forEach(async (video) => tryToUpload(accessToken, urlparameters, video));
+      // videos.forEach(async (video) => tryToUpload(accessToken, urlparameters, video));
     }
   };
 
@@ -264,7 +275,7 @@ export default function UploadTikTokPage({ references }: { references: Reference
       </Menu>
     </MenuProvider>
   );
-
+  console.log('disclose--', disclose, yourBrand, brandedContent);
   return (
     <div className="flex flex-col max-w-3xl mx-auto mt-12 p-6">
       <h3 className="text-center text-3xl mt-6 font-semibold text-gray-600">Upload Video</h3>
@@ -344,14 +355,12 @@ export default function UploadTikTokPage({ references }: { references: Reference
                       {moment(video.scheduleDate).format('MM/DD/YYYY')}
                     </div>
                   </div>
-                  {/* <div className="flex items-center gap-2">
-                    <div className="font-semibold">Tags:</div>
-                    <div className="flex flex-row justify-center gap-1">
-                      {video.tags?.split(', ').map(tag => (
-                        <div key={tag} className="bg-gray-600 text-white rounded-full px-2 py-1 text-xs">{tag}</div>
-                      ))}
-                    </div>
-                  </div> */}
+                  <div className="flex gap-2 items-center">
+                    <div className="font-semibold">Privacy Status</div>
+                  </div>
+                  <div className="flex gap-2 items-center">
+                    <div className="font-semibold">Share Permissions</div>
+                  </div>
                 </div>
 
                 <div className={clsx({ "hidden": activeIndex !== index }, "flex flex-col gap-2")}>
@@ -377,21 +386,39 @@ export default function UploadTikTokPage({ references }: { references: Reference
                     {keyReferenceAddButton(activeIndex, "description", videos)}
                     {hasKey("description") && keyReferenceMenu("description")}
                   </div>
-                  {/* <div className="flex gap-2 items-center">
-                    <label htmlFor="category" className="font-semibold">Category:</label>
+                  <div className="flex gap-2 items-center">
+                    <label htmlFor="category" className="font-semibold">Who can view this video: </label>
                     <select
-                      onChange={event => updateInput(event, 'categoryId', index)}
+                      onChange={event => updateInput(event, 'privacyStatus', index)}
                       className="outline-0 border-0 bg-transparent rounded"
                       name="category"
-                      value={videos[activeIndex]?.categoryId}
+                      value={videos[activeIndex]?.privacyStatus}
                     >
-                      {Categories.map((item: CategoriesType) => (
+                      <option label="select an option"></option>
+                      {privacyStatusOptions.map((item) =>
                         <option key={item.id} value={item.id}>
                           {item.label}
                         </option>
-                      ))}
+                      )}
                     </select>
-                  </div> */}
+                  </div>
+                  <div className="flex gap-2">
+                    <p className="font-semibold">Allow users to: </p>
+                    <div>
+                      <div className="flex gap-2">
+                        <label htmlFor="category">Comment:</label>
+                        <input type="checkbox" />
+                      </div>
+                      <div className="flex gap-2">
+                        <label htmlFor="category">Duet:</label>
+                        <input type="checkbox" />
+                      </div>
+                      <div className="flex gap-2">
+                        <label htmlFor="category">Stitch:</label>
+                        <input type="checkbox" />
+                      </div>
+                    </div>
+                  </div>
                   <div className="flex gap-2 items-center">
                     <label htmlFor="scheduleDate" className="font-semibold">Scheduled Date:</label>
                     <input
@@ -402,17 +429,89 @@ export default function UploadTikTokPage({ references }: { references: Reference
                       value={videos[activeIndex]?.scheduleDate}
                     />
                   </div>
-                  {/* <div className="flex gap-2 items-center">
-                    <label htmlFor="tags" className="font-semibold">Tags:</label>
-                    <textarea
-                      name="tags"
-                      className="border border-gray-300 rounded w-full h-8 px-2 py-1 outline-0 bg-transparent "
-                      onChange={event => updateInput(event, 'tags', index)}
-                      value={videos[activeIndex]?.tags}
-                    />
-                    {keyReferenceAddButton(activeIndex, "tags", videos)}
-                    {hasKey("tags") && keyReferenceMenu("tags")}
-                  </div> */}
+
+                  <div className="flex flex-col gap-2">
+                    <p className="font-semibold">Disclose video content:</p>
+                    <div className="flex gap-2">
+                      <input
+                        type="checkbox"
+                        onChange={event => {
+                          setDisclose(event.target.checked);
+                          setVideos(videos.map((video, i) => {
+                            if (allActive || i === index) {
+                              return {
+                                ...video,
+                                commercialUse: event.target.checked,
+                              }
+                            }
+                            return video;
+                          }));
+                          if (!event.target.checked) {
+                            setYourBrand(false);
+                            setBrandedContent(false);
+                          } else {
+                            setYourBrand(true);
+                          }
+
+                          updateInput(event, 'commercialUse', index);
+                        }}
+                        checked={(disclose && yourBrand) || (disclose && brandedContent)}
+                      />
+                      <p className="text-xs text-gray-500">Turn on to disclose that this video promotes goods or services in exchange for something of value.</p>
+                    </div>
+                    {disclose && (
+                      <div className="flex flex-col gap-2 p-4">
+                        <div className="flex items-start space-x-3 mb-4">
+                          <p className="text-sm text-gray-700">
+                            <strong>Your video will be labeled “Promotional content”.</strong><br />
+                            This cannot be changed once your video is posted.
+                          </p>
+                        </div>
+
+                        <div className="bg-blue-100 text-blue-900 text-sm p-3 rounded mb-4">
+                          Turn on to disclose that this video promotes goods or services in exchange for something of value. Your video could promote yourself, a third party, or both.
+                        </div>
+
+                        <div className="mb-3">
+                          <label className="flex items-start space-x-3">
+                            <input
+                              type="checkbox"
+                              checked={yourBrand}
+                              onChange={() => setYourBrand(!yourBrand)}
+                              className="mt-1"
+                            />
+                            <div>
+                              <p className="font-medium">Your brand</p>
+                              <p className="text-sm text-gray-600">
+                                You are promoting yourself or your own business. This video will be classified as Brand Organic.
+                              </p>
+                            </div>
+                          </label>
+                        </div>
+
+                        <div className="mb-3">
+                          <label className="flex items-start space-x-3">
+                            <input
+                              type="checkbox"
+                              checked={brandedContent}
+                              onChange={() => setBrandedContent(!brandedContent)}
+                              className="mt-1"
+                            />
+                            <div>
+                              <p className="font-medium">Branded content</p>
+                              <p className="text-sm text-gray-600">
+                                You are promoting another brand or a third party. This video will be classified as Branded Content.
+                              </p>
+                            </div>
+                          </label>
+                        </div>
+
+                        <p className="text-sm text-gray-600 mb-4">
+                          By posting, you agree to our <a href="#" className="text-blue-600 underline">Music Usage Confirmation</a>.
+                        </p>
+                      </div>
+                    )}
+                  </div>
                 </div>
               </div>
             </div>
