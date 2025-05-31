@@ -431,7 +431,6 @@ export default function UploadTikTokPage({ references }: { references: Reference
                   </div>
 
                   <div className="flex flex-col gap-2">
-                    <p className="font-semibold">Disclose video content:</p>
                     <div className="flex gap-2">
                       <input
                         type="checkbox"
@@ -457,21 +456,17 @@ export default function UploadTikTokPage({ references }: { references: Reference
                         }}
                         checked={(disclose && yourBrand) || (disclose && brandedContent)}
                       />
-                      <p className="text-xs text-gray-500">Turn on to disclose that this video promotes goods or services in exchange for something of value.</p>
+                      <p className="font-semibold">Disclose video content:</p>
                     </div>
                     {disclose && (
+                      <div className="bg-blue-100 text-blue-900 text-sm p-3 rounded mb-1">
+                        Your video will be labeled “Promotional content”. This cannot be changed once your video is posted.
+                      </div>
+                    )}
+                    <p className="text-xs text-gray-500">Turn on to disclose that this video promotes goods or services in exchange for something of value. Your video could promote yourself, a third party, or both.</p>
+
+                    {disclose && (
                       <div className="flex flex-col gap-2 p-4">
-                        <div className="flex items-start space-x-3 mb-4">
-                          <p className="text-sm text-gray-700">
-                            <strong>Your video will be labeled “Promotional content”.</strong><br />
-                            This cannot be changed once your video is posted.
-                          </p>
-                        </div>
-
-                        <div className="bg-blue-100 text-blue-900 text-sm p-3 rounded mb-4">
-                          Turn on to disclose that this video promotes goods or services in exchange for something of value. Your video could promote yourself, a third party, or both.
-                        </div>
-
                         <div className="mb-3">
                           <label className="flex items-start space-x-3">
                             <input
@@ -506,9 +501,20 @@ export default function UploadTikTokPage({ references }: { references: Reference
                           </label>
                         </div>
 
-                        <p className="text-sm text-gray-600 mb-4">
-                          By posting, you agree to our <a href="#" className="text-blue-600 underline">Music Usage Confirmation</a>.
-                        </p>
+                        {(yourBrand || brandedContent) && (
+                          <p className="text-sm text-gray-600 mb-4">
+                            By posting, you agree to TikTok's
+                            {brandedContent && (
+                              <>
+                                <a href="https://www.tiktok.com/legal/page/global/music-usage-confirmation/en" className="text-blue-600 underline">
+                                  Branded Content Policy
+                                </a>
+                                and
+                              </>
+                            )}
+                            <a href="https://www.tiktok.com/legal/page/global/bc-policy/en" className="text-blue-600 underline">Music Usage Confirmation</a>.
+                          </p>
+                        )}
                       </div>
                     )}
                   </div>
