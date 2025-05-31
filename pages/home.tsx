@@ -1,3 +1,4 @@
+import Button from '@/app/components/primitives/Button';
 import { useEffect, useState } from "react";
 import Image from 'next/image';
 import { useRouter } from 'next/router';
@@ -95,10 +96,10 @@ export default function Home() {
       },
     }).then(async (res) => {
       const { data } = await res.json();
-      const {snippet} = data;
-      const {title, thumbnails} = snippet;
+      const { snippet } = data;
+      const { title, thumbnails } = snippet;
       console.log("thumbnails", thumbnails);
-      const {medium} = thumbnails;
+      const { medium } = thumbnails;
 
       setYtUserInfo({
         title,
@@ -198,14 +199,14 @@ export default function Home() {
   useEffect(() => {
     if (tokens && !playlistId)
       getPlaylistId();
-      getYTChannelInfo();
+    getYTChannelInfo();
   }, [tokens]);
 
   useEffect(() => {
     if (playlistId)
       getVideos();
   }, [playlistId]);
-console.log("=------", ytUserInfo)
+  console.log("=------", ytUserInfo)
   return (
     <main className="flex">
       <div className="w-full">
@@ -214,82 +215,95 @@ console.log("=------", ytUserInfo)
             <>
               <h3 className="text-lg max-w-96 text-center my-8">Connect your Social Media account now to start uploading, scheduling, and managing your videos effortlessly!</h3>
               <div className="flex flex-col gap-2 w-50">
-                <button onClick={() => connectYt()} className="flex gap-4 items-center bg-white hover:bg-gray-100 border border-gray-200 focus:ring-4 focus:outline-none focus:ring-gray-100 rounded-lg px-5 py-2.5">
+                <Button
+                  variant="white"
+                  size="xlarge"
+                  className="flex gap-4 items-center"
+                  onClick={() => connectYt()}
+                >
                   <Image src="/youtube_logo.png" alt="Youtube Logo" width="50" height="20" className="w-12" />
                   <p className="text-lg">Connect to Youtube</p>
-                </button>
-                <button
-                  className="flex items-center gap-4 text-gray-700 hover:text-gray-400 border border-gray-600 hover:border-gray-400 focus:ring-4 focus:outline-none focus:ring-gray-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center me-2 mb-2 "
-                  onClick={() => connectTt()}>
-                  <Image src="/tiktok.svg" alt="TikTok Logo" width="20" height="8" />
+                </Button>
+                <Button
+                  variant="secondary"
+                  size="xlarge"
+                  className="flex gap-4"
+                  onClick={() => connectTt()}
+                >
+                  <Image src="/tiktok.svg" alt="TikTok Logo" width="40" height="16" />
                   Continue with TikTok
-                </button>
+                </Button>
               </div>
             </>
           )}
         </div>
-        {!!ytUserInfo && (
-          <div className="flex flex-col items-center gap-4 mt-8 mb-4">
-            {!!ytUserInfo?.thumbnail && <img src={ytUserInfo.thumbnail} alt="YouTube User Thumbnail" width="100" height="100" className="rounded-full" />}
-            {/* {!!ytUserInfo?.thumbnail && <img loading="lazy" src="https://yt3.ggpht.com/j8Dk-lJSrUxcCJF7by6hTy093ydzML6A1P-HnfccPurGz3pw0w7oubwgkTxrYChSY6Xsnn9X3bM=s240-c-k-c0x00ffffff-no-rj" alt="YouTube User Thumbnail" width="100" height="100" className="rounded-full" />} */}
-            {/* {!!ytUserInfo?.thumbnail && <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/a/a4/2019_Toyota_Corolla_Icon_Tech_VVT-i_Hybrid_1.8.jpg/960px-2019_Toyota_Corolla_Icon_Tech_VVT-i_Hybrid_1.8.jpg" alt="YouTube User Thumbnail" width="100" height="100" className="rounded-full" />} */}
-            
-            <h2 className="text-2xl font-bold text-gray-800">{ytUserInfo?.title}</h2>
-          </div>
-        )}
         {videos.length > 0 && (
           <Tabs defaultValue="youtube" className="mt-[3px] max-w-screen-lg mx-auto">
             <TabsList aria-label="social media opitons" className="px-5">
               <TabsTrigger value="youtube">YouTube</TabsTrigger>
               <TabsTrigger value="tiktok">TikTok</TabsTrigger>
             </TabsList>
+
             <TabsContent value="youtube">
-              <div className="flex flex-col items-center gap-8 mb-16 px-4">
+              <div className="flex flex-col gap-2 mb-8 px-4">
+                {!!ytUserInfo && (
+                  <div className="flex gap-4">
+                    {!!ytUserInfo?.thumbnail && <img src={ytUserInfo.thumbnail} alt="YouTube User Thumbnail" width="35" height="35" className="rounded-full" />}
+                    <h2 className="text-2xl font-bold text-gray-800">{ytUserInfo?.title}</h2>
+                  </div>
+                )}
                 <Calendar
                   scheduledVideos={videos}
                   setEditVideo={setEditVideo}
                 />
-                <button
-                  className="text-gray-700 hover:text-gray-400 border border-gray-600 hover:border-gray-400 focus:ring-4 focus:outline-none focus:ring-gray-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center me-2 mb-2 "
+                <Button
+                  variant="secondary"
+                  className="w-fit ml-auto mt-4"
                   onClick={() => {
                     deleteCookie("userPlaylistId");
                     deleteCookie("tokens");
                     setVideos([]);
-                  }}>
+                  }}
+                >
                   Disconnect from Youtube
-                </button>
+                </Button>
               </div>
             </TabsContent>
+
             <TabsContent value="tiktok">
               <div className="flex flex-col items-center gap-8 mb-16 px-4">
                 {!!connectedTiktok && (
                   <>
                     <div>TikTok calander</div>
-                    <button
-                      className="text-gray-700 hover:text-gray-400 border border-gray-600 hover:border-gray-400 focus:ring-4 focus:outline-none focus:ring-gray-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center me-2 mb-2 "
+                    <Button
+                      className="w-fit ml-auto mt-4"
+                      variant="secondary"
                       onClick={() => {
                         deleteCookie("userPlaylistId");
                         deleteCookie("tokens");
                         setVideos([]);
-                      }}>
+                      }}
+                    >
                       Disconnect from Tiktok
-                    </button>
+                    </Button>
                   </>
                 )}
                 {!connectedTiktok && (
-                  <button
-                    className="flex items-center gap-4 text-gray-700 hover:text-gray-400 border border-gray-600 hover:border-gray-400 focus:ring-4 focus:outline-none focus:ring-gray-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center me-2 mb-2 "
-                    onClick={() => connectTt()}>
+                  <Button
+                    variant="secondary"
+                    className="flex items-center gap-4 "
+                    onClick={() => connectTt()}
+                  >
                     <Image src="/tiktok.svg" alt="TikTok Logo" width="20" height="8" />
                     Continue with TikTok
-                  </button>
+                  </Button>
                 )}
               </div>
             </TabsContent>
           </Tabs>
         )}
       </div>
-      <div className={clsx({ "w-[400px]": !!editVideo?.description }, "fixed right-0 z-10 w-0 transition-[width] h-screen border-l drop-shadow bg-gray-100 border-gray-50")}>
+      <div className={clsx({ "w-[400px]": !!editVideo?.description }, "fixed right-0 top-0 z-10 w-0 transition-[width] h-screen border-l drop-shadow bg-gray-100 border-gray-50")}>
         <div className="flex flex-col w-[400px] gap-2 pt-6 px-8 h-full overflow-auto pb-10">
           <div className="flex items-center mb-2">
             <h3 className="text-gray-700 text-xl font-bold">Edit Video</h3>
@@ -354,20 +368,20 @@ console.log("=------", ytUserInfo)
             </div>
           </div>
           <div className="flex flex-col gap-2 mt-5">
-            <button
-              className="py-2 rounded-lg border text-orange-500 border-orange-500 hover:text-orange-600 hover:border-orange-600"
+            <Button
+              variant="primary"
               onClick={() => saveEditVideo()}
               type="button"
             >
               Update
-            </button>
-            <button
-              className="py-1 rounded-lg border border-gray-700 hover:border-gray-900"
+            </Button>
+            <Button
+              variant="secondary"
               onClick={() => closeEditVideo()}
               type="button"
             >
               Exit
-            </button>
+            </Button>
           </div>
         </div>
       </div>

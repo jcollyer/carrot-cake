@@ -61,16 +61,16 @@ export function Calendar({ scheduledVideos, setEditVideo }: Props) {
   };
 
   return (
-    <section className="mt-6 bg-white w-full max-w-screen-xl border border-gray-200 text-center rounded-md">
-      <header className="text-gray-700 font-lg font-bold uppercase select-none border-t border-gray-100">
+    <section className="mt-4 bg-white w-full max-w-screen-xl border border-gray-200 text-center rounded-md">
+      <header className="text-gray-500 font-lg font-bold uppercase select-none border-t border-gray-100">
         <div className="items-center py-2 bg-gray-200 flex w-full border-b border-gray-300">
           <ChevronLeft
-            className="text-gray-600"
+            className="text-gray-400"
             onClick={() => previous()}
           />
           <span className="flex-[1]">{month.format('MMMM YYYY')}</span>
           <ChevronRight
-            className="text-gray-600"
+            className="text-gray-400"
             onClick={() => next()}
           />
         </div>

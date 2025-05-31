@@ -1,3 +1,11 @@
+import { MenuProvider, Menu, MenuButton, MenuItem } from '@/app/components/primitives/Menu';
+import Button from '@/app/components/primitives/Button';
+import clsx from 'clsx';
+import prisma from "@/lib/prisma";
+import { Reference } from '@prisma/client';
+const transparentImage = require('@/public/transparent.png');
+import { getServerSession } from "next-auth"
+import { authOptions } from "@/pages/api/auth/[...nextauth]"
 import { useCallback, useState } from 'react';
 import { BookMarked, BookmarkPlus, FilePlus, SquarePlus, Trash2 } from 'lucide-react';
 import { useDropzone } from 'react-dropzone';
@@ -5,13 +13,6 @@ import { getCookie } from 'cookies-next'
 import { TikTokVideoProps } from '@/types/video'
 import generateVideoThumb from '@/app/utils/generateVideoThumb';
 import moment from 'moment';
-import { MenuProvider, Menu, MenuButton, MenuItem } from '@/app/components/primitives/Menu';
-import clsx from 'clsx';
-import prisma from "@/lib/prisma";
-import { Reference } from '@prisma/client';
-const transparentImage = require('@/public/transparent.png');
-import { getServerSession } from "next-auth"
-import { authOptions } from "@/pages/api/auth/[...nextauth]"
 
 export const getServerSideProps = async (context: any) => {
   const session = await getServerSession(context.req, context.res, authOptions);
@@ -420,14 +421,14 @@ export default function UploadTikTokPage({ references }: { references: Reference
 
         {!!videos.length && (
           <div className="flex flex-col items-center mb-10">
-            <button
+            <Button
+              variant="secondary"
               type="submit"
               onClick={onSubmit}
-              className="font-bold py-2 px-4 rounded border border-gray-400 hover:border-gray-500"
             >
               {`Upload ${videos.length} Video${videos.length > 1 ? 's' : ''
                 } to YouTube`}
-            </button>
+            </Button>
           </div>
         )}
       </form>

@@ -1,3 +1,4 @@
+import Button from '@/app/components/primitives/Button';
 import Link from 'next/link';
 import Image from 'next/image'
 import { Music2, Youtube } from 'lucide-react';
@@ -35,15 +36,17 @@ export default function Navbar() {
                 </MenuItem>
                 <MenuSeparator />
                 <MenuItem>
-                  <button onClick={() => {
-                    // clear previous yt token and userPlaylistId cookies
-                    document.cookie =
-                      "tokens=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
-                    document.cookie =
-                      "userPlaylistId=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
-                    signOut({ callbackUrl: "/" })
-                  }}
-                    className="hover:text-orange-600">
+                  <button
+                    onClick={() => {
+                      // clear previous yt token and userPlaylistId cookies
+                      document.cookie =
+                        "tokens=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+                      document.cookie =
+                        "userPlaylistId=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+                      signOut({ callbackUrl: "/" })
+                    }}
+                    className="hover:text-orange-600"
+                  >
                     Log out
                   </button>
                 </MenuItem>
@@ -53,10 +56,20 @@ export default function Navbar() {
           {!session && (
             <>
               <li>
-                <button onClick={() => signIn()} className="hover:text-orange-600">Sign in</button>
+                <button
+                  onClick={() => signIn()}
+                  className="hover:text-orange-600"
+                >
+                  Sign in
+                </button>
               </li>
               <li>
-                <button onClick={() => signIn()} className="bg-gradient-to-r from-red-500 to-orange-500 text-white font-bold py-2 px-4 rounded text-center hover:border border-white">Sign up</button>
+                <Button
+                  variant="cta"
+                  onClick={() => signIn()}
+                >
+                  Sign up
+                </Button>
               </li>
             </>
           )}

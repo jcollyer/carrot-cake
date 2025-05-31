@@ -1,4 +1,5 @@
-import { useContext, useEffect } from 'react';
+import Button from '@/app/components/primitives/Button';
+import { useEffect } from 'react';
 import { useRouter } from 'next/router';
 import Image from 'next/image';
 import { Rocket, Goal, Calendar, PencilRuler, Bell, ChartColumnBig } from 'lucide-react';
@@ -38,7 +39,7 @@ function LoggedOut() {
   }, [session]);
 
   return (
-    <main className="w-full mt-16 bg-gray-500">
+    <main className="w-full bg-gray-500">
       <div className="flex justify-center w-full bg-white">
         <div className="flex flex-col gap-4 items-center py-24 px-64">
           <div className="flex gap-1 items-center">
@@ -65,7 +66,13 @@ function LoggedOut() {
           <div className="max-w-md flex flex-col gap-1 m-auto mt-12">
             <h3 className="text-2xl text-center font-semibold mt-10 text-gray-600">Start Scheduling Smarter Today!</h3>
             <p className="text-center px-16 leading-[2] mb-8">Sign up now and take control of your YouTube content like never before.</p>
-            <button onClick={() => signIn()} className="px-20 m-auto bg-gradient-to-r from-red-500 to-orange-500 text-white font-bold py-2 rounded text-center hover:border border-white">Sign up</button>
+            <Button 
+              variant="cta"
+              onClick={() => signIn()} 
+              className="m-auto"
+              >
+                Sign up
+            </Button>
           </div>
         </div>
       </div>

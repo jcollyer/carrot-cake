@@ -61,7 +61,7 @@ export const TabsContent: React.FC<TabsContentProps> = ({
   value,
   children,
 }) => (
-  <RadixTabs.Content className="pt-6" value={value}>
+  <RadixTabs.Content className="pt-4" value={value}>
     {children}
   </RadixTabs.Content>
 );
