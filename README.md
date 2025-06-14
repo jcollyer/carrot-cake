@@ -35,6 +35,11 @@ The easiest way to deploy your Next.js app is to use the [Vercel Platform](https
 
 Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
 
+## Run ngrok:
+```
+ngrok https --url=jointly-topical-leech.ngrok-free.app 3000
+```
+
 
 bug list:
 
@@ -44,4 +49,3 @@ feature list:
 - UI handle multiple videos scheduled on the same day
 - Aadd loading UI for video upload proccessing
 - Add delete video from calendar view
-- Remove YT auth cookie on log out

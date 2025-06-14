@@ -50,6 +50,11 @@ export type TikTokVideoProps = {
 };
 
 export type YouTubeUserInfo = {
-  title?: string;
+  userName?: string;
   thumbnail?: string;
 };
+
+export type TikTokUserInfo = {
+  userName?: string;
+  thumbnail?: string;
+}

@@ -1,7 +1,8 @@
 import Button from '@/app/components/primitives/Button';
 import { useEffect, useState } from "react";
 import Image from 'next/image';
-import { useRouter } from 'next/router';
+import { getServerSession } from "next-auth"
+import { authOptions } from "@/pages/api/auth/[...nextauth]"
 import { getCookie, setCookie, deleteCookie } from 'cookies-next'
 import { CircleX } from 'lucide-react';
 import { Categories } from '@/app/utils/categories';
@@ -13,23 +14,33 @@ import {
 } from "@/app/components/primitives/Tabs";
 import Calendar from '@/app/components/Calendar';
 import clsx from 'clsx';
-import { YTVideoProps, YouTubeVideo, YouTubeUserInfo } from '@/types/video'
-import { useSession } from "next-auth/react"
+import { YTVideoProps, YouTubeVideo, YouTubeUserInfo, TikTokUserInfo } from '@/types/video'
 import moment from 'moment';
 
-export default function Home() {
-  const { push } = useRouter();
-  const { data: session } = useSession();
-  useEffect(() => {
-    if (!session) {
-      push('/');
-    }
-  }, []);
+export const getServerSideProps = async (context:any) => {
+  const session = await getServerSession(context.req, context.res, authOptions);
+  if (!session) {
+    return {
+      redirect: {
+        destination: "/",
+        permanent: false,
+      },
+    };
+  }
+  return {
+    props: {
+      session,
+    },
+  };
+};
 
+export default function Home() {
   const [tokens, setTokens] = useState(getCookie('tokens'));
+  const [tiktokTokens, setTiktokTokens] = useState(getCookie('tiktok-tokens'));
   const [playlistId, setPlaylistId] = useState(getCookie('userPlaylistId'));
-  const [videos, setVideos] = useState<YouTubeVideo[]>([]);
-  const [connectedTiktok, setConnectedTiktok] = useState(false);
+  const [videos, setVideos] = useState<YouTubeVideo[]>();
+  const [ytUserInfo, setYtUserInfo] = useState<YouTubeUserInfo>();
+  const [tiktokUserInfo, setTiktokUserInfo] = useState<TikTokUserInfo>();
   const [editVideo, setEditVideo] = useState<YTVideoProps>({
     categoryId: '',
     description: '',
@@ -40,11 +51,14 @@ export default function Home() {
     title: '',
     thumbnail: '',
   });
-  const [ytUserInfo, setYtUserInfo] = useState<YouTubeUserInfo>({});
+
 
   const connectTt = async () => {
-    console.log('Connecting to TikTok');
-
+    listenCookieChange(({ oldValue, newValue }) => {
+      if (oldValue !== newValue) {
+        setTiktokTokens(newValue);
+      }
+    }, 1000, "tiktok-tokens");
     await fetch('/api/tiktok/connect-tiktok', {
       method: 'GET',
       headers: {
@@ -52,18 +66,16 @@ export default function Home() {
       },
     }).then(async (res) => {
       const oAuthCallback = await res.json();
-      console.log('Response from TikTok connect:', oAuthCallback);
       window.open(oAuthCallback.url, '_blank', 'location=yes,height=570,width=520,scrollbars=yes,status=yes');
     });
   }
 
   const connectYt = async () => {
     listenCookieChange(({ oldValue, newValue }) => {
-      console.log(`Cookie changed from "${oldValue}" to "${newValue}"`);
       if (oldValue !== newValue) {
         setTokens(newValue);
       }
-    }, 1000);
+    }, 1000, "youtube-tokens");
     await fetch('/api/youtube/connect-yt', {
       method: 'GET',
       headers: {
@@ -73,6 +85,30 @@ export default function Home() {
       const oAuthCallback = await res.json();
       window.open(oAuthCallback.url, '_blank', 'location=yes,height=570,width=520,scrollbars=yes,status=yes');
     });
+  }
+
+  const getTikTokUserInfo = async () => {
+    fetch('https://open.tiktokapis.com/v2/user/info/?fields=open_id,union_id,avatar_url,display_name', {
+      method: 'GET',
+      headers: {
+        'Authorization': `Bearer ${JSON.parse(tiktokTokens as string || "{}").access_token}`,
+      }
+    })
+      .then(response => {
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        return response.json();
+      })
+      .then(data => {
+        setTiktokUserInfo({
+          thumbnail: data.data.user.avatar_url,
+          userName: data.data.user.display_name,
+        });
+      })
+      .catch(error => {
+        console.error('Fetch error:', error);
+      });
   }
 
   const getPlaylistId = async () => {
@@ -98,11 +134,10 @@ export default function Home() {
       const { data } = await res.json();
       const { snippet } = data;
       const { title, thumbnails } = snippet;
-      console.log("thumbnails", thumbnails);
       const { medium } = thumbnails;
 
       setYtUserInfo({
-        title,
+        userName: title,
         thumbnail: medium.url,
       });
     });
@@ -122,10 +157,10 @@ export default function Home() {
     });
   }
 
-  const listenCookieChange = (callback: (values: { oldValue: string, newValue: string }) => void, interval = 1000) => {
-    let lastCookie = getCookie('tokens') as string;
+  const listenCookieChange = (callback: (values: { oldValue: string, newValue: string }) => void, interval = 1000, tokenType = "youtube-tokens") => {
+    let lastCookie = tokenType === "youtube-tokens" ? getCookie('tokens') as string : getCookie('tiktok-tokens') as string;
     setInterval(() => {
-      const tokens = getCookie('tokens') as string;
+      const tokens = tokenType === "youtube-tokens" ? getCookie('tokens') as string : getCookie('tiktok-tokens') as string;
       if (tokens !== lastCookie) {
         try {
           callback({ oldValue: lastCookie, newValue: tokens });
@@ -147,7 +182,7 @@ export default function Home() {
     })
       .then(response => response.json())
       .then(() => {
-        const updatedScheduledVideos = videos.map(video => {
+        const updatedScheduledVideos = videos?.map(video => {
           if (video.id === editVideo.id) {
             return {
               ...video,
@@ -203,6 +238,12 @@ export default function Home() {
   }, [tokens]);
 
   useEffect(() => {
+    if (tiktokTokens) {
+      getTikTokUserInfo();
+    }
+  }, [tiktokTokens])
+
+  useEffect(() => {
     if (playlistId)
       getVideos();
   }, [playlistId]);
@@ -211,7 +252,7 @@ export default function Home() {
     <main className="flex mt-8">
       <div className="w-full">
         <div className="flex flex-col items-center">
-          {videos.length === 0 && (
+          {(!videos && !tiktokUserInfo) && (
             <div className="max-w-96 flex flex-col gap-4 items-center mt-16">
               <h1 className="text-2xl text-transparent text-center leading-[1.2] bg-clip-text bg-gradient-to-r from-red-500 to-orange-500">CARROT-CAKE APP</h1>
               <h3 className="text-center">Connect your Social Media account now to start uploading, scheduling, and managing your videos effortlessly!</h3>
@@ -238,7 +279,7 @@ export default function Home() {
             </div>
           )}
         </div>
-        {videos.length > 0 && (
+        {(!!videos || !!tiktokUserInfo) && (
           <Tabs defaultValue="youtube" className="mt-[3px] max-w-screen-lg mx-auto">
             <TabsList aria-label="social media opitons" className="px-5">
               <TabsTrigger value="youtube">YouTube</TabsTrigger>
@@ -246,36 +287,59 @@ export default function Home() {
             </TabsList>
 
             <TabsContent value="youtube">
-              <div className="flex flex-col gap-2 mb-8 px-4">
+              <div className="flex flex-col items-center gap-8 mb-16 px-4">
                 {!!ytUserInfo && (
-                  <div className="flex gap-4">
-                    {!!ytUserInfo?.thumbnail && <img src={ytUserInfo.thumbnail} alt="YouTube User Thumbnail" width="35" height="35" className="rounded-full" />}
-                    <h2 className="text-2xl font-bold text-gray-800">{ytUserInfo?.title}</h2>
-                  </div>
+                  <>
+                    <div className="flex gap-4">
+                      {ytUserInfo.thumbnail && <img src={ytUserInfo.thumbnail} alt="YouTube User Thumbnail" width="35" height="35" className="rounded-full" />}
+                      <h2 className="text-2xl font-bold text-gray-800">{ytUserInfo.userName}</h2>
+                    </div>
+
+                    <Calendar
+                      scheduledVideos={videos || []}
+                      setEditVideo={setEditVideo}
+                    />
+                    <Button
+                      variant="secondary"
+                      className="w-fit ml-auto mt-4"
+                      onClick={() => {
+                        deleteCookie("userPlaylistId");
+                        deleteCookie("tokens");
+                        setVideos([]);
+                      }}
+                    >
+                      Disconnect from Youtube
+                    </Button>
+                  </>
                 )}
-                <Calendar
-                  scheduledVideos={videos}
-                  setEditVideo={setEditVideo}
-                />
-                <Button
-                  variant="secondary"
-                  className="w-fit ml-auto mt-4"
-                  onClick={() => {
-                    deleteCookie("userPlaylistId");
-                    deleteCookie("tokens");
-                    setVideos([]);
-                  }}
-                >
-                  Disconnect from Youtube
-                </Button>
+                {!ytUserInfo && (
+                  <Button
+                    variant="white"
+                    size="xlarge"
+                    className="flex gap-4 mt-4"
+                    onClick={() => connectYt()}
+                  >
+                    <Image src="/youtube_logo.png" alt="Youtube Logo" width="50" height="20" className="w-12" />
+                    Continue with Youtube
+                  </Button>
+                )}
               </div>
             </TabsContent>
 
             <TabsContent value="tiktok">
               <div className="flex flex-col items-center gap-8 mb-16 px-4">
-                {!!connectedTiktok && (
+                {!!tiktokUserInfo && (
                   <>
-                    <div>TikTok calander</div>
+                    <div className="flex gap-4">
+                      {tiktokUserInfo.thumbnail && <img src={tiktokUserInfo.thumbnail} alt="YouTube User Thumbnail" width="35" height="35" className="rounded-full" />}
+                      <h2 className="text-2xl font-bold text-gray-800">{tiktokUserInfo.userName}</h2>
+                    </div>
+
+                    <Calendar
+                      scheduledVideos={videos || []}
+                      setEditVideo={setEditVideo}
+                    />
+
                     <Button
                       className="w-fit ml-auto mt-4"
                       variant="secondary"
@@ -289,7 +353,7 @@ export default function Home() {
                     </Button>
                   </>
                 )}
-                {!connectedTiktok && (
+                {!tiktokUserInfo && (
                   <Button
                     variant="white"
                     size="xlarge"

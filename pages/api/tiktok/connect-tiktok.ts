@@ -40,40 +40,26 @@ export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse
 ) {
-    const codes = generateCodeChallengePair().then(
-      ({ codeVerifier, codeChallenge }) => {
-        return { codeVerifier, codeChallenge };
-      }
-    );
+  const codes = generateCodeChallengePair().then(
+    ({ codeVerifier, codeChallenge }) => {
+      return { codeVerifier, codeChallenge };
+    }
+  );
 
-    const codeVerifier = (await codes).codeVerifier;
-    const codeChallenge = (await codes).codeChallenge;
+  const codeVerifier = (await codes).codeVerifier;
+  const codeChallenge = (await codes).codeChallenge;
 
   let url = "https://www.tiktok.com/v2/auth/authorize/";
   let array = new Uint8Array(30);
   const csrfState = crypto.getRandomValues(array);
 
-    console.log(
-      "------->>",
-      SERVER_ENDPOINT_REDIRECT,
-      process.env.TIKTOK_CLIENT_KEY,
-      codeChallenge
-    );
-
-
-  // the following params need to be in `application/x-www-form-urlencoded` format.
   url += `?client_key=${process.env.TIKTOK_CLIENT_KEY}`;
   url += "&scope=user.info.basic";
   url += "&response_type=code";
   url += `&redirect_uri=${encodeURIComponent(SERVER_ENDPOINT_REDIRECT || "")}`;
   url += `&state=${csrfState}`;
-  // url += `&state=ab`;
   url += `&code_challenge=${codeChallenge}`;
-  // url += `&code_challenge=abc`;
   url += "&code_challenge_method=S256";
 
-
-//   res.status(200).json({ url });
-//   return res.redirect(url);
   res.json({ url: url });
 }

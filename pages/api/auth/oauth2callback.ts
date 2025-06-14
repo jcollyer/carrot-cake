@@ -8,7 +8,7 @@ export default async function handler(req: Request, res: Response) {
   // Get the tokens
   oauth.getToken(code, async (err: any, tokens: string) => {
     if (err) {
-      console.log("err");
+      console.error("Error getting tokens:", err);
       return;
     }
 

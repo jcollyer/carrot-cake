@@ -49,7 +49,7 @@ export default function UploadYouTubePage({ references }: { references: Referenc
   const [allActive, setAllActive] = useState(false);
   const [videos, setVideos] = useState<YTVideoProps[]>([]);
   const [localReferences, setLocalReferences] = useState<Reference[]>(references || []);
-console.log('usersReferences', {references, localReferences});
+
   const onDrop = useCallback((acceptedFiles: any) => {
     if (acceptedFiles.length) {
       acceptedFiles.forEach(async (file: any) => {

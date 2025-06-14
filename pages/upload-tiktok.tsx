@@ -132,7 +132,6 @@ export default function UploadTikTokPage({ references }: { references: Reference
   //         },
   //         body: video.file,
   //       });
-  //       console.log('Video uploaded:', response)
   //       setVideos([]);
   //     } catch (error) {
   //       console.error('Error uploading file:', error);
@@ -275,7 +274,7 @@ export default function UploadTikTokPage({ references }: { references: Reference
       </Menu>
     </MenuProvider>
   );
-  console.log('disclose--', disclose, yourBrand, brandedContent);
+
   return (
     <div className="flex flex-col max-w-3xl mx-auto mt-12 p-6">
       <h3 className="text-center text-3xl mt-6 font-semibold text-gray-600">Upload Video</h3>

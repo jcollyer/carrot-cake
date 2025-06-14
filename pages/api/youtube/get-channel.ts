@@ -24,7 +24,6 @@ export default async function handler(
         };
       }) => {
         const items = response.data.items;
-        console.log("userInfo", items);
         return items;
       }
     );
