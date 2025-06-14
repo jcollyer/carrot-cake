@@ -1,35 +1,45 @@
 export interface YouTubeVideo {
-  id?: string;
-  title?: string;
-  description?: string;
-  scheduleDate?: string;
-  categoryId?: string;
-  tags?: string;
-  snippet?: {
-    title?: string;
-    description?: string;
+  id: string;
+  snippet: {
+    categoryId?: string;
+    title: string;
+    description: string;
     publishedAt?: string;
-    thumbnails?: {
-      default?: {
-        url?: string;
+    tags?: string[];
+    thumbnails: {
+      default: {
+        url: string;
       };
-      medium?: {
-        url?: string;
+      medium: {
+        url: string;
       };
-      high?: {
-        url?: string;
+      high: {
+        url: string;
       };
     };
   };
+  status: {
+    publishAt?: string;
+  };
+}
+export interface TikTokVideo {
+  id: string;
+  title: string;
+  video_description: string;
+  duration?: string;
+  create_time: number;
+  cover_image_url: string;
+  share_url: string;
+  embed_link?: boolean;
 }
 
-export type YTVideoProps = {
+export type SanitizedVideoProps = {
   description: string;
-  categoryId: string;
-  file: any;
+  categoryId?: string;
+  file?: any;
   id?: string;
-  scheduleDate: string;
-  tags?: string;
+  scheduleDate?: string;
+  tags?: string[];
   title: string;
   thumbnail: string;
 };
@@ -44,7 +54,7 @@ export type TikTokVideoProps = {
     allowDuet: boolean;
     allowStitch: boolean;
   };
-  scheduleDate: string;
+  scheduleDate?: string;
   thumbnail: string;
   commercialUse: boolean;
 };

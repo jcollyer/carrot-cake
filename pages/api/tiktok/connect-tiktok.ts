@@ -54,7 +54,7 @@ export default async function handler(
   const csrfState = crypto.getRandomValues(array);
 
   url += `?client_key=${process.env.TIKTOK_CLIENT_KEY}`;
-  url += "&scope=user.info.basic";
+  url += "&scope=user.info.basic,video.list";
   url += "&response_type=code";
   url += `&redirect_uri=${encodeURIComponent(SERVER_ENDPOINT_REDIRECT || "")}`;
   url += `&state=${csrfState}`;

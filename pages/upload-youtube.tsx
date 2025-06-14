@@ -11,7 +11,7 @@ import { BookMarked, BookmarkPlus, FilePlus, SquarePlus, Trash2 } from 'lucide-r
 import { useDropzone } from 'react-dropzone';
 import { getCookie } from 'cookies-next'
 import { Categories, CategoriesType } from '@/app/utils/categories';
-import { YTVideoProps } from '@/types/video'
+import { SanitizedVideoProps } from '@/types/video'
 import { getCategoryLabelfromId } from '@/app/utils/categories';
 import generateVideoThumb from '@/app/utils/generateVideoThumb';
 import moment from 'moment';
@@ -47,7 +47,7 @@ export default function UploadYouTubePage({ references }: { references: Referenc
   const tokens = getCookie('tokens');
   const [activeIndex, setActiveIndex] = useState<number>(0);
   const [allActive, setAllActive] = useState(false);
-  const [videos, setVideos] = useState<YTVideoProps[]>([]);
+  const [videos, setVideos] = useState<SanitizedVideoProps[]>([]);
   const [localReferences, setLocalReferences] = useState<Reference[]>(references || []);
 
   const onDrop = useCallback((acceptedFiles: any) => {
@@ -55,7 +55,7 @@ export default function UploadYouTubePage({ references }: { references: Referenc
       acceptedFiles.forEach(async (file: any) => {
         const thumbnail = await generateVideoThumb(file);
 
-        setVideos((videos: YTVideoProps[]) => [
+        setVideos((videos: SanitizedVideoProps[]) => [
           ...videos,
           {
             categoryId: "1",
@@ -89,7 +89,7 @@ export default function UploadYouTubePage({ references }: { references: Referenc
     setVideos(updatedVideos);
   };
 
-  const tryToUpload = async (accessToken: string, urlparameters: string, video: YTVideoProps) => {
+  const tryToUpload = async (accessToken: string, urlparameters: string, video: SanitizedVideoProps) => {
     try {
       const location = await fetch(`https://www.googleapis.com/upload/youtube/v3/videos?${urlparameters}`, {
         method: 'POST',
@@ -101,11 +101,11 @@ export default function UploadYouTubePage({ references }: { references: Referenc
             categoryId: video.categoryId,
             description: video.description,
             title: video.title,
-            tags: video.tags?.split(', '), // Array of strings
+            tags: video.tags
           },
           status: {
             privacyStatus: 'private',
-            publishAt: new Date(video.scheduleDate).toISOString(),
+            publishAt: new Date(video.scheduleDate ?? new Date()).toISOString(),
           },
         }),
       });
@@ -345,7 +345,7 @@ export default function UploadYouTubePage({ references }: { references: Referenc
                   <div className="flex items-center gap-2">
                     <div className="font-semibold">Tags:</div>
                     <div className="flex flex-row justify-center gap-1">
-                      {video.tags?.split(', ').map(tag => (
+                      {!!video.tags && video.tags.length > 0 && video?.tags.map(tag => (
                         <div key={tag} className="bg-gray-600 text-white rounded-full px-2 py-1 text-xs">{tag}</div>
                       ))}
                     </div>

@@ -1,4 +1,5 @@
 import { Pencil } from "lucide-react";
+import type { SanitizedVideoProps } from '@/types/video';
 
 type Props = {
   day: {
@@ -9,39 +10,36 @@ type Props = {
   },
   select: (day: any) => void,
   selected: any,
-  videoScheduled: any[],
-  editVideo: (video: any) => void,
+  videoScheduled: SanitizedVideoProps | undefined,
+  editVideo: (video: SanitizedVideoProps) => void,
 };
 
 export function Day({ day, select, selected, videoScheduled, editVideo }: Props) {
   const { date, isCurrentMonth, isToday, number } = day;
-  if (videoScheduled.length > 0) {
-    const video = videoScheduled[0];
-    const { snippet, status } = video;
-
+  if (!!videoScheduled) {
     return (
       <div
         className="flex flex-col flex-1 text-left rounded-sm bg-cover bg-center max-w-[128px]"
         style={{
-          backgroundImage: `url(${snippet.thumbnails.default.url})`,
+          backgroundImage: `url(${videoScheduled.thumbnail})`,
         }}
       >
         <div className="flex-grow">
           <div className="flex justify-center items-center w-6 h-6 border text-gray-50 border-gray-50 rounded-full mt-2 ml-1">{number}</div>
-          <p className="text-white mx-1 mt-6 truncate font-bold text-lg">{snippet.title}</p>
-          <p className="text-white text-sm mx-1 line-clamp-2">{snippet.description}</p>
+          <p className="text-white mx-1 mt-6 truncate font-bold text-lg">{videoScheduled.title}</p>
+          <p className="text-white text-sm mx-1 line-clamp-2">{videoScheduled.description}</p>
         </div>
         <button
           className="ml-auto mr-2 mb-2"
           onClick={() =>
             editVideo({
-              id: video.id,
-              title: snippet.title,
-              description: snippet.description,
-              scheduleDate: status.publishAt || snippet.publishedAt, // status.publishAt is only available if the video is scheduled for a future date
-              categoryId: snippet.categoryId,
-              tags: snippet.tags,
-              thumbnail: snippet.thumbnails.high.url,
+              id: videoScheduled.id,
+              title: videoScheduled.title,
+              description: videoScheduled.description,
+              scheduleDate: videoScheduled.scheduleDate,
+              categoryId: videoScheduled.categoryId,
+              tags: videoScheduled.tags,
+              thumbnail: videoScheduled.thumbnail,
             })}
         >
           <Pencil size={16} className="text-gray-100" />

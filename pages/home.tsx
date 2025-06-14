@@ -14,10 +14,10 @@ import {
 } from "@/app/components/primitives/Tabs";
 import Calendar from '@/app/components/Calendar';
 import clsx from 'clsx';
-import { YTVideoProps, YouTubeVideo, YouTubeUserInfo, TikTokUserInfo } from '@/types/video'
+import { SanitizedVideoProps, YouTubeVideo, YouTubeUserInfo, TikTokVideo, TikTokUserInfo } from '@/types/video'
 import moment from 'moment';
 
-export const getServerSideProps = async (context:any) => {
+export const getServerSideProps = async (context: any) => {
   const session = await getServerSession(context.req, context.res, authOptions);
   if (!session) {
     return {
@@ -34,22 +34,68 @@ export const getServerSideProps = async (context:any) => {
   };
 };
 
+const sanitizeYTMetadata = (videos: YouTubeVideo[] | undefined) => {
+  return videos?.map(video => {
+    const { snippet, status } = video;
+    const { title, description, categoryId, tags, thumbnails } = snippet;
+    const { publishAt } = status || {};
+    const thumbnail = thumbnails?.high?.url || thumbnails?.medium?.url || thumbnails?.default?.url || '';
+    return {
+      id: video.id,
+      title,
+      description,
+      categoryId,
+      tags: tags,
+      thumbnail,
+      scheduleDate: publishAt || snippet.publishedAt || '',
+    };
+  });
+};
+
+const sanitizeTikTokMetadata = (videos: TikTokVideo[] | undefined) => {
+  function convertUnixTimestampToDate(timestamp:number) {
+    const milliseconds = timestamp * 1000;
+    const date = new Date(milliseconds);
+    return date;
+  }
+  return videos?.map(video => {
+    return {
+      id: video.id,
+      title: video.title,
+      description: video.video_description,
+      scheduleDate: moment(convertUnixTimestampToDate(video.create_time)).format('YYYY-MM-DD'),
+      thumbnail: video.cover_image_url,
+    };
+  });
+}
+
 export default function Home() {
   const [tokens, setTokens] = useState(getCookie('tokens'));
   const [tiktokTokens, setTiktokTokens] = useState(getCookie('tiktok-tokens'));
   const [playlistId, setPlaylistId] = useState(getCookie('userPlaylistId'));
   const [videos, setVideos] = useState<YouTubeVideo[]>();
+  const [tiktokVideos, setTiktokVideos] = useState<TikTokVideo[]>([]);
   const [ytUserInfo, setYtUserInfo] = useState<YouTubeUserInfo>();
   const [tiktokUserInfo, setTiktokUserInfo] = useState<TikTokUserInfo>();
-  const [editVideo, setEditVideo] = useState<YTVideoProps>({
+  const [editVideo, setEditVideo] = useState<SanitizedVideoProps>({
     categoryId: '',
     description: '',
     file: '',
     id: '',
     scheduleDate: '',
-    tags: '',
+    tags: [],
     title: '',
     thumbnail: '',
+  });
+  const [editTiktokVideo, setEditTiktokVideo] = useState<TikTokVideo>({
+    id: '',
+    title: '',
+    video_description: '',
+    duration: '',
+    cover_image_url: '',
+    create_time: 1748977987, // Example timestamp, replace with actual value
+    share_url: '',
+    embed_link: false,
   });
 
 
@@ -105,6 +151,26 @@ export default function Home() {
           thumbnail: data.data.user.avatar_url,
           userName: data.data.user.display_name,
         });
+      })
+      .catch(error => {
+        console.error('Fetch error:', error);
+      });
+  }
+
+  const getTikTokUserVideos = async () => {
+    fetch('https://open.tiktokapis.com/v2/video/list/?fields=id,title,video_description,duration,cover_image_url,embed_link,create_time', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${JSON.parse(tiktokTokens as string || "{}").access_token}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        max_count: 20
+      })
+    })
+      .then(response => response.json())
+      .then(data => {
+        setTiktokVideos(data.data.videos);
       })
       .catch(error => {
         console.error('Fetch error:', error);
@@ -208,7 +274,7 @@ export default function Home() {
           file: '',
           id: '',
           scheduleDate: '',
-          tags: '',
+          tags: [],
           title: '',
           thumbnail: '',
         });
@@ -225,7 +291,7 @@ export default function Home() {
       file: '',
       id: '',
       scheduleDate: '',
-      tags: '',
+      tags: [],
       title: '',
       thumbnail: '',
     });
@@ -240,6 +306,7 @@ export default function Home() {
   useEffect(() => {
     if (tiktokTokens) {
       getTikTokUserInfo();
+      getTikTokUserVideos();
     }
   }, [tiktokTokens])
 
@@ -296,7 +363,7 @@ export default function Home() {
                     </div>
 
                     <Calendar
-                      scheduledVideos={videos || []}
+                      scheduledVideos={sanitizeYTMetadata(videos) || []}
                       setEditVideo={setEditVideo}
                     />
                     <Button
@@ -336,17 +403,17 @@ export default function Home() {
                     </div>
 
                     <Calendar
-                      scheduledVideos={videos || []}
-                      setEditVideo={setEditVideo}
+                      scheduledVideos={sanitizeTikTokMetadata(tiktokVideos) || []}
+                      setEditVideo={setEditTiktokVideo}
                     />
 
                     <Button
                       className="w-fit ml-auto mt-4"
                       variant="secondary"
                       onClick={() => {
-                        deleteCookie("userPlaylistId");
-                        deleteCookie("tokens");
-                        setVideos([]);
+                        deleteCookie("tiktok-tokens");
+                        setTiktokVideos([]);
+                        setTiktokUserInfo(undefined);
                       }}
                     >
                       Disconnect from Tiktok
@@ -427,7 +494,7 @@ export default function Home() {
               <textarea
                 name="tags"
                 className="border border-gray-300 outline-0 bg-transparent grow h-16 p-2 rounded"
-                onChange={(event) => setEditVideo({ ...editVideo, tags: event.currentTarget.value })}
+                onChange={(event) => setEditVideo({ ...editVideo, tags: event.currentTarget.value.split(',') })}
                 value={editVideo.tags}
                 placeholder="Tags"
               />

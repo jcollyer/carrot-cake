@@ -1,13 +1,14 @@
 import Day from '@/app/components/Day';
 import moment from 'moment';
+import type { SanitizedVideoProps } from '@/types/video';
 
 type Props = {
-  date: any,
-  month: any,
-  select: (date:any) => void,
+  date: moment.Moment,
+  month: moment.Moment,
+  select: (date:moment.Moment) => void,
   selected: any,
-  scheduledVideos: any[],
-  editVideo: (video:any) => void,
+  scheduledVideos: SanitizedVideoProps[],
+  editVideo: (video:SanitizedVideoProps) => void,
 };
 
 export function Week({
@@ -27,21 +28,9 @@ export function Week({
       isToday: date.isSame(new Date(), 'day'),
       date,
     };
-    const videoScheduled = scheduledVideos.filter(
-      video => {
-        if (video.status.publishAt) {
-          return (
-            moment(video.status.publishAt).format('YYYY-MM-DD') === date.format('YYYY-MM-DD')
-          );
-        }
 
-        if (video.snippet.publishedAt) {
-          return (
-            moment(video.snippet.publishedAt).format('YYYY-MM-DD') ===
-            date.format('YYYY-MM-DD')
-          );
-        }
-      },
+    const videoScheduled = scheduledVideos.find(
+      video => video.scheduleDate === date.format('YYYY-MM-DD'),
     );
 
     days.push(

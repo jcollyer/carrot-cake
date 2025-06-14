@@ -2,10 +2,10 @@ import { Dispatch, SetStateAction, useState } from 'react';
 import moment from 'moment';
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import  Week from '@/app/components/Week';
-import type { YouTubeVideo } from '@/types/video';
+import type { SanitizedVideoProps } from '@/types/video';
 
 type Props = {
-  scheduledVideos: YouTubeVideo[];
+  scheduledVideos: SanitizedVideoProps[];
   setEditVideo: Dispatch<SetStateAction<any>>;
 };
 
