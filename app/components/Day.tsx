@@ -12,9 +12,10 @@ type Props = {
   selected: any,
   videoScheduled: SanitizedVideoProps | undefined,
   editVideo: (video: SanitizedVideoProps) => void,
+  canEdit:boolean,
 };
 
-export function Day({ day, select, selected, videoScheduled, editVideo }: Props) {
+export function Day({ day, select, selected, videoScheduled, editVideo, canEdit }: Props) {
   const { date, isCurrentMonth, isToday, number } = day;
   if (!!videoScheduled) {
     return (
@@ -29,21 +30,23 @@ export function Day({ day, select, selected, videoScheduled, editVideo }: Props)
           <p className="text-white mx-1 mt-6 truncate font-bold text-lg">{videoScheduled.title}</p>
           <p className="text-white text-sm mx-1 line-clamp-2">{videoScheduled.description}</p>
         </div>
-        <button
-          className="ml-auto mr-2 mb-2"
-          onClick={() =>
-            editVideo({
-              id: videoScheduled.id,
-              title: videoScheduled.title,
-              description: videoScheduled.description,
-              scheduleDate: videoScheduled.scheduleDate,
-              categoryId: videoScheduled.categoryId,
-              tags: videoScheduled.tags,
-              thumbnail: videoScheduled.thumbnail,
-            })}
-        >
-          <Pencil size={16} className="text-gray-100" />
-        </button>
+        {canEdit && (
+          <button
+            className="ml-auto mr-2 mb-2"
+            onClick={() =>
+              editVideo({
+                id: videoScheduled.id,
+                title: videoScheduled.title,
+                description: videoScheduled.description,
+                scheduleDate: videoScheduled.scheduleDate,
+                categoryId: videoScheduled.categoryId,
+                tags: videoScheduled.tags,
+                thumbnail: videoScheduled.thumbnail,
+              })}
+          >
+            <Pencil size={16} className="text-gray-100" />
+          </button>
+        )}
       </div>
     );
   }

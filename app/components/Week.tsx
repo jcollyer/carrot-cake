@@ -9,6 +9,7 @@ type Props = {
   selected: any,
   scheduledVideos: SanitizedVideoProps[],
   editVideo: (video:SanitizedVideoProps) => void,
+  canEdit: boolean,
 };
 
 export function Week({
@@ -18,6 +19,7 @@ export function Week({
   selected,
   scheduledVideos,
   editVideo,
+  canEdit,
 }:Props) {
   const days = [];
   for (let i = 0; i < 7; i++) {
@@ -41,6 +43,7 @@ export function Week({
         key={i}
         videoScheduled={videoScheduled}
         editVideo={editVideo}
+        canEdit={canEdit}
       />,
     );
 

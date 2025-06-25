@@ -7,9 +7,10 @@ import type { SanitizedVideoProps } from '@/types/video';
 type Props = {
   scheduledVideos: SanitizedVideoProps[];
   setEditVideo: Dispatch<SetStateAction<any>>;
+  canEdit: boolean;
 };
 
-export function Calendar({ scheduledVideos, setEditVideo }: Props) {
+export function Calendar({ scheduledVideos, setEditVideo, canEdit }: Props) {
   const [month, setMonth] = useState(moment());
   const [selected, setSelected] = useState(moment().startOf('day'));
   const [duck, setDuck] = useState(0);
@@ -50,6 +51,7 @@ export function Calendar({ scheduledVideos, setEditVideo }: Props) {
           selected={selected}
           scheduledVideos={scheduledVideos}
           editVideo={setEditVideo}
+          canEdit={canEdit}
         />,
       );
       date.add(1, 'w');

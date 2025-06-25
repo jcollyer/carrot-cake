@@ -87,17 +87,7 @@ export default function Home() {
     title: '',
     thumbnail: '',
   });
-  const [editTiktokVideo, setEditTiktokVideo] = useState<TikTokVideo>({
-    id: '',
-    title: '',
-    video_description: '',
-    duration: '',
-    cover_image_url: '',
-    create_time: 1748977987, // Example timestamp, replace with actual value
-    share_url: '',
-    embed_link: false,
-  });
-
+  const [tabOpen, setTabOpen] = useState('youtube');
 
   const connectTt = async () => {
     listenCookieChange(({ oldValue, newValue }) => {
@@ -151,6 +141,7 @@ export default function Home() {
           thumbnail: data.data.user.avatar_url,
           userName: data.data.user.display_name,
         });
+        setTabOpen('tiktok');
       })
       .catch(error => {
         console.error('Fetch error:', error);
@@ -220,6 +211,7 @@ export default function Home() {
     }).then(async (res) => {
       const videos = await res.json();
       setVideos(videos);
+      setTabOpen('youtube');
     });
   }
 
@@ -347,7 +339,7 @@ export default function Home() {
           )}
         </div>
         {(!!videos || !!tiktokUserInfo) && (
-          <Tabs defaultValue="youtube" className="mt-[3px] max-w-screen-lg mx-auto">
+          <Tabs defaultValue={tabOpen} className="mt-[3px] max-w-screen-lg mx-auto">
             <TabsList aria-label="social media opitons" className="px-5">
               <TabsTrigger value="youtube">YouTube</TabsTrigger>
               <TabsTrigger value="tiktok">TikTok</TabsTrigger>
@@ -365,6 +357,7 @@ export default function Home() {
                     <Calendar
                       scheduledVideos={sanitizeYTMetadata(videos) || []}
                       setEditVideo={setEditVideo}
+                      canEdit
                     />
                     <Button
                       variant="secondary"
@@ -404,7 +397,8 @@ export default function Home() {
 
                     <Calendar
                       scheduledVideos={sanitizeTikTokMetadata(tiktokVideos) || []}
-                      setEditVideo={setEditTiktokVideo}
+                      setEditVideo={setEditVideo}
+                      canEdit={false}
                     />
 
                     <Button
