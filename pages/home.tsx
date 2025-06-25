@@ -53,7 +53,7 @@ const sanitizeYTMetadata = (videos: YouTubeVideo[] | undefined) => {
 };
 
 const sanitizeTikTokMetadata = (videos: TikTokVideo[] | undefined) => {
-  function convertUnixTimestampToDate(timestamp:number) {
+  function convertUnixTimestampToDate(timestamp: number) {
     const milliseconds = timestamp * 1000;
     const date = new Date(milliseconds);
     return date;
@@ -290,9 +290,10 @@ export default function Home() {
   };
 
   useEffect(() => {
-    if (tokens && !playlistId)
+    if (tokens && !playlistId) {
       getPlaylistId();
-    getYTChannelInfo();
+      getYTChannelInfo();
+    }
   }, [tokens]);
 
   useEffect(() => {

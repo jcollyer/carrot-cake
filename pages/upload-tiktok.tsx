@@ -52,7 +52,7 @@ export default function UploadTikTokPage({ references }: { references: Reference
   const tokens = getCookie('tokens');
   const [activeIndex, setActiveIndex] = useState<number>(0);
   const [allActive, setAllActive] = useState<boolean>(false);
-  const [videos, setVideos] = useState<TikTokVideoProps[]>([]);
+  const [video, setVideo] = useState<TikTokVideoProps>();
   const [localReferences, setLocalReferences] = useState<Reference[]>(references || []);
   const [disclose, setDisclose] = useState<boolean>(false);
   const [yourBrand, setYourBrand] = useState<boolean>(true);
@@ -63,44 +63,25 @@ export default function UploadTikTokPage({ references }: { references: Reference
       acceptedFiles.forEach(async (file: any) => {
         const thumbnail = await generateVideoThumb(file);
 
-        setVideos((videos: TikTokVideoProps[]) => [
-          ...videos,
-          {
-            file,
-            thumbnail: thumbnail || transparentImage,
-            title: file.name,
-            description: '',
-            privacyStatus: '',
-            scheduleDate: new Date().toISOString(),
-            interactionType: {
-              allowComments: false,
-              allowDuet: false,
-              allowStitch: false,
-            },
-            commercialUse: false,
-          }
-        ]);
+        setVideo({
+          file,
+          thumbnail: thumbnail || transparentImage,
+          title: file.name,
+          description: '',
+          privacyStatus: '',
+          scheduleDate: new Date().toISOString(),
+          interactionType: {
+            allowComments: false,
+            allowDuet: false,
+            allowStitch: false,
+          },
+          commercialUse: false,
+        });
       });
     }
   }, []);
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({ onDrop });
-
-  const updateInput = (event: React.ChangeEvent<any>, inputName: string, index: number) => {
-    const updatedVideos = videos.map((video, i) => {
-      if (allActive || i === index) {
-        return {
-          ...video,
-          [`${inputName}`]: inputName === 'thumbnail'
-            ? URL.createObjectURL(event?.target?.files[0])
-            : event.currentTarget.value,
-        }
-      }
-      return video;
-    });
-
-    setVideos(updatedVideos);
-  };
 
   // const tryToUpload = async (accessToken: string, urlparameters: string, video: TikTokVideoProps) => {
   //   try {
@@ -132,7 +113,7 @@ export default function UploadTikTokPage({ references }: { references: Reference
   //         },
   //         body: video.file,
   //       });
-  //       setVideos([]);
+  //       setVideo([]);
   //     } catch (error) {
   //       console.error('Error uploading file:', error);
   //     }
@@ -180,7 +161,7 @@ export default function UploadTikTokPage({ references }: { references: Reference
       console.error('No access token found');
       return;
     }
-    if (!!videos.length) {
+    if (!!video) {
       // videos.forEach(async (video) => tryToUpload(accessToken, urlparameters, video));
     }
   };
@@ -208,17 +189,13 @@ export default function UploadTikTokPage({ references }: { references: Reference
   };
 
   const setReference = (value: string, key: string) => {
-    const updatedVideos = videos.map((video, i) => {
-      if (allActive || i === activeIndex) {
-        return {
-          ...video,
-          [key]: value,
-        }
-      }
-      return video;
+    setVideo((prevVideo) => {
+      if (!prevVideo) return prevVideo;
+      return {
+        ...prevVideo,
+        [key]: value,
+      };
     });
-
-    setVideos(updatedVideos);
   };
 
   const isNewReference = (value: string) => {
@@ -233,13 +210,13 @@ export default function UploadTikTokPage({ references }: { references: Reference
     });
   };
 
-  const keyReferenceAddButton = (activeIndex: number, keyName: string, videos: any) => {
-    const showButton = !!videos[activeIndex][keyName] && videos[activeIndex][keyName] !== "" && isNewReference(videos[activeIndex][keyName]);
+  const keyReferenceAddButton = (keyName: string, video: any) => {
+    const showButton = !!video[keyName] && video[keyName] !== "" && isNewReference(video[keyName]);
     return showButton ? (
       <>
         <button
           type="button"
-          onClick={() => setReferencePost(videos[activeIndex][keyName], keyName)}
+          onClick={() => setReferencePost(video[keyName], keyName)}
         >
           <BookmarkPlus size={24} strokeWidth={1} />
         </button>
@@ -293,20 +270,11 @@ export default function UploadTikTokPage({ references }: { references: Reference
             )}
           </div>
         </div>
-        {!!videos.length && (
-          <div className="flex flex-row gap-2 mt-4">
-            <p className="font-semibold">EDIT ALL</p>
-            <input
-              type="checkbox"
-              onClick={() => setAllActive(!allActive)}
-              className="h4 w-4"
-            />
-          </div>
-        )}
+
         <div className="mt-2 mb-5">
-          {videos?.map((video, index) => (
-            <div key={index} className={clsx({ "border-gray-800": activeIndex === index }, "flex flex-row py-2 border-b border-gray-400")}>
-              <div className={clsx({ "border-gray-800": activeIndex === index }, "max-w-44 pr-2 border-r border-gray-400")}>
+          {!!video && (
+            <div className={clsx({ "border-gray-800": false }, "flex flex-row py-2 border-b border-gray-400")}>
+              <div className={clsx({ "border-gray-800": false }, "max-w-44 pr-2 border-r border-gray-400")}>
                 <div className="truncate mb-2">{video.file?.name}</div>
                 <div className="flex gap-2 items-center">
                   <div className="relative mb-2">
@@ -320,7 +288,10 @@ export default function UploadTikTokPage({ references }: { references: Reference
                     </label>
                     <input
                       type="file"
-                      onChange={event => updateInput(event, 'thumbnail', index)}
+                      onChange={event => setVideo({
+                        ...video,
+                        // thumbnail: URL.createObjectURL(event.target.files[0]),
+                      })}
                       name="thumbnail"
                       accept="image/png, image/jpeg, application/octet-stream"
                       placeholder="thumbnail"
@@ -331,47 +302,19 @@ export default function UploadTikTokPage({ references }: { references: Reference
                   <div className="font-semibold text-xs pl-2">{`${Math.round(video.file.size / 100000) / 10}MB`}</div>
                 </div>
               </div>
-              <div
-                className="flex-row grow pl-2"
-                onClick={() => setActiveIndex(index)}
-              >
-                <div className={clsx({ "hidden": activeIndex === index }, "flex flex-col gap-2")}>
-                  <div className="flex gap-2 items-center">
-                    <div className="font-semibold mb-2">Title:</div>
-                    <div>{video.title}</div>
-                  </div>
-                  <div className="flex gap-2 items-center">
-                    <div className="font-semibold">Description:</div>
-                    <div className="h-12">{video.description}</div>
-                  </div>
-                  <div className="flex gap-2 items-center">
-                    <div className="font-semibold">Privacy Status:</div>
-                    <div>{video.privacyStatus}</div>
-                  </div>
-                  <div className="flex gap-2 items-center">
-                    <div className="font-semibold">Scheduled Date:</div>
-                    <div>
-                      {moment(video.scheduleDate).format('MM/DD/YYYY')}
-                    </div>
-                  </div>
-                  <div className="flex gap-2 items-center">
-                    <div className="font-semibold">Privacy Status</div>
-                  </div>
-                  <div className="flex gap-2 items-center">
-                    <div className="font-semibold">Share Permissions</div>
-                  </div>
-                </div>
+              <div className="flex-row grow pl-2">
 
-                <div className={clsx({ "hidden": activeIndex !== index }, "flex flex-col gap-2")}>
+
+                <div className="flex flex-col gap-2">
                   <div className="flex gap-2 items-center">
                     <label htmlFor="title" className="font-semibold">Title:</label>
                     <input
-                      onChange={event => updateInput(event, 'title', index)}
+                      onChange={event => setVideo({ ...video, title: event.currentTarget.value })}
                       className="border border-gray-300 rounded w-full h-8 px-2 py-1 outline-0 bg-transparent"
                       name="title"
-                      value={videos[activeIndex]?.title}
+                      value={video.title}
                     />
-                    {keyReferenceAddButton(activeIndex, "title", videos)}
+                    {keyReferenceAddButton("title", video)}
                     {hasKey("title") && keyReferenceMenu("title")}
                   </div>
                   <div className="flex gap-2 items-center">
@@ -379,19 +322,19 @@ export default function UploadTikTokPage({ references }: { references: Reference
                     <textarea
                       name="description"
                       className="border border-gray-300 outline-0 w-full h-12 px-2 py-1 rounded bg-transparent"
-                      onChange={event => updateInput(event, 'description', index)}
-                      value={videos[activeIndex]?.description}
+                      onChange={event => setVideo({ ...video, description: event.currentTarget.value })}
+                      value={video?.description}
                     />
-                    {keyReferenceAddButton(activeIndex, "description", videos)}
+                    {keyReferenceAddButton("description", video)}
                     {hasKey("description") && keyReferenceMenu("description")}
                   </div>
                   <div className="flex gap-2 items-center">
                     <label htmlFor="category" className="font-semibold">Who can view this video: </label>
                     <select
-                      onChange={event => updateInput(event, 'privacyStatus', index)}
+                      onChange={event => setVideo({ ...video, privacyStatus: event.currentTarget.value })}
                       className="outline-0 border-0 bg-transparent rounded"
                       name="category"
-                      value={videos[activeIndex]?.privacyStatus}
+                      value={video.privacyStatus}
                     >
                       <option label="select an option"></option>
                       {privacyStatusOptions.map((item) =>
@@ -418,16 +361,6 @@ export default function UploadTikTokPage({ references }: { references: Reference
                       </div>
                     </div>
                   </div>
-                  <div className="flex gap-2 items-center">
-                    <label htmlFor="scheduleDate" className="font-semibold">Scheduled Date:</label>
-                    <input
-                      type="date"
-                      onChange={event => updateInput(event, 'scheduleDate', index)}
-                      className="border-0 outline-0 bg-transparent"
-                      name="scheduleDate"
-                      value={videos[activeIndex]?.scheduleDate}
-                    />
-                  </div>
 
                   <div className="flex flex-col gap-2">
                     <div className="flex gap-2">
@@ -435,23 +368,16 @@ export default function UploadTikTokPage({ references }: { references: Reference
                         type="checkbox"
                         onChange={event => {
                           setDisclose(event.target.checked);
-                          setVideos(videos.map((video, i) => {
-                            if (allActive || i === index) {
-                              return {
-                                ...video,
-                                commercialUse: event.target.checked,
-                              }
-                            }
-                            return video;
-                          }));
+                          setVideo({
+                            ...video,
+                            commercialUse: event.target.checked,
+                          });
                           if (!event.target.checked) {
                             setYourBrand(false);
                             setBrandedContent(false);
                           } else {
                             setYourBrand(true);
                           }
-
-                          updateInput(event, 'commercialUse', index);
                         }}
                         checked={(disclose && yourBrand) || (disclose && brandedContent)}
                       />
@@ -502,13 +428,14 @@ export default function UploadTikTokPage({ references }: { references: Reference
 
                         {(yourBrand || brandedContent) && (
                           <p className="text-sm text-gray-600 mb-4">
-                            By posting, you agree to TikTok's
+                            By posting, you agree to TikTok's{" "}
+
                             {brandedContent && (
                               <>
                                 <a href="https://www.tiktok.com/legal/page/global/music-usage-confirmation/en" className="text-blue-600 underline">
-                                  Branded Content Policy
+                                  Branded Content Policy{" "}
                                 </a>
-                                and
+                                and{" "}
                               </>
                             )}
                             <a href="https://www.tiktok.com/legal/page/global/bc-policy/en" className="text-blue-600 underline">Music Usage Confirmation</a>.
@@ -520,18 +447,17 @@ export default function UploadTikTokPage({ references }: { references: Reference
                 </div>
               </div>
             </div>
-          ))}
+          )}
         </div>
 
-        {!!videos.length && (
+        {!!video && (
           <div className="flex flex-col items-center mb-10">
             <Button
               variant="secondary"
               type="submit"
               onClick={onSubmit}
             >
-              {`Upload ${videos.length} Video${videos.length > 1 ? 's' : ''
-                } to YouTube`}
+              Upload Video to TikTok
             </Button>
           </div>
         )}
