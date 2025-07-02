@@ -54,12 +54,13 @@ export default async function handler(
   const csrfState = crypto.getRandomValues(array);
 
   url += `?client_key=${process.env.TIKTOK_CLIENT_KEY}`;
-  url += "&scope=user.info.basic,video.list";
+  url += "&scope=user.info.basic,video.list,video.upload,video.publish";
   url += "&response_type=code";
   url += `&redirect_uri=${encodeURIComponent(SERVER_ENDPOINT_REDIRECT || "")}`;
   url += `&state=${csrfState}`;
   url += `&code_challenge=${codeChallenge}`;
   url += "&code_challenge_method=S256";
+  // url += `&disable_auto_auth=1`; // 0 or 1
 
   res.json({ url: url });
 }

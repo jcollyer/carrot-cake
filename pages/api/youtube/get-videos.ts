@@ -8,7 +8,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   const { cookie } = headers;
   const { playlistId } = body;
 
-  const jsonTokens = getTokensCookie(cookie);
+  const jsonTokens = getTokensCookie(cookie, "tokens");
 
   await oauth.setCredentials(jsonTokens);
 

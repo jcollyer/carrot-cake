@@ -7,12 +7,54 @@ const transparentImage = require('@/public/transparent.png');
 import { getServerSession } from "next-auth"
 import { authOptions } from "@/pages/api/auth/[...nextauth]"
 import { useCallback, useState } from 'react';
-import { BookMarked, BookmarkPlus, FilePlus, SquarePlus, Trash2 } from 'lucide-react';
+import { BookMarked, BookmarkPlus, FilePlus, Upload, Trash2 } from 'lucide-react';
 import { useDropzone } from 'react-dropzone';
 import { getCookie } from 'cookies-next'
 import { TikTokVideoProps } from '@/types/video'
 import generateVideoThumb from '@/app/utils/generateVideoThumb';
-import moment from 'moment';
+
+const CHUNK_SIZE = 10000000; // 10MB
+
+const uploadChunks = async (file:File, uploadUrl:string) => {
+  const totalSize = file.size;
+  let offset = 0;
+  let chunkIndex = 0;
+
+  while (offset + CHUNK_SIZE < totalSize) {
+    let contentRange = ""
+    let chunk = null;
+    if((offset + (CHUNK_SIZE * 2)) > totalSize) {
+      chunk = file.slice(offset, totalSize);
+      contentRange = `bytes ${offset}-${totalSize - 1}/${totalSize}`;
+    } else {
+      chunk = file.slice(offset, offset + CHUNK_SIZE);
+      contentRange = `bytes ${offset}-${offset + chunk.size - 1}/${totalSize}`;
+    }
+
+    const res = await fetch(uploadUrl, {
+      method: 'PUT',
+      headers: {
+        'Content-Range': contentRange,
+        'Content-Length': chunk.size.toString(),
+        'Content-Type': 'video/mp4',
+      },
+      body: chunk,
+    });
+
+    if (!res.ok) {
+      console.error(`Chunk ${chunkIndex} failed`);
+      console.error(`Response status: ${res.status}`);
+      console.error(`Response status text: ${res.statusText}`);
+      const errorText = await res.text();
+      console.error(`Response body: ${errorText}`);
+      return;
+    }
+
+    console.log(`Uploaded chunk ${chunkIndex}`);
+    offset += CHUNK_SIZE;
+    chunkIndex++;
+  }
+};
 
 export const getServerSideProps = async (context: any) => {
   const session = await getServerSession(context.req, context.res, authOptions);
@@ -49,9 +91,7 @@ const privacyStatusOptions = [
 ]
 
 export default function UploadTikTokPage({ references }: { references: Reference[] }) {
-  const tokens = getCookie('tokens');
-  const [activeIndex, setActiveIndex] = useState<number>(0);
-  const [allActive, setAllActive] = useState<boolean>(false);
+  const tikTokAccessToken = getCookie('tiktok-tokens');
   const [video, setVideo] = useState<TikTokVideoProps>();
   const [localReferences, setLocalReferences] = useState<Reference[]>(references || []);
   const [disclose, setDisclose] = useState<boolean>(false);
@@ -81,88 +121,54 @@ export default function UploadTikTokPage({ references }: { references: Reference
     }
   }, []);
 
-  const { getRootProps, getInputProps, isDragActive } = useDropzone({ onDrop });
+  const { getRootProps, getInputProps } = useDropzone({ onDrop });
 
-  // const tryToUpload = async (accessToken: string, urlparameters: string, video: TikTokVideoProps) => {
-  //   try {
-  //     const location = await fetch(`https://www.googleapis.com/upload/youtube/v3/videos?${urlparameters}`, {
-  //       method: 'POST',
-  //       headers: {
-  //         Authorization: `Bearer ${String(accessToken)}`,
-  //       },
-  //       body: JSON.stringify({
-  //         snippet: {
-  //           // privacyStatus: video.privacyStatus,
-  //           description: video.description,
-  //           title: video.title,
-  //           // tags: video.tags?.split(', '), // Array of strings
-  //         },
-  //         status: {
-  //           privacyStatus: 'private',
-  //           publishAt: new Date(video.scheduleDate).toISOString(),
-  //         },
-  //       }),
-  //     });
-  //     // Url to upload video file from the location header
-  //     const videoUrl = await location.headers.get('Location');
-  //     try {
-  //       const response = await fetch(`${videoUrl}`, {
-  //         method: 'PUT',
-  //         headers: {
-  //           'Content-Type': 'video/mp4',
-  //         },
-  //         body: video.file,
-  //       });
-  //       setVideo([]);
-  //     } catch (error) {
-  //       console.error('Error uploading file:', error);
-  //     }
-  //   } catch {
-  //     // If the access token is expired, refresh it and try again
-  //     try {
-  //       const refreshToken = JSON.parse(tokens as string)?.refresh_token;
-  //       const refreshResponse = await fetch('/api/youtube/connect-yt', {
-  //         method: 'POST',
-  //         headers: {
-  //           'Content-Type': 'application/json',
-  //         },
-  //         body: JSON.stringify({ refreshToken }),
-  //       });
-
-  //       if (!refreshResponse) {
-  //         console.error('No refresh response');
-  //         return;
-  //       }
-  //       const refreshData = await refreshResponse.json();
-  //       const config = refreshData?.res?.config;
-  //       const { url, body, headers } = config;
-
-  //       await fetch(url, {
-  //         method: 'POST',
-  //         headers,
-  //         body,
-  //       }).then(async (res) => {
-  //         const { access_token } = await res.json();
-  //         // Try uploading the video again with the new access token
-  //         await tryToUpload(access_token, urlparameters, video);
-  //       });
-  //     } catch (error) {
-  //       console.error('Error refreshing token:', error);
-  //     }
-  //   }
-  // }
+  const uploadTikTokVideo = async () => {
+    if (!video) return;
+    await fetch('/api/tiktok/get-upload-url', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        cookie: `tokens=${JSON.parse(tikTokAccessToken as string || "{}").access_token}`,
+      },
+      body: JSON.stringify({
+        post_info: {
+          title: video?.title || '',
+          privacy_level: video?.privacyStatus || 'SELF_ONLY',
+          disable_duet: !video?.interactionType.allowDuet,
+          disable_comment: !video?.interactionType.allowComments,
+          disable_stitch: !video?.interactionType.allowStitch,
+          video_cover_timestamp_ms: 1000
+        },
+        source_info: {
+          source: 'FILE_UPLOAD',
+          video_size: video?.file?.size || 0,
+          chunk_size: CHUNK_SIZE,
+          total_chunk_count: Math.floor((video?.file?.size || 0) / CHUNK_SIZE)
+        }
+      }),
+    })
+      .then((response) => {
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        return response.json();
+      })
+      .then(async ({ data }) => await uploadChunks(video.file, data.upload_url))
+      .catch((error) => {
+        console.error('Error uploading video:', error);
+        // Handle the error appropriately, e.g., show an error message to the user
+      });
+  };
 
   const onSubmit = async (event: React.ChangeEvent<any>) => {
     event.preventDefault();
-    const accessToken = !!tokens && JSON.parse(tokens as string).access_token;
-    const urlparameters = 'part=snippet%2Cstatus&uploadType=resumable';
-
-    if (!accessToken) {
+    if (!tikTokAccessToken) {
       console.error('No access token found');
       return;
     }
     if (!!video) {
-      // videos.forEach(async (video) => tryToUpload(accessToken, urlparameters, video));
+      await uploadTikTokVideo();
     }
   };
 
@@ -253,23 +259,39 @@ export default function UploadTikTokPage({ references }: { references: Reference
   );
 
   return (
-    <div className="flex flex-col max-w-3xl mx-auto mt-12 p-6">
-      <h3 className="text-center text-3xl mt-6 font-semibold text-gray-600">Upload Video</h3>
+    <div className="flex flex-col items-center max-w-3xl mx-auto mt-6 p-6">
       <form action="uploadVideo" method="post" encType="multipart/form-data" className="mt-12">
-        <div className="flex justify-between">
-          <div
-            className="w-full h-[180px] border border-gray-300 flex items-center justify-center"
-            {...getRootProps()}
-          >
-            <input {...getInputProps()} name="file" />
-            <SquarePlus className="mr-4" />
-            {isDragActive ? (
-              <p>Drop the files here ...</p>
-            ) : (
-              <p>Click to add files</p>
-            )}
+        {!video ? (
+          <div className="flex justify-between">
+            <div
+              className="flex flex-col items-center border border-dashed text-center p-3 rounded-lg bg-gray-50 hover:bg-gray-100 transition-colors border-gray-400"
+              {...getRootProps()}
+            >
+              <input {...getInputProps()} name="file" />
+              <Upload strokeWidth={1} className="m-1" />
+              <h3 className="text-sm font-medium text-gray-900">
+                Drag n&apos; drop some files here
+              </h3>
+              <p className="text-xs">
+                or <span className="underline">click here</span> to select files
+              </p>
+              <p className="mt-2 text-xs">
+                Supports .mp4 and .mov files up to 1GB
+              </p>
+            </div>
           </div>
-        </div>
+        ) : (
+          <div className="flex justify-between items-center mb-8">
+            <h2 className="text-lg font-semibold">Video Details</h2>
+            <Button
+              variant="secondary"
+              type="button"
+              onClick={() => setVideo(undefined)}
+            >
+              Reset Video
+            </Button>
+          </div>
+        )}
 
         <div className="mt-2 mb-5">
           {!!video && (
@@ -303,8 +325,6 @@ export default function UploadTikTokPage({ references }: { references: Reference
                 </div>
               </div>
               <div className="flex-row grow pl-2">
-
-
                 <div className="flex flex-col gap-2">
                   <div className="flex gap-2 items-center">
                     <label htmlFor="title" className="font-semibold">Title:</label>

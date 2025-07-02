@@ -8,7 +8,7 @@ export default async function handler(
   res: NextApiResponse
 ) {
   const { cookie } = req.headers;
-  const jsonTokens = getTokensCookie(cookie);
+  const jsonTokens = getTokensCookie(cookie, "tokens");
 
   oauth.setCredentials(jsonTokens);
 

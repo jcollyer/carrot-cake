@@ -27,11 +27,11 @@ export const TabsList = ({
   ...rest
 }: RadixTabs.TabsListProps) => (
   <RadixTabs.List
-    className={clsx("flex text-sm dark:border-gray-700", className)}
+    className={clsx("flex text-sm", className)}
     {...rest}
   >
     {children}
-    <div className="grow border-b border-gray-200 dark:border-gray-700"></div>
+    <div className="grow border-b border-gray-200"></div>
   </RadixTabs.List>
 );
 
@@ -45,7 +45,7 @@ export const TabsTrigger: React.FC<TabsTriggerProps> = ({
   children,
 }) => (
   <RadixTabs.Trigger
-    className="border-b border-gray-200 px-4 py-2 font-normal text-gray-600 hover:text-gray-800 focus:outline-hidden data-[state=active]:rounded-t data-[state=active]:border data-[state=active]:border-gray-200 data-[state=active]:border-b-white data-[state=active]:font-medium data-[state=active]:text-gray-900 dark:border-gray-700 dark:text-gray-300 dark:hover:text-gray-100 dark:data-[state=active]:border-gray-700 dark:data-[state=active]:border-b-gray-900 dark:data-[state=active]:text-gray-100"
+    className="border-b border-gray-200 px-4 py-2 font-normal text-gray-600 hover:text-gray-800 focus:outline-hidden data-[state=active]:rounded-t data-[state=active]:border data-[state=active]:border-gray-200 data-[state=active]:border-b-white data-[state=active]:font-medium data-[state=active]:text-gray-900"
     value={value}
   >
     {children}

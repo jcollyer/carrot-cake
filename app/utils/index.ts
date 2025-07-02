@@ -1,9 +1,9 @@
-export const getTokensCookie = (cookie?: string) => {
-  const jsTokenCookie = cookie?.split("; ").find((token) => {
-    return token.startsWith("tokens=");
+export const getTokensCookie = (cookies?: string, cookie?: string) => {
+  const jsTokenCookie = cookies?.split("; ").find((token) => {
+    return token.startsWith(`${cookie}=`);
   });
 
   return JSON.parse(
-    decodeURIComponent(jsTokenCookie || "[]").split("tokens=")[1]
+    decodeURIComponent(jsTokenCookie || "[]").split(`${cookie}=`)[1]
   );
 };
