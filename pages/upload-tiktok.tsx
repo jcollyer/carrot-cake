@@ -1,5 +1,12 @@
 import { MenuProvider, Menu, MenuButton, MenuItem } from '@/app/components/primitives/Menu';
 import Button from '@/app/components/primitives/Button';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/app/components/primitives/Select';
 import clsx from 'clsx';
 import prisma from "@/lib/prisma";
 import { Reference } from '@prisma/client';
@@ -7,13 +14,68 @@ const transparentImage = require('@/public/transparent.png');
 import { getServerSession } from "next-auth"
 import { authOptions } from "@/pages/api/auth/[...nextauth]"
 import { useCallback, useState } from 'react';
-import { BookMarked, BookmarkPlus, FilePlus, Upload, Trash2 } from 'lucide-react';
+import { BookMarked, BookmarkPlus, Upload, Trash2, RotateCcw } from 'lucide-react';
 import { useDropzone } from 'react-dropzone';
 import { getCookie } from 'cookies-next'
 import { TikTokVideoProps } from '@/types/video'
 import generateVideoThumb from '@/app/utils/generateVideoThumb';
 
 const CHUNK_SIZE = 10000000; // 10MB
+
+type KeyReferenceMenuProps = {
+  type: string;
+  localReferences: Reference[];
+  setLocalReferences: React.Dispatch<React.SetStateAction<Reference[]>>;
+  setVideo: React.Dispatch<React.SetStateAction<TikTokVideoProps | undefined>>;
+};
+
+const KeyReferenceMenu = ({ type, localReferences, setLocalReferences, setVideo }: KeyReferenceMenuProps) => {
+  const setReference = (value: string, key: string) => {
+    setVideo((prevVideo) => {
+      if (!prevVideo) return prevVideo;
+      return {
+        ...prevVideo,
+        [key]: value,
+      };
+    });
+  };
+
+  const deleteReference = (id: string) => {
+    fetch(`/api/reference/delete/${id}`, {
+      method: "DELETE",
+    }).then(() => {
+      setLocalReferences(localReferences.filter((reference) => reference.id !== id));
+    });
+  };
+
+  return (
+    <MenuProvider>
+      <MenuButton>
+        <BookMarked strokeWidth={1} size={24} className={clsx("text-gray-600", { "opacity-50": localReferences.length === 0 })} />
+      </MenuButton>
+      <Menu>
+        {localReferences
+          .filter((reference) => reference.type === type)
+          .map((ref) =>
+            <MenuItem key={ref.id}>
+              <button
+                type="button"
+                key={ref.id}
+                onClick={() => setReference(ref.value, type)}
+                className="truncate max-w-48 mr-2"
+              >
+                {ref.value}
+              </button>
+              <button type="button" onClick={() => deleteReference(ref.id)} className="hover:bg-gray-300 rounded">
+                <Trash2 strokeWidth={1} size={18} />
+              </button>
+            </MenuItem>
+          )
+        }
+      </Menu>
+    </MenuProvider>
+  )
+};
 
 type KeyReferenceAddButtonProps = {
   type: string;
@@ -23,7 +85,7 @@ type KeyReferenceAddButtonProps = {
 };
 
 const KeyReferenceAddButton = ({ type, value, localReferences, setLocalReferences }: KeyReferenceAddButtonProps) => {
-  const disabled = !value || 
+  const disabled = !value ||
     !!localReferences
       .filter((reference) => reference.type === type)
       .find((reference) => reference.value === value);
@@ -53,7 +115,7 @@ const KeyReferenceAddButton = ({ type, value, localReferences, setLocalReference
       onClick={() => setReferencePost(value, type)}
       className="hover:bg-gray-200 rounded-md p-1 disabled:opacity-50 h-fit disabled:bg-transparent"
     >
-      <BookmarkPlus size={24} strokeWidth={1.5} className={clsx("text-gray-600", { "opacity-50": disabled })} />
+      <BookmarkPlus size={24} strokeWidth={1} className={clsx("text-gray-600", { "opacity-50": disabled })} />
     </button>
   );
 };
@@ -215,56 +277,6 @@ export default function UploadTikTokPage({ references }: { references: Reference
     }
   };
 
-  const hasKey = (key: string) => {
-    return localReferences.some((reference) => reference.type === key);
-  };
-
-  const setReference = (value: string, key: string) => {
-    setVideo((prevVideo) => {
-      if (!prevVideo) return prevVideo;
-      return {
-        ...prevVideo,
-        [key]: value,
-      };
-    });
-  };
-
-  const deleteReference = (id: string) => {
-    fetch(`/api/reference/delete/${id}`, {
-      method: "DELETE",
-    }).then(() => {
-      setLocalReferences(localReferences.filter((reference) => reference.id !== id));
-    });
-  };
-
-  const keyReferenceMenu = (key: string) => (
-    <MenuProvider>
-      <MenuButton>
-        <BookMarked strokeWidth={1} size={24} />
-      </MenuButton>
-      <Menu>
-        {localReferences
-          .filter((reference) => reference.type === key)
-          .map((ref) =>
-            <MenuItem key={ref.id}>
-              <button
-                type="button"
-                key={ref.id}
-                onClick={() => setReference(ref.value, key)}
-                className="truncate max-w-48 mr-2"
-              >
-                {ref.value}
-              </button>
-              <button type="button" onClick={() => deleteReference(ref.id)} className="hover:bg-gray-300 rounded p-1">
-                <Trash2 strokeWidth={1} size={18} />
-              </button>
-            </MenuItem>
-          )
-        }
-      </Menu>
-    </MenuProvider>
-  );
-
   return (
     <div className="flex flex-col items-center max-w-4xl mx-auto mt-6 p-6">
       <form action="uploadVideo" method="post" encType="multipart/form-data" className="mt-12">
@@ -289,13 +301,14 @@ export default function UploadTikTokPage({ references }: { references: Reference
           </div>
         ) : (
           <div className="flex justify-between items-center mb-8">
-            <h2 className="text-lg font-semibold">Video Details</h2>
             <Button
               variant="secondary"
               type="button"
               onClick={() => setVideo(undefined)}
+              className="flex gap-2"
             >
-              Reset Video
+              <RotateCcw strokeWidth={1.5} />
+              <>Reset Video</>
             </Button>
           </div>
         )}
@@ -326,8 +339,10 @@ export default function UploadTikTokPage({ references }: { references: Reference
                     name="title"
                     value={video.title}
                   />
-                  <KeyReferenceAddButton type="title" value={video["title"]} localReferences={localReferences} setLocalReferences={setLocalReferences} />
-                  {hasKey("title") && keyReferenceMenu("title")}
+                  <div className="flex items-start">
+                    <KeyReferenceAddButton type="title" value={video["title"]} localReferences={localReferences} setLocalReferences={setLocalReferences} />
+                    <KeyReferenceMenu type="title" localReferences={localReferences} setLocalReferences={setLocalReferences} setVideo={setVideo} />
+                  </div>
                 </div>
                 <div className="flex gap-2">
                   <div className="w-1/4 shrink-0">
@@ -340,27 +355,33 @@ export default function UploadTikTokPage({ references }: { references: Reference
                     onChange={event => setVideo({ ...video, description: event.currentTarget.value })}
                     value={video?.description}
                   />
-                  <KeyReferenceAddButton type="description" value={video["description"]} localReferences={localReferences} setLocalReferences={setLocalReferences} />
-                  {hasKey("description") && keyReferenceMenu("description")}
+                  <div className="flex items-start">
+                    <KeyReferenceAddButton type="description" value={video["description"]} localReferences={localReferences} setLocalReferences={setLocalReferences} />
+                    <KeyReferenceMenu type="description" localReferences={localReferences} setLocalReferences={setLocalReferences} setVideo={setVideo} />
+                  </div>
                 </div>
                 <div className="flex gap-2">
                   <div className="w-1/4 shrink-0">
                     <label htmlFor="category" className="text-sm font-medium">Video view access</label>
                     <p className="text-xs text-gray-500">Select who can view this video</p>
                   </div>
-                  <select
-                    onChange={event => setVideo({ ...video, privacyStatus: event.currentTarget.value })}
-                    className="outline-0 border border-gray-300 bg-transparent rounded h-10 ml-2"
-                    name="category"
+                  <div className="w-[calc(100%-14rem)]">
+                  <Select
+                    onValueChange={(value) => setVideo({ ...video, privacyStatus: value })}
                     value={video.privacyStatus}
                   >
-                    <option label="select an option"></option>
-                    {privacyStatusOptions.map((item) =>
-                      <option key={item.id} value={item.id}>
-                        {item.label}
-                      </option>
-                    )}
-                  </select>
+                    <SelectTrigger className="outline-0 border border-gray-300 bg-transparent rounded h-10 ml-2">
+                      <SelectValue placeholder="Select an option" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {privacyStatusOptions.map((item) => (
+                        <SelectItem key={item.id} value={item.id}>
+                          {item.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  </div>
                 </div>
                 <div className="flex gap-2">
                   <p className="font-semibold">Allow users to: </p>

@@ -10,11 +10,10 @@ import { useCallback, useState } from 'react';
 import { BookMarked, BookmarkPlus, FilePlus, SquarePlus, Trash2 } from 'lucide-react';
 import { useDropzone } from 'react-dropzone';
 import { getCookie } from 'cookies-next'
-import { Categories, CategoriesType } from '@/app/utils/categories';
-import { SanitizedVideoProps } from '@/types/video'
-import { getCategoryLabelfromId } from '@/app/utils/categories';
+import { Categories, CategoriesType, getCategoryLabelfromId } from '@/app/utils/categories';
 import generateVideoThumb from '@/app/utils/generateVideoThumb';
 import moment from 'moment';
+import { SanitizedVideoProps } from '@/types/video'
 
 export const getServerSideProps = async (context:any) => {
   const session = await getServerSession(context.req, context.res, authOptions);

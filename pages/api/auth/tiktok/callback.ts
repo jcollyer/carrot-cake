@@ -43,7 +43,7 @@ export default async function handler(
      // Set the tokens in a cookie
     res.setHeader(
       "Set-Cookie",
-      `tiktok-tokens=${encodeURIComponent(JSON.stringify(tokens))}; Path=/; Max-Age=31536000`
+      `tiktok-tokens=${encodeURIComponent(JSON.stringify(tokens))}; Path=/; Max-Age=86400`
     );
 
     // Hack to close the window

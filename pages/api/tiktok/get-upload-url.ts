@@ -1,5 +1,5 @@
 import { NextApiRequest, NextApiResponse } from "next";
-import { getTokensCookie } from "@/app/utils";
+import { getTokensCookie } from "@/app/utils/getTokensCookie";
 
 export default async function handler(
   req: NextApiRequest,
