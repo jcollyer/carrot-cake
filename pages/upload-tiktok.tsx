@@ -15,7 +15,50 @@ import generateVideoThumb from '@/app/utils/generateVideoThumb';
 
 const CHUNK_SIZE = 10000000; // 10MB
 
-const uploadChunks = async (file:File, uploadUrl:string) => {
+type KeyReferenceAddButtonProps = {
+  type: string;
+  value: string;
+  localReferences: Reference[];
+  setLocalReferences: React.Dispatch<React.SetStateAction<Reference[]>>;
+};
+
+const KeyReferenceAddButton = ({ type, value, localReferences, setLocalReferences }: KeyReferenceAddButtonProps) => {
+  const disabled = !value || 
+    !!localReferences
+      .filter((reference) => reference.type === type)
+      .find((reference) => reference.value === value);
+
+  const setReferencePost = useCallback((value: string, type: string) => {
+    fetch("/api/reference/create", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        referenceTitle: value.split(" ").slice(0, 2).join(" "),
+        referenceValue: value,
+        referenceType: type,
+        publish: true,
+      }),
+    }).then(async (data) => {
+      const newReference = await data.json();
+      setLocalReferences([...localReferences, newReference]);
+    });
+  }, []);
+
+  return (
+    <button
+      type="button"
+      disabled={disabled}
+      onClick={() => setReferencePost(value, type)}
+      className="hover:bg-gray-200 rounded-md p-1 disabled:opacity-50 h-fit disabled:bg-transparent"
+    >
+      <BookmarkPlus size={24} strokeWidth={1.5} className={clsx("text-gray-600", { "opacity-50": disabled })} />
+    </button>
+  );
+};
+
+const uploadChunks = async (file: File, uploadUrl: string) => {
   const totalSize = file.size;
   let offset = 0;
   let chunkIndex = 0;
@@ -23,7 +66,7 @@ const uploadChunks = async (file:File, uploadUrl:string) => {
   while (offset + CHUNK_SIZE < totalSize) {
     let contentRange = ""
     let chunk = null;
-    if((offset + (CHUNK_SIZE * 2)) > totalSize) {
+    if ((offset + (CHUNK_SIZE * 2)) > totalSize) {
       chunk = file.slice(offset, totalSize);
       contentRange = `bytes ${offset}-${totalSize - 1}/${totalSize}`;
     } else {
@@ -172,24 +215,6 @@ export default function UploadTikTokPage({ references }: { references: Reference
     }
   };
 
-  const setReferencePost = useCallback((value: string, type: string) => {
-    fetch("/api/reference/create", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        referenceTitle: value.split(" ").slice(0, 2).join(" "),
-        referenceValue: value,
-        referenceType: type,
-        publish: true,
-      }),
-    }).then(async (data) => {
-      const newReference = await data.json();
-      setLocalReferences([...localReferences, newReference]);
-    });
-  }, []);
-
   const hasKey = (key: string) => {
     return localReferences.some((reference) => reference.type === key);
   };
@@ -204,30 +229,12 @@ export default function UploadTikTokPage({ references }: { references: Reference
     });
   };
 
-  const isNewReference = (value: string) => {
-    return !localReferences?.some((reference) => reference.value === value);
-  };
-
   const deleteReference = (id: string) => {
     fetch(`/api/reference/delete/${id}`, {
       method: "DELETE",
     }).then(() => {
       setLocalReferences(localReferences.filter((reference) => reference.id !== id));
     });
-  };
-
-  const keyReferenceAddButton = (keyName: string, video: any) => {
-    const showButton = !!video[keyName] && video[keyName] !== "" && isNewReference(video[keyName]);
-    return showButton ? (
-      <>
-        <button
-          type="button"
-          onClick={() => setReferencePost(video[keyName], keyName)}
-        >
-          <BookmarkPlus size={24} strokeWidth={1} />
-        </button>
-      </>
-    ) : null;
   };
 
   const keyReferenceMenu = (key: string) => (
@@ -259,7 +266,7 @@ export default function UploadTikTokPage({ references }: { references: Reference
   );
 
   return (
-    <div className="flex flex-col items-center max-w-3xl mx-auto mt-6 p-6">
+    <div className="flex flex-col items-center max-w-4xl mx-auto mt-6 p-6">
       <form action="uploadVideo" method="post" encType="multipart/form-data" className="mt-12">
         {!video ? (
           <div className="flex justify-between">
@@ -295,175 +302,165 @@ export default function UploadTikTokPage({ references }: { references: Reference
 
         <div className="mt-2 mb-5">
           {!!video && (
-            <div className={clsx({ "border-gray-800": false }, "flex flex-row py-2 border-b border-gray-400")}>
-              <div className={clsx({ "border-gray-800": false }, "max-w-44 pr-2 border-r border-gray-400")}>
-                <div className="truncate mb-2">{video.file?.name}</div>
-                <div className="flex gap-2 items-center">
-                  <div className="relative mb-2">
-                    <img
-                      src={video.thumbnail}
-                      alt="thumbnail"
-                      className="opacity-50 rounded"
-                    />
-                    <label htmlFor="thumbnial" className="top-10 left-5 absolute cursor-pointer">
-                      <FilePlus strokeWidth={1} className="w-10 h-10 text-gray-700" />
-                    </label>
-                    <input
-                      type="file"
-                      onChange={event => setVideo({
-                        ...video,
-                        // thumbnail: URL.createObjectURL(event.target.files[0]),
-                      })}
-                      name="thumbnail"
-                      accept="image/png, image/jpeg, application/octet-stream"
-                      placeholder="thumbnail"
-                      className="hidden"
-                      id="thumbnial"
-                    />
-                  </div>
-                  <div className="font-semibold text-xs pl-2">{`${Math.round(video.file.size / 100000) / 10}MB`}</div>
+            <div className="flex gap-6">
+              <div className="flex flex-col shrink-0 w-1/3 gap-1">
+                <img
+                  src={video.thumbnail}
+                  alt="thumbnail"
+                  className="rounded-xl"
+                />
+                <div className="flex gap-2">
+                  <div className="font-semibold text-xs truncate ml-2">{video.file.name}</div>
+                  <div className="font-semibold text-xs text-gray-500 ml-auto mr-2">{`${Math.round(video.file.size / 100000) / 10}MB`}</div>
                 </div>
               </div>
-              <div className="flex-row grow pl-2">
-                <div className="flex flex-col gap-2">
-                  <div className="flex gap-2 items-center">
-                    <label htmlFor="title" className="font-semibold">Title:</label>
-                    <input
-                      onChange={event => setVideo({ ...video, title: event.currentTarget.value })}
-                      className="border border-gray-300 rounded w-full h-8 px-2 py-1 outline-0 bg-transparent"
-                      name="title"
-                      value={video.title}
-                    />
-                    {keyReferenceAddButton("title", video)}
-                    {hasKey("title") && keyReferenceMenu("title")}
+              <div className="flex flex-col gap-4">
+                <div className="flex gap-2">
+                  <div className="w-1/4 shrink-0">
+                    <div className="text-sm font-medium">Title of your video</div>
+                    <p className="text-xs text-gray-500">Title displayed on TikTok</p>
                   </div>
-                  <div className="flex gap-2 items-center">
-                    <label htmlFor="description" className="font-semibold">Description:</label>
-                    <textarea
-                      name="description"
-                      className="border border-gray-300 outline-0 w-full h-12 px-2 py-1 rounded bg-transparent"
-                      onChange={event => setVideo({ ...video, description: event.currentTarget.value })}
-                      value={video?.description}
-                    />
-                    {keyReferenceAddButton("description", video)}
-                    {hasKey("description") && keyReferenceMenu("description")}
+                  <input
+                    onChange={event => setVideo({ ...video, title: event.currentTarget.value })}
+                    className="border border-gray-300 rounded w-full h-10 px-2 py-1 outline-0 bg-transparent ml-2"
+                    name="title"
+                    value={video.title}
+                  />
+                  <KeyReferenceAddButton type="title" value={video["title"]} localReferences={localReferences} setLocalReferences={setLocalReferences} />
+                  {hasKey("title") && keyReferenceMenu("title")}
+                </div>
+                <div className="flex gap-2">
+                  <div className="w-1/4 shrink-0">
+                    <div className="text-sm font-medium">Video description</div>
+                    <p className="text-xs text-gray-500">Description displayed on TikTok</p>
                   </div>
-                  <div className="flex gap-2 items-center">
-                    <label htmlFor="category" className="font-semibold">Who can view this video: </label>
-                    <select
-                      onChange={event => setVideo({ ...video, privacyStatus: event.currentTarget.value })}
-                      className="outline-0 border-0 bg-transparent rounded"
-                      name="category"
-                      value={video.privacyStatus}
-                    >
-                      <option label="select an option"></option>
-                      {privacyStatusOptions.map((item) =>
-                        <option key={item.id} value={item.id}>
-                          {item.label}
-                        </option>
-                      )}
-                    </select>
+                  <textarea
+                    name="description"
+                    className="border border-gray-300 outline-0 w-full h-20 px-2 py-1 rounded bg-transparent ml-2"
+                    onChange={event => setVideo({ ...video, description: event.currentTarget.value })}
+                    value={video?.description}
+                  />
+                  <KeyReferenceAddButton type="description" value={video["description"]} localReferences={localReferences} setLocalReferences={setLocalReferences} />
+                  {hasKey("description") && keyReferenceMenu("description")}
+                </div>
+                <div className="flex gap-2">
+                  <div className="w-1/4 shrink-0">
+                    <label htmlFor="category" className="text-sm font-medium">Video view access</label>
+                    <p className="text-xs text-gray-500">Select who can view this video</p>
                   </div>
-                  <div className="flex gap-2">
-                    <p className="font-semibold">Allow users to: </p>
-                    <div>
-                      <div className="flex gap-2">
-                        <label htmlFor="category">Comment:</label>
-                        <input type="checkbox" />
-                      </div>
-                      <div className="flex gap-2">
-                        <label htmlFor="category">Duet:</label>
-                        <input type="checkbox" />
-                      </div>
-                      <div className="flex gap-2">
-                        <label htmlFor="category">Stitch:</label>
-                        <input type="checkbox" />
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="flex flex-col gap-2">
+                  <select
+                    onChange={event => setVideo({ ...video, privacyStatus: event.currentTarget.value })}
+                    className="outline-0 border border-gray-300 bg-transparent rounded h-10 ml-2"
+                    name="category"
+                    value={video.privacyStatus}
+                  >
+                    <option label="select an option"></option>
+                    {privacyStatusOptions.map((item) =>
+                      <option key={item.id} value={item.id}>
+                        {item.label}
+                      </option>
+                    )}
+                  </select>
+                </div>
+                <div className="flex gap-2">
+                  <p className="font-semibold">Allow users to: </p>
+                  <div>
                     <div className="flex gap-2">
-                      <input
-                        type="checkbox"
-                        onChange={event => {
-                          setDisclose(event.target.checked);
-                          setVideo({
-                            ...video,
-                            commercialUse: event.target.checked,
-                          });
-                          if (!event.target.checked) {
-                            setYourBrand(false);
-                            setBrandedContent(false);
-                          } else {
-                            setYourBrand(true);
-                          }
-                        }}
-                        checked={(disclose && yourBrand) || (disclose && brandedContent)}
-                      />
-                      <p className="font-semibold">Disclose video content:</p>
+                      <label htmlFor="category">Comment:</label>
+                      <input type="checkbox" />
                     </div>
-                    {disclose && (
-                      <div className="bg-blue-100 text-blue-900 text-sm p-3 rounded mb-1">
-                        Your video will be labeled “Promotional content”. This cannot be changed once your video is posted.
-                      </div>
-                    )}
-                    <p className="text-xs text-gray-500">Turn on to disclose that this video promotes goods or services in exchange for something of value. Your video could promote yourself, a third party, or both.</p>
-
-                    {disclose && (
-                      <div className="flex flex-col gap-2 p-4">
-                        <div className="mb-3">
-                          <label className="flex items-start space-x-3">
-                            <input
-                              type="checkbox"
-                              checked={yourBrand}
-                              onChange={() => setYourBrand(!yourBrand)}
-                              className="mt-1"
-                            />
-                            <div>
-                              <p className="font-medium">Your brand</p>
-                              <p className="text-sm text-gray-600">
-                                You are promoting yourself or your own business. This video will be classified as Brand Organic.
-                              </p>
-                            </div>
-                          </label>
-                        </div>
-
-                        <div className="mb-3">
-                          <label className="flex items-start space-x-3">
-                            <input
-                              type="checkbox"
-                              checked={brandedContent}
-                              onChange={() => setBrandedContent(!brandedContent)}
-                              className="mt-1"
-                            />
-                            <div>
-                              <p className="font-medium">Branded content</p>
-                              <p className="text-sm text-gray-600">
-                                You are promoting another brand or a third party. This video will be classified as Branded Content.
-                              </p>
-                            </div>
-                          </label>
-                        </div>
-
-                        {(yourBrand || brandedContent) && (
-                          <p className="text-sm text-gray-600 mb-4">
-                            By posting, you agree to TikTok's{" "}
-
-                            {brandedContent && (
-                              <>
-                                <a href="https://www.tiktok.com/legal/page/global/music-usage-confirmation/en" className="text-blue-600 underline">
-                                  Branded Content Policy{" "}
-                                </a>
-                                and{" "}
-                              </>
-                            )}
-                            <a href="https://www.tiktok.com/legal/page/global/bc-policy/en" className="text-blue-600 underline">Music Usage Confirmation</a>.
-                          </p>
-                        )}
-                      </div>
-                    )}
+                    <div className="flex gap-2">
+                      <label htmlFor="category">Duet:</label>
+                      <input type="checkbox" />
+                    </div>
+                    <div className="flex gap-2">
+                      <label htmlFor="category">Stitch:</label>
+                      <input type="checkbox" />
+                    </div>
                   </div>
+                </div>
+
+                <div className="flex flex-col gap-2">
+                  <div className="flex gap-2">
+                    <input
+                      type="checkbox"
+                      onChange={event => {
+                        setDisclose(event.target.checked);
+                        setVideo({
+                          ...video,
+                          commercialUse: event.target.checked,
+                        });
+                        if (!event.target.checked) {
+                          setYourBrand(false);
+                          setBrandedContent(false);
+                        } else {
+                          setYourBrand(true);
+                        }
+                      }}
+                      checked={(disclose && yourBrand) || (disclose && brandedContent)}
+                    />
+                    <p className="font-semibold">Disclose video content:</p>
+                  </div>
+                  {disclose && (
+                    <div className="bg-blue-100 text-blue-900 text-sm p-3 rounded mb-1">
+                      Your video will be labeled “Promotional content”. This cannot be changed once your video is posted.
+                    </div>
+                  )}
+                  <p className="text-xs text-gray-500">Turn on to disclose that this video promotes goods or services in exchange for something of value. Your video could promote yourself, a third party, or both.</p>
+
+                  {disclose && (
+                    <div className="flex flex-col gap-2 p-4">
+                      <div className="mb-3">
+                        <label className="flex items-start space-x-3">
+                          <input
+                            type="checkbox"
+                            checked={yourBrand}
+                            onChange={() => setYourBrand(!yourBrand)}
+                            className="mt-1"
+                          />
+                          <div>
+                            <p className="font-medium">Your brand</p>
+                            <p className="text-sm text-gray-600">
+                              You are promoting yourself or your own business. This video will be classified as Brand Organic.
+                            </p>
+                          </div>
+                        </label>
+                      </div>
+
+                      <div className="mb-3">
+                        <label className="flex items-start space-x-3">
+                          <input
+                            type="checkbox"
+                            checked={brandedContent}
+                            onChange={() => setBrandedContent(!brandedContent)}
+                            className="mt-1"
+                          />
+                          <div>
+                            <p className="font-medium">Branded content</p>
+                            <p className="text-sm text-gray-600">
+                              You are promoting another brand or a third party. This video will be classified as Branded Content.
+                            </p>
+                          </div>
+                        </label>
+                      </div>
+
+                      {(yourBrand || brandedContent) && (
+                        <p className="text-sm text-gray-600 mb-4">
+                          By posting, you agree to TikTok's{" "}
+
+                          {brandedContent && (
+                            <>
+                              <a href="https://www.tiktok.com/legal/page/global/music-usage-confirmation/en" className="text-blue-600 underline">
+                                Branded Content Policy{" "}
+                              </a>
+                              and{" "}
+                            </>
+                          )}
+                          <a href="https://www.tiktok.com/legal/page/global/bc-policy/en" className="text-blue-600 underline">Music Usage Confirmation</a>.
+                        </p>
+                      )}
+                    </div>
+                  )}
                 </div>
               </div>
             </div>
