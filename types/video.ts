@@ -50,9 +50,9 @@ export type TikTokVideoProps = {
   description: string;
   privacyStatus: string;
   interactionType: {
-    allowComments: boolean;
-    allowDuet: boolean;
-    allowStitch: boolean;
+    Comments: boolean;
+    Duet: boolean;
+    Stitch: boolean;
   };
   scheduleDate?: string;
   thumbnail: string;

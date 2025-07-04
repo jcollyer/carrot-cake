@@ -7,6 +7,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/app/components/primitives/Select';
+import { Switch, SwitchThumb } from '@/app/components/primitives/Switch';
 import clsx from 'clsx';
 import prisma from "@/lib/prisma";
 import { Reference } from '@prisma/client';
@@ -14,13 +15,27 @@ const transparentImage = require('@/public/transparent.png');
 import { getServerSession } from "next-auth"
 import { authOptions } from "@/pages/api/auth/[...nextauth]"
 import { useCallback, useState } from 'react';
-import { BookMarked, BookmarkPlus, Upload, Trash2, RotateCcw } from 'lucide-react';
+import { BookMarked, BookmarkPlus, MessageCircle, SwitchCamera, Upload, Trash2, RotateCcw, MessagesSquare, CloudUpload } from 'lucide-react';
 import { useDropzone } from 'react-dropzone';
+import Image from 'next/image';
 import { getCookie } from 'cookies-next'
 import { TikTokVideoProps } from '@/types/video'
 import generateVideoThumb from '@/app/utils/generateVideoThumb';
+import { cn } from '@/app/utils/cn';
 
 const CHUNK_SIZE = 10000000; // 10MB
+
+type VideoAccessOption = {
+  name: 'Comments' | 'Duet' | 'Stitch';
+  icon: React.ComponentType<{ strokeWidth?: number; size?: number; className?: string }>;
+};
+
+
+const VIDEO_ACCESS_OPTIONS: VideoAccessOption[] = [
+  { name: "Comments", icon: MessageCircle },
+  { name: "Duet", icon: MessagesSquare },
+  { name: "Stitch", icon: SwitchCamera }
+];
 
 type KeyReferenceMenuProps = {
   type: string;
@@ -216,9 +231,9 @@ export default function UploadTikTokPage({ references }: { references: Reference
           privacyStatus: '',
           scheduleDate: new Date().toISOString(),
           interactionType: {
-            allowComments: false,
-            allowDuet: false,
-            allowStitch: false,
+            Comments: false,
+            Duet: false,
+            Stitch: false,
           },
           commercialUse: false,
         });
@@ -240,9 +255,9 @@ export default function UploadTikTokPage({ references }: { references: Reference
         post_info: {
           title: video?.title || '',
           privacy_level: video?.privacyStatus || 'SELF_ONLY',
-          disable_duet: !video?.interactionType.allowDuet,
-          disable_comment: !video?.interactionType.allowComments,
-          disable_stitch: !video?.interactionType.allowStitch,
+          disable_duet: !video?.interactionType.Duet,
+          disable_comment: !video?.interactionType.Comments,
+          disable_stitch: !video?.interactionType.Stitch,
           video_cover_timestamp_ms: 1000
         },
         source_info: {
@@ -301,15 +316,7 @@ export default function UploadTikTokPage({ references }: { references: Reference
           </div>
         ) : (
           <div className="flex justify-between items-center mb-8">
-            <Button
-              variant="secondary"
-              type="button"
-              onClick={() => setVideo(undefined)}
-              className="flex gap-2"
-            >
-              <RotateCcw strokeWidth={1.5} />
-              <>Reset Video</>
-            </Button>
+            <Image src="/tiktok.svg" alt="TikTok Logo" width="30" height="12" />
           </div>
         )}
 
@@ -330,7 +337,7 @@ export default function UploadTikTokPage({ references }: { references: Reference
               <div className="flex flex-col gap-4">
                 <div className="flex gap-2">
                   <div className="w-1/4 shrink-0">
-                    <div className="text-sm font-medium">Title of your video</div>
+                    <p className="text-sm font-medium">Title of your video</p>
                     <p className="text-xs text-gray-500">Title displayed on TikTok</p>
                   </div>
                   <input
@@ -346,7 +353,7 @@ export default function UploadTikTokPage({ references }: { references: Reference
                 </div>
                 <div className="flex gap-2">
                   <div className="w-1/4 shrink-0">
-                    <div className="text-sm font-medium">Video description</div>
+                    <p className="text-sm font-medium">Video description</p>
                     <p className="text-xs text-gray-500">Description displayed on TikTok</p>
                   </div>
                   <textarea
@@ -362,65 +369,78 @@ export default function UploadTikTokPage({ references }: { references: Reference
                 </div>
                 <div className="flex gap-2">
                   <div className="w-1/4 shrink-0">
-                    <label htmlFor="category" className="text-sm font-medium">Video view access</label>
+                    <p className="text-sm font-medium">Video view access</p>
                     <p className="text-xs text-gray-500">Select who can view this video</p>
                   </div>
                   <div className="w-[calc(100%-14rem)]">
-                  <Select
-                    onValueChange={(value) => setVideo({ ...video, privacyStatus: value })}
-                    value={video.privacyStatus}
-                  >
-                    <SelectTrigger className="outline-0 border border-gray-300 bg-transparent rounded h-10 ml-2">
-                      <SelectValue placeholder="Select an option" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {privacyStatusOptions.map((item) => (
-                        <SelectItem key={item.id} value={item.id}>
-                          {item.label}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                    <Select
+                      onValueChange={(value) => setVideo({ ...video, privacyStatus: value })}
+                      value={video.privacyStatus}
+                    >
+                      <SelectTrigger className="outline-0 border border-gray-300 bg-transparent rounded h-10 ml-2">
+                        <SelectValue placeholder="Select an option" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {privacyStatusOptions.map((item) => (
+                          <SelectItem key={item.id} value={item.id}>
+                            {item.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
                   </div>
                 </div>
                 <div className="flex gap-2">
-                  <p className="font-semibold">Allow users to: </p>
-                  <div>
-                    <div className="flex gap-2">
-                      <label htmlFor="category">Comment:</label>
-                      <input type="checkbox" />
-                    </div>
-                    <div className="flex gap-2">
-                      <label htmlFor="category">Duet:</label>
-                      <input type="checkbox" />
-                    </div>
-                    <div className="flex gap-2">
-                      <label htmlFor="category">Stitch:</label>
-                      <input type="checkbox" />
-                    </div>
+                  <div className="w-1/4 shrink-0">
+                    <p className="text-sm font-medium">Allow user access</p>
+                    <p className="text-xs text-gray-500">Give users permission to interact with your video</p>
+                  </div>
+                  <div className="flex gap-4 ml-2 w-[calc(100%-14rem)]">
+                    {Object.values(VIDEO_ACCESS_OPTIONS).map((option) => (
+                      <button onClick={(e) => {
+                        e.preventDefault();
+                        setVideo({
+                          ...video,
+                          interactionType: {
+                            ...video.interactionType,
+                            [option.name]: !video.interactionType[option.name],
+                          },
+                        });
+                      }}
+                        key={option.name}
+                        className={cn("flex flex-col flex-1 items-center gap-2 mb-2 border border-gray-300 rounded p-2",
+                          { "border-blue-700": video.interactionType[option.name] }
+                        )}
+                      >
+                        <option.icon strokeWidth={1.5} size={16} className={cn("text-gray-600", { "text-blue-700": video.interactionType[option.name] })} />
+                        <p className={cn("text-sm", { "text-blue-700": video.interactionType[option.name] })}>{option.name}</p>
+                      </button >
+                    ))}
                   </div>
                 </div>
 
                 <div className="flex flex-col gap-2">
                   <div className="flex gap-2">
-                    <input
-                      type="checkbox"
-                      onChange={event => {
-                        setDisclose(event.target.checked);
-                        setVideo({
-                          ...video,
-                          commercialUse: event.target.checked,
-                        });
-                        if (!event.target.checked) {
-                          setYourBrand(false);
-                          setBrandedContent(false);
-                        } else {
-                          setYourBrand(true);
-                        }
-                      }}
-                      checked={(disclose && yourBrand) || (disclose && brandedContent)}
-                    />
-                    <p className="font-semibold">Disclose video content:</p>
+                    <div className="flex gap-4">
+                      <p className="text-sm font-medium">Disclose video content</p>
+                      <Switch
+                        onClick={() => {
+                          setDisclose(!disclose);
+                          setVideo({
+                            ...video,
+                            commercialUse: !disclose,
+                          });
+                          if (!disclose) {
+                            setYourBrand(false);
+                            setBrandedContent(false);
+                          } else {
+                            setYourBrand(true);
+                          }
+                        }}
+                      >
+                        <SwitchThumb />
+                      </Switch>
+                    </div>
                   </div>
                   {disclose && (
                     <div className="bg-blue-100 text-blue-900 text-sm p-3 rounded mb-1">
@@ -437,10 +457,10 @@ export default function UploadTikTokPage({ references }: { references: Reference
                             type="checkbox"
                             checked={yourBrand}
                             onChange={() => setYourBrand(!yourBrand)}
-                            className="mt-1"
+                            className="mt-[4px]"
                           />
                           <div>
-                            <p className="font-medium">Your brand</p>
+                            <p className="text-sm font-medium">Your brand</p>
                             <p className="text-sm text-gray-600">
                               You are promoting yourself or your own business. This video will be classified as Brand Organic.
                             </p>
@@ -454,10 +474,10 @@ export default function UploadTikTokPage({ references }: { references: Reference
                             type="checkbox"
                             checked={brandedContent}
                             onChange={() => setBrandedContent(!brandedContent)}
-                            className="mt-1"
+                            className="mt-[4px]"
                           />
                           <div>
-                            <p className="font-medium">Branded content</p>
+                            <p className="text-sm font-medium">Branded content</p>
                             <p className="text-sm text-gray-600">
                               You are promoting another brand or a third party. This video will be classified as Branded Content.
                             </p>
@@ -482,23 +502,31 @@ export default function UploadTikTokPage({ references }: { references: Reference
                       )}
                     </div>
                   )}
+                  <div className="flex gap-2 mt-2">
+                    <Button
+                      variant="secondary"
+                      type="button"
+                      onClick={() => setVideo(undefined)}
+                      className="flex flex-1 gap-2"
+                    >
+                      <RotateCcw strokeWidth={1.5} />
+                      <>Reset Video</>
+                    </Button>
+                    <Button
+                      variant="secondary"
+                      type="submit"
+                      onClick={onSubmit}
+                      className="flex flex-1 items-center gap-2"
+                    >
+                      <CloudUpload />
+                      Upload Video to TikTok
+                    </Button>
+                  </div>
                 </div>
               </div>
             </div>
           )}
         </div>
-
-        {!!video && (
-          <div className="flex flex-col items-center mb-10">
-            <Button
-              variant="secondary"
-              type="submit"
-              onClick={onSubmit}
-            >
-              Upload Video to TikTok
-            </Button>
-          </div>
-        )}
       </form>
     </div>
   );
