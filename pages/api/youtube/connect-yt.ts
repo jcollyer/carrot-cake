@@ -7,11 +7,11 @@ export const scope =
 
 export const oauth = Youtube.authenticate({
   type: "oauth",
-  client_id: process.env.CLIENT_ID,
-  client_secret: process.env.CLIENT_SECRET,
+  client_id: process.env.GOOGLE_CLIENT_ID,
+  client_secret: process.env.GOOGLE_CLIENT_SECRET,
   redirect_url: isDev
-    ? process.env.REDIRECT_URIS_LOCAL
-    : process.env.REDIRECT_URIS_PROD,
+    ? process.env.YOUTUBE_REDIRECT_URIS_LOCAL
+    : process.env.YOUTUBE_REDIRECT_URIS_PROD,
 });
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
