@@ -12,7 +12,7 @@ export default async function handler(
   const { id, title, description, categoryId, scheduleDate, tags } = body;
   const { cookie } = headers;
 
-  const jsonTokens = getTokensCookie(cookie, "tokens");
+  const jsonTokens = getTokensCookie(cookie, "youtube-tokens");
 
   oauth.setCredentials(jsonTokens);
   const inThePast = new Date(scheduleDate) < new Date();

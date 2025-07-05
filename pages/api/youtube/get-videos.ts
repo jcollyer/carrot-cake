@@ -8,7 +8,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   const { cookie } = headers;
   const { playlistId } = body;
 
-  const jsonTokens = getTokensCookie(cookie, "tokens");
+  const jsonTokens = getTokensCookie(cookie, "youtube-tokens");
 
   await oauth.setCredentials(jsonTokens);
 

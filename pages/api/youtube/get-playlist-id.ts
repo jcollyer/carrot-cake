@@ -5,7 +5,7 @@ const Youtube = require("youtube-api");
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   const { cookie } = req.headers;
-  const jsonTokens = getTokensCookie(cookie, "tokens");
+  const jsonTokens = getTokensCookie(cookie, "youtube-tokens");
 
   oauth.setCredentials(jsonTokens);
 

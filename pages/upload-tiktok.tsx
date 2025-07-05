@@ -199,7 +199,6 @@ const uploadChunks = async (file: File, uploadUrl: string) => {
       return;
     }
 
-    console.log(`Uploaded chunk ${chunkIndex}`);
     offset += CHUNK_SIZE;
     chunkIndex++;
   }

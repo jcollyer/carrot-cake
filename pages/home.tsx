@@ -47,7 +47,7 @@ const sanitizeYTMetadata = (videos: YouTubeVideo[] | undefined) => {
       categoryId,
       tags: tags,
       thumbnail,
-      scheduleDate: publishAt || snippet.publishedAt || '',
+      scheduleDate: moment((publishAt || snippet.publishedAt || '')).format('YYYY-MM-DD'),
     };
   });
 };
@@ -70,7 +70,7 @@ const sanitizeTikTokMetadata = (videos: TikTokVideo[] | undefined) => {
 }
 
 export default function Home() {
-  const [tokens, setTokens] = useState(getCookie('tokens'));
+  const [tokens, setTokens] = useState(getCookie('youtube-tokens'));
   const [tiktokTokens, setTiktokTokens] = useState(getCookie('tiktok-tokens'));
   const [playlistId, setPlaylistId] = useState(getCookie('userPlaylistId'));
   const [videos, setVideos] = useState<YouTubeVideo[]>();
@@ -156,7 +156,7 @@ export default function Home() {
     await fetch('/api/youtube/get-playlist-id', {
       method: 'GET',
       headers: {
-        cookie: `tokens=${tokens}`,
+        cookie: `youtube-tokens=${tokens}`,
       },
     }).then(async (res) => {
       const { playlistId } = await res.json();
@@ -169,7 +169,7 @@ export default function Home() {
     await fetch('/api/youtube/get-channel', {
       method: 'GET',
       headers: {
-        cookie: `tokens=${tokens}`,
+        cookie: `youtube-tokens=${tokens}`,
       },
     }).then(async (res) => {
       const { data } = await res.json();
@@ -189,7 +189,7 @@ export default function Home() {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        cookie: `tokens=${tokens}`,
+        cookie: `youtube-tokens=${tokens}`,
       },
       body: JSON.stringify({ playlistId }),
     }).then(async (res) => {
@@ -200,9 +200,9 @@ export default function Home() {
   }
 
   const listenCookieChange = (callback: (values: { oldValue: string, newValue: string }) => void, interval = 1000, tokenType = "youtube-tokens") => {
-    let lastCookie = tokenType === "youtube-tokens" ? getCookie('tokens') as string : getCookie('tiktok-tokens') as string;
+    let lastCookie = tokenType === "youtube-tokens" ? getCookie('youtube-tokens') as string : getCookie('tiktok-tokens') as string;
     setInterval(() => {
-      const tokens = tokenType === "youtube-tokens" ? getCookie('tokens') as string : getCookie('tiktok-tokens') as string;
+      const tokens = tokenType === "youtube-tokens" ? getCookie('youtube-tokens') as string : getCookie('tiktok-tokens') as string;
       if (tokens !== lastCookie) {
         try {
           callback({ oldValue: lastCookie, newValue: tokens });
@@ -218,7 +218,7 @@ export default function Home() {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        cookie: `tokens=${tokens}`,
+        cookie: `youtube-tokens=${tokens}`,
       },
       body: JSON.stringify(editVideo),
     })
@@ -276,7 +276,6 @@ export default function Home() {
   useEffect(() => {
     if (tokens && !playlistId) {
       getPlaylistId();
-      getYTChannelInfo();
     }
   }, [tokens]);
 
@@ -289,6 +288,7 @@ export default function Home() {
 
   useEffect(() => {
     if (playlistId)
+      getYTChannelInfo();
       getVideos();
   }, [playlistId]);
 
