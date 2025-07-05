@@ -46,6 +46,7 @@ bug list:
 
 
 feature list:
+- revke tiktok access on logout https://developers.tiktok.com/doc/oauth-user-access-token-management
 - UI handle multiple videos scheduled on the same day
 - Aadd loading UI for video upload proccessing
 - Add delete video from calendar view

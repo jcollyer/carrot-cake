@@ -124,22 +124,15 @@ export default function Home() {
   }
 
   const getTikTokUserInfo = async () => {
-    fetch('https://open.tiktokapis.com/v2/user/info/?fields=open_id,union_id,avatar_url,display_name', {
+    fetch('/api/tiktok/get-user-info', {
       method: 'GET',
-      headers: {
-        'Authorization': `Bearer ${JSON.parse(tiktokTokens as string || "{}").access_token}`,
-      }
     })
-      .then(response => {
-        if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
-        }
-        return response.json();
-      })
+      .then(response => response.json())
       .then(data => {
+        const user = data.data.user;
         setTiktokUserInfo({
-          thumbnail: data.data.user.avatar_url,
-          userName: data.data.user.display_name,
+          thumbnail: user.avatar_url,
+          userName: user.display_name,
         });
         setTabOpen('tiktok');
       })
@@ -149,20 +142,11 @@ export default function Home() {
   }
 
   const getTikTokUserVideos = async () => {
-    fetch('https://open.tiktokapis.com/v2/video/list/?fields=id,title,video_description,duration,cover_image_url,embed_link,create_time', {
+    fetch('/api/tiktok/get-user-videos', {
       method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${JSON.parse(tiktokTokens as string || "{}").access_token}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        max_count: 20
-      })
     })
       .then(response => response.json())
-      .then(data => {
-        setTiktokVideos(data.data.videos);
-      })
+      .then(data => setTiktokVideos(data.data.videos))
       .catch(error => {
         console.error('Fetch error:', error);
       });

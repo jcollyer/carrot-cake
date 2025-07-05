@@ -9,7 +9,7 @@ export const button = tv({
       primary:
         "text-orange-600 border-orange-600 hover:text-orange-400 hover:border-orange-400 py-2.5 rounded-lg border",
       secondary:
-        "text-gray-700 hover:text-gray-500 border border-gray-600 hover:border-gray-500 focus:ring-4 focus:outline-none focus:ring-gray-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center",
+        "text-gray-600 hover:text-gray-700 border border-gray-400 hover:border-gray-500 focus:ring-4 focus:outline-none focus:ring-gray-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center",
       danger:
         "text-white bg-red-500 hover:bg-red-600 active:bg-red-700 border-none !ring-red-400",
       none: "border-none text-left justify-start",
