@@ -172,7 +172,6 @@ const uploadChunks = async (file: File, uploadUrl: string) => {
   const totalSize = file.size;
   let offset = 0;
   let chunkIndex = 0;
-
   while (offset + CHUNK_SIZE < totalSize) {
     let contentRange = ""
     let chunk = null;
@@ -183,7 +182,7 @@ const uploadChunks = async (file: File, uploadUrl: string) => {
       chunk = file.slice(offset, offset + CHUNK_SIZE);
       contentRange = `bytes ${offset}-${offset + chunk.size - 1}/${totalSize}`;
     }
-
+  
     const res = await fetch(uploadUrl, {
       method: 'PUT',
       headers: {
@@ -198,6 +197,13 @@ const uploadChunks = async (file: File, uploadUrl: string) => {
       console.error(`Chunk ${chunkIndex} failed, Response status: ${res.status}`);
       return;
     }
+    if(res.status === 206) {
+      console.log(`Chunk ${chunkIndex} uploaded successfully`);
+    }
+    if(res.status === 201) {
+      console.log(`Chunk ${chunkIndex} uploaded successfully, no more chunks to upload`);
+      return;
+    }
 
     offset += CHUNK_SIZE;
     chunkIndex++;
@@ -208,30 +214,31 @@ export default function UploadTikTokPage({ references }: { references: Reference
   const tikTokAccessToken = getCookie('tiktok-tokens');
   
   const [video, setVideo] = useState<TikTokVideoProps>();
+  const [thumbnail, setThumbnail] = useState<string>(transparentImage);
   const [localReferences, setLocalReferences] = useState<Reference[]>(references || []);
   const [disclose, setDisclose] = useState<boolean>(false);
-  const [yourBrand, setYourBrand] = useState<boolean>(true);
+  const [yourBrand, setYourBrand] = useState<boolean>(false);
   const [brandedContent, setBrandedContent] = useState<boolean>(false);
   const [tiktokUserInfo, setTiktokUserInfo] = useState<TikTokUserInfo>();
 
   const onDrop = useCallback((acceptedFiles: any) => {
     if (acceptedFiles.length) {
       acceptedFiles.forEach(async (file: any) => {
-        const thumbnail = await generateVideoThumb(file);
-
+        const thumb = await generateVideoThumb(file);
+        
+        setThumbnail(thumb as string);
         setVideo({
           file,
-          thumbnail: thumbnail || transparentImage,
           title: file.name,
           description: '',
           privacyStatus: '',
-          scheduleDate: new Date().toISOString(),
+          commercialUseContent: false,
+          commercialUseOrganic: false,
           interactionType: {
             Comments: false,
             Duet: false,
             Stitch: false,
           },
-          commercialUse: false,
         });
       });
     }
@@ -271,7 +278,9 @@ export default function UploadTikTokPage({ references }: { references: Reference
           disable_duet: !video?.interactionType.Duet,
           disable_comment: !video?.interactionType.Comments,
           disable_stitch: !video?.interactionType.Stitch,
-          video_cover_timestamp_ms: 1000
+          video_cover_timestamp_ms: 1000,
+          brand_content_toggle: brandedContent,
+          brand_organic_toggle: yourBrand,
         },
         source_info: {
           source: 'FILE_UPLOAD',
@@ -287,7 +296,9 @@ export default function UploadTikTokPage({ references }: { references: Reference
         }
         return response.json();
       })
-      .then(async ({ data }) => await uploadChunks(video.file, data.upload_url))
+      .then(async ({ data }) => {
+        await uploadChunks(video.file, data.upload_url)
+      })
       .catch((error) => {
         console.error('Error uploading video:', error);
       });
@@ -346,7 +357,7 @@ export default function UploadTikTokPage({ references }: { references: Reference
               <div className="flex gap-6">
                 <div className="flex flex-col shrink-0 w-1/3 gap-1">
                   <img
-                    src={video.thumbnail}
+                    src={thumbnail}
                     alt="thumbnail"
                     className="rounded-xl"
                   />
@@ -449,7 +460,7 @@ export default function UploadTikTokPage({ references }: { references: Reference
                             setDisclose(!disclose);
                             setVideo({
                               ...video,
-                              commercialUse: !disclose,
+                              commercialUseContent: !disclose,
                             });
                             if (!disclose) {
                               setYourBrand(false);
@@ -493,13 +504,15 @@ export default function UploadTikTokPage({ references }: { references: Reference
                           <label className="flex items-start space-x-3">
                             <input
                               type="checkbox"
+                              disabled={video?.privacyStatus === 'SELF_ONLY'}
                               checked={brandedContent}
                               onChange={() => setBrandedContent(!brandedContent)}
                               className="mt-[4px]"
                             />
                             <div>
-                              <p className="text-sm font-medium">Branded content</p>
-                              <p className="text-sm text-gray-600">
+                              <p className={cn("text-sm font-medium", {"text-gray-500": video.privacyStatus === "SELF_ONLY"})} >Branded content</p>
+                              {video.privacyStatus === "SELF_ONLY" && (<p className="text-red-600 text-xs">Visibility for branded content can't be private.</p>)}
+                              <p className={cn("text-sm text-gray-600", {"text-gray-500": video.privacyStatus === "SELF_ONLY"})}>
                                 You are promoting another brand or a third party. This video will be classified as Branded Content.
                               </p>
                             </div>

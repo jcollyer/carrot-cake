@@ -49,14 +49,13 @@ export type TikTokVideoProps = {
   title: string;
   description: string;
   privacyStatus: string;
+  commercialUseContent: boolean;
+  commercialUseOrganic: boolean;
   interactionType: {
     Comments: boolean;
     Duet: boolean;
     Stitch: boolean;
   };
-  scheduleDate?: string;
-  thumbnail: string;
-  commercialUse: boolean;
 };
 
 export type YouTubeUserInfo = {
