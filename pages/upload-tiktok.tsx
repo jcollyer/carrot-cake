@@ -182,7 +182,7 @@ const uploadChunks = async (file: File, uploadUrl: string) => {
       chunk = file.slice(offset, offset + CHUNK_SIZE);
       contentRange = `bytes ${offset}-${offset + chunk.size - 1}/${totalSize}`;
     }
-  
+
     const res = await fetch(uploadUrl, {
       method: 'PUT',
       headers: {
@@ -197,10 +197,10 @@ const uploadChunks = async (file: File, uploadUrl: string) => {
       console.error(`Chunk ${chunkIndex} failed, Response status: ${res.status}`);
       return;
     }
-    if(res.status === 206) {
+    if (res.status === 206) {
       console.log(`Chunk ${chunkIndex} uploaded successfully`);
     }
-    if(res.status === 201) {
+    if (res.status === 201) {
       console.log(`Chunk ${chunkIndex} uploaded successfully, no more chunks to upload`);
       return;
     }
@@ -212,7 +212,7 @@ const uploadChunks = async (file: File, uploadUrl: string) => {
 
 export default function UploadTikTokPage({ references }: { references: Reference[] }) {
   const tikTokAccessToken = getCookie('tiktok-tokens');
-  
+
   const [video, setVideo] = useState<TikTokVideoProps>();
   const [thumbnail, setThumbnail] = useState<string>(transparentImage);
   const [localReferences, setLocalReferences] = useState<Reference[]>(references || []);
@@ -225,12 +225,11 @@ export default function UploadTikTokPage({ references }: { references: Reference
     if (acceptedFiles.length) {
       acceptedFiles.forEach(async (file: any) => {
         const thumb = await generateVideoThumb(file);
-        
+
         setThumbnail(thumb as string);
         setVideo({
           file,
           title: file.name,
-          description: '',
           privacyStatus: '',
           commercialUseContent: false,
           commercialUseOrganic: false,
@@ -263,7 +262,7 @@ export default function UploadTikTokPage({ references }: { references: Reference
       });
   }
 
-  const uploadTikTokVideo = async ({draft}: {draft: boolean}) => {
+  const uploadTikTokVideo = async ({ draft }: { draft: boolean }) => {
     if (!video) return;
     await fetch('/api/tiktok/direct-post-init', {
       method: 'POST',
@@ -275,7 +274,6 @@ export default function UploadTikTokPage({ references }: { references: Reference
         draft,
         post_info: {
           title: video?.title,
-          description: video?.description,
           privacy_level: video?.privacyStatus || 'SELF_ONLY',
           disable_duet: !video?.interactionType.Duet,
           disable_comment: !video?.interactionType.Comments,
@@ -320,7 +318,7 @@ export default function UploadTikTokPage({ references }: { references: Reference
   useEffect(() => {
     getTikTokUserInfo();
   }, []);
-  
+
   return (
     <div className="flex flex-col items-center max-w-4xl mx-auto mt-6 p-6">
       <form action="uploadVideo" method="post" encType="multipart/form-data" className="mt-12">
@@ -355,19 +353,19 @@ export default function UploadTikTokPage({ references }: { references: Reference
 
         <div className="mt-2 mb-5">
           {!!video && (
-            <>
-              <div className="flex gap-6">
-                <div className="flex flex-col shrink-0 w-1/3 gap-1">
-                  <img
-                    src={thumbnail}
-                    alt="thumbnail"
-                    className="rounded-xl"
-                  />
-                  <div className="flex gap-2">
-                    <div className="font-semibold text-xs truncate ml-2">{video.file.name}</div>
-                    <div className="font-semibold text-xs text-gray-500 ml-auto mr-2">{`${Math.round(video.file.size / 100000) / 10}MB`}</div>
-                  </div>
+            <div className="flex gap-6">
+              <div className="flex flex-col shrink-0 w-1/3 gap-1">
+                <img
+                  src={thumbnail}
+                  alt="thumbnail"
+                  className="rounded-xl"
+                />
+                <div className="flex gap-2">
+                  <div className="font-semibold text-xs truncate ml-2">{video.file.name}</div>
+                  <div className="font-semibold text-xs text-gray-500 ml-auto mr-2">{`${Math.round(video.file.size / 100000) / 10}MB`}</div>
                 </div>
+              </div>
+              <div className="flex flex-col">
                 <div className="flex flex-col gap-5 h-fit border border-gray-100 rounded-xl p-4 bg-white">
                   <div className="flex gap-2">
                     <div className="w-1/4 shrink-0">
@@ -383,22 +381,6 @@ export default function UploadTikTokPage({ references }: { references: Reference
                     <div className="flex items-start">
                       <KeyReferenceAddButton type="title" value={video["title"]} localReferences={localReferences} setLocalReferences={setLocalReferences} />
                       <KeyReferenceMenu type="title" localReferences={localReferences} setLocalReferences={setLocalReferences} setVideo={setVideo} />
-                    </div>
-                  </div>
-                  <div className="flex gap-2">
-                    <div className="w-1/4 shrink-0">
-                      <p className="text-sm font-medium">Video description</p>
-                      <p className="text-xs text-gray-500">Description displayed on TikTok</p>
-                    </div>
-                    <textarea
-                      name="description"
-                      className="border border-gray-300 outline-0 w-full h-20 px-2 py-1 rounded bg-transparent ml-2"
-                      onChange={event => setVideo({ ...video, description: event.currentTarget.value })}
-                      value={video?.description}
-                    />
-                    <div className="flex items-start">
-                      <KeyReferenceAddButton type="description" value={video["description"]} localReferences={localReferences} setLocalReferences={setLocalReferences} />
-                      <KeyReferenceMenu type="description" localReferences={localReferences} setLocalReferences={setLocalReferences} setVideo={setVideo} />
                     </div>
                   </div>
                   <div className="flex gap-2">
@@ -512,9 +494,9 @@ export default function UploadTikTokPage({ references }: { references: Reference
                               className="mt-[4px]"
                             />
                             <div>
-                              <p className={cn("text-sm font-medium", {"text-gray-500": video.privacyStatus === "SELF_ONLY"})} >Branded content</p>
+                              <p className={cn("text-sm font-medium", { "text-gray-500": video.privacyStatus === "SELF_ONLY" })} >Branded content</p>
                               {video.privacyStatus === "SELF_ONLY" && (<p className="text-red-600 text-xs">Visibility for branded content can't be private.</p>)}
-                              <p className={cn("text-sm text-gray-600", {"text-gray-500": video.privacyStatus === "SELF_ONLY"})}>
+                              <p className={cn("text-sm text-gray-600", { "text-gray-500": video.privacyStatus === "SELF_ONLY" })}>
                                 You are promoting another brand or a third party. This video will be classified as Branded Content.
                               </p>
                             </div>
@@ -540,28 +522,28 @@ export default function UploadTikTokPage({ references }: { references: Reference
                     )}
                   </div>
                 </div>
+                <div className="flex gap-2 mt-6">
+                  <Button
+                    variant="secondary"
+                    type="button"
+                    onClick={() => setVideo(undefined)}
+                    className="flex flex-1 gap-2"
+                  >
+                    <RotateCcw strokeWidth={1.5} />
+                    <>Reset Video</>
+                  </Button>
+                  <Button
+                    variant="secondary"
+                    type="submit"
+                    onClick={onSubmit}
+                    className="flex flex-1 items-center gap-2"
+                  >
+                    <CloudUpload />
+                    Upload Video to TikTok
+                  </Button>
+                </div>
               </div>
-              <div className="flex gap-2 mt-6">
-                <Button
-                  variant="secondary"
-                  type="button"
-                  onClick={() => setVideo(undefined)}
-                  className="flex flex-1 gap-2"
-                >
-                  <RotateCcw strokeWidth={1.5} />
-                  <>Reset Video</>
-                </Button>
-                <Button
-                  variant="secondary"
-                  type="submit"
-                  onClick={onSubmit}
-                  className="flex flex-1 items-center gap-2"
-                >
-                  <CloudUpload />
-                  Upload Video to TikTok
-                </Button>
-              </div>
-            </>
+            </div>
           )}
         </div>
       </form>

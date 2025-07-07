@@ -47,7 +47,6 @@ export type SanitizedVideoProps = {
 export type TikTokVideoProps = {
   file: any;
   title: string;
-  description: string;
   privacyStatus: string;
   commercialUseContent: boolean;
   commercialUseOrganic: boolean;
