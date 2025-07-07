@@ -1,6 +1,6 @@
-import Day from '@/app/components/Day';
-import moment from 'moment';
-import type { SanitizedVideoProps } from '@/types/video';
+import Day from "@/app/components/Day";
+import moment from "moment";
+import type { SanitizedVideoProps } from "@/types/video";
 
 type Props = {
   date: moment.Moment,
@@ -24,15 +24,15 @@ export function Week({
   const days = [];
   for (let i = 0; i < 7; i++) {
     const day = {
-      name: date.format('dd').substring(0, 1),
+      name: date.format("dd").substring(0, 1),
       number: date.date(),
       isCurrentMonth: date.month() === month.month(),
-      isToday: date.isSame(new Date(), 'day'),
+      isToday: date.isSame(new Date(), "day"),
       date,
     };
 
     const videoScheduled = scheduledVideos.find(
-      video => video.scheduleDate === date.format('YYYY-MM-DD'),
+      video => video.scheduleDate === date.format("YYYY-MM-DD"),
     );
 
     days.push(
@@ -48,7 +48,7 @@ export function Week({
     );
 
     date = date.clone();
-    date.add(1, 'day');
+    date.add(1, "day");
   }
 
   return (

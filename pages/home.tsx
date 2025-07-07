@@ -1,21 +1,21 @@
-import Button from '@/app/components/primitives/Button';
+import Button from "@/app/components/primitives/Button";
 import { useEffect, useState } from "react";
-import Image from 'next/image';
+import Image from "next/image";
 import { getServerSession } from "next-auth"
 import { authOptions } from "@/pages/api/auth/[...nextauth]"
-import { getCookie, setCookie, deleteCookie } from 'cookies-next'
-import { CircleX } from 'lucide-react';
-import { Categories } from '@/app/utils/categories';
+import { getCookie, setCookie, deleteCookie } from "cookies-next"
+import { CircleX } from "lucide-react";
+import { Categories } from "@/app/utils/categories";
 import {
   Tabs,
   TabsContent,
   TabsList,
   TabsTrigger,
 } from "@/app/components/primitives/Tabs";
-import Calendar from '@/app/components/Calendar';
-import clsx from 'clsx';
-import { SanitizedVideoProps, YouTubeVideo, YouTubeUserInfo, TikTokVideo, TikTokUserInfo } from '@/types/video'
-import moment from 'moment';
+import Calendar from "@/app/components/Calendar";
+import clsx from "clsx";
+import { SanitizedVideoProps, YouTubeVideo, YouTubeUserInfo, TikTokVideo, TikTokUserInfo } from "@/types/video"
+import moment from "moment";
 
 export const getServerSideProps = async (context: any) => {
   const session = await getServerSession(context.req, context.res, authOptions);
@@ -39,7 +39,7 @@ const sanitizeYTMetadata = (videos: YouTubeVideo[] | undefined) => {
     const { snippet, status } = video;
     const { title, description, categoryId, tags, thumbnails } = snippet;
     const { publishAt } = status || {};
-    const thumbnail = thumbnails?.high?.url || thumbnails?.medium?.url || thumbnails?.default?.url || '';
+    const thumbnail = thumbnails?.high?.url || thumbnails?.medium?.url || thumbnails?.default?.url || "";
     return {
       id: video.id,
       title,
@@ -47,7 +47,7 @@ const sanitizeYTMetadata = (videos: YouTubeVideo[] | undefined) => {
       categoryId,
       tags: tags,
       thumbnail,
-      scheduleDate: moment((publishAt || snippet.publishedAt || '')).format('YYYY-MM-DD'),
+      scheduleDate: moment((publishAt || snippet.publishedAt || "")).format("YYYY-MM-DD"),
     };
   });
 };
@@ -63,31 +63,31 @@ const sanitizeTikTokMetadata = (videos: TikTokVideo[] | undefined) => {
       id: video.id,
       title: video.title,
       description: video.video_description,
-      scheduleDate: moment(convertUnixTimestampToDate(video.create_time)).format('YYYY-MM-DD'),
+      scheduleDate: moment(convertUnixTimestampToDate(video.create_time)).format("YYYY-MM-DD"),
       thumbnail: video.cover_image_url,
     };
   });
 }
 
 export default function Home() {
-  const [tokens, setTokens] = useState(getCookie('youtube-tokens'));
-  const [tiktokTokens, setTiktokTokens] = useState(getCookie('tiktok-tokens'));
-  const [playlistId, setPlaylistId] = useState(getCookie('userPlaylistId'));
+  const [tokens, setTokens] = useState(getCookie("youtube-tokens"));
+  const [tiktokTokens, setTiktokTokens] = useState(getCookie("tiktok-tokens"));
+  const [playlistId, setPlaylistId] = useState(getCookie("userPlaylistId"));
   const [videos, setVideos] = useState<YouTubeVideo[]>();
   const [tiktokVideos, setTiktokVideos] = useState<TikTokVideo[]>([]);
   const [ytUserInfo, setYtUserInfo] = useState<YouTubeUserInfo>();
   const [tiktokUserInfo, setTiktokUserInfo] = useState<TikTokUserInfo>();
   const [editVideo, setEditVideo] = useState<SanitizedVideoProps>({
-    categoryId: '',
-    description: '',
-    file: '',
-    id: '',
-    scheduleDate: '',
+    categoryId: "",
+    description: "",
+    file: "",
+    id: "",
+    scheduleDate: "",
     tags: [],
-    title: '',
-    thumbnail: '',
+    title: "",
+    thumbnail: "",
   });
-  const [tabOpen, setTabOpen] = useState('youtube');
+  const [tabOpen, setTabOpen] = useState("youtube");
 
   const connectTt = async () => {
     listenCookieChange(({ oldValue, newValue }) => {
@@ -95,14 +95,14 @@ export default function Home() {
         setTiktokTokens(newValue);
       }
     }, 1000, "tiktok-tokens");
-    await fetch('/api/tiktok/connect-tiktok', {
-      method: 'GET',
+    await fetch("/api/tiktok/connect-tiktok", {
+      method: "GET",
       headers: {
-        'Content-Type': 'application/x-www-form-urlencoded',
+        "Content-Type": "application/x-www-form-urlencoded",
       },
     }).then(async (res) => {
       const oAuthCallback = await res.json();
-      window.open(oAuthCallback.url, '_blank', 'location=yes,height=570,width=520,scrollbars=yes,status=yes');
+      window.open(oAuthCallback.url, "_blank", "location=yes,height=570,width=520,scrollbars=yes,status=yes");
     });
   }
 
@@ -112,20 +112,20 @@ export default function Home() {
         setTokens(newValue);
       }
     }, 1000, "youtube-tokens");
-    await fetch('/api/youtube/connect-yt', {
-      method: 'GET',
+    await fetch("/api/youtube/connect-yt", {
+      method: "GET",
       headers: {
-        'Content-Type': 'application/json',
+        "Content-Type": "application/json",
       },
     }).then(async (res) => {
       const oAuthCallback = await res.json();
-      window.open(oAuthCallback.url, '_blank', 'location=yes,height=570,width=520,scrollbars=yes,status=yes');
+      window.open(oAuthCallback.url, "_blank", "location=yes,height=570,width=520,scrollbars=yes,status=yes");
     });
   }
 
   const getTikTokUserInfo = async () => {
-    fetch('/api/tiktok/get-user-info', {
-      method: 'GET',
+    fetch("/api/tiktok/get-user-info", {
+      method: "GET",
     })
       .then(response => response.json())
       .then(data => {
@@ -134,40 +134,40 @@ export default function Home() {
           thumbnail: user.avatar_url,
           userName: user.display_name,
         });
-        setTabOpen('tiktok');
+        setTabOpen("tiktok");
       })
       .catch(error => {
-        console.error('Fetch error:', error);
+        console.error("Fetch error:", error);
       });
   }
 
   const getTikTokUserVideos = async () => {
-    fetch('/api/tiktok/get-user-videos', {
-      method: 'POST',
+    fetch("/api/tiktok/get-user-videos", {
+      method: "POST",
     })
       .then(response => response.json())
       .then(data => setTiktokVideos(data.data.videos))
       .catch(error => {
-        console.error('Fetch error:', error);
+        console.error("Fetch error:", error);
       });
   }
 
   const getPlaylistId = async () => {
-    await fetch('/api/youtube/get-playlist-id', {
-      method: 'GET',
+    await fetch("/api/youtube/get-playlist-id", {
+      method: "GET",
       headers: {
         cookie: `youtube-tokens=${tokens}`,
       },
     }).then(async (res) => {
       const { playlistId } = await res.json();
-      setCookie('userPlaylistId', playlistId, { maxAge: 31536000 });
+      setCookie("userPlaylistId", playlistId, { maxAge: 31536000 });
       setPlaylistId(playlistId);
     });
   }
 
   const getYTChannelInfo = async () => {
-    await fetch('/api/youtube/get-channel', {
-      method: 'GET',
+    await fetch("/api/youtube/get-channel", {
+      method: "GET",
       headers: {
         cookie: `youtube-tokens=${tokens}`,
       },
@@ -185,24 +185,24 @@ export default function Home() {
   }
 
   const getVideos = async () => {
-    await fetch('/api/youtube/get-videos', {
-      method: 'POST',
+    await fetch("/api/youtube/get-videos", {
+      method: "POST",
       headers: {
-        'Content-Type': 'application/json',
+        "Content-Type": "application/json",
         cookie: `youtube-tokens=${tokens}`,
       },
       body: JSON.stringify({ playlistId }),
     }).then(async (res) => {
       const videos = await res.json();
       setVideos(videos);
-      setTabOpen('youtube');
+      setTabOpen("youtube");
     });
   }
 
   const listenCookieChange = (callback: (values: { oldValue: string, newValue: string }) => void, interval = 1000, tokenType = "youtube-tokens") => {
-    let lastCookie = tokenType === "youtube-tokens" ? getCookie('youtube-tokens') as string : getCookie('tiktok-tokens') as string;
+    let lastCookie = tokenType === "youtube-tokens" ? getCookie("youtube-tokens") as string : getCookie("tiktok-tokens") as string;
     setInterval(() => {
-      const tokens = tokenType === "youtube-tokens" ? getCookie('youtube-tokens') as string : getCookie('tiktok-tokens') as string;
+      const tokens = tokenType === "youtube-tokens" ? getCookie("youtube-tokens") as string : getCookie("tiktok-tokens") as string;
       if (tokens !== lastCookie) {
         try {
           callback({ oldValue: lastCookie, newValue: tokens });
@@ -214,10 +214,10 @@ export default function Home() {
   };
 
   const saveEditVideo = async () => {
-    await fetch('/api/youtube/update-video', {
-      method: 'POST',
+    await fetch("/api/youtube/update-video", {
+      method: "POST",
       headers: {
-        'Content-Type': 'application/json',
+        "Content-Type": "application/json",
         cookie: `youtube-tokens=${tokens}`,
       },
       body: JSON.stringify(editVideo),
@@ -245,31 +245,31 @@ export default function Home() {
 
         setVideos(updatedScheduledVideos);
         setEditVideo({
-          description: '',
-          categoryId: '',
-          file: '',
-          id: '',
-          scheduleDate: '',
+          description: "",
+          categoryId: "",
+          file: "",
+          id: "",
+          scheduleDate: "",
           tags: [],
-          title: '',
-          thumbnail: '',
+          title: "",
+          thumbnail: "",
         });
       })
       .catch(error => {
-        console.error('Error updating video:', error);
+        console.error("Error updating video:", error);
       });
   };
 
   const closeEditVideo = () => {
     setEditVideo({
-      description: '',
-      categoryId: '',
-      file: '',
-      id: '',
-      scheduleDate: '',
+      description: "",
+      categoryId: "",
+      file: "",
+      id: "",
+      scheduleDate: "",
       tags: [],
-      title: '',
-      thumbnail: '',
+      title: "",
+      thumbnail: "",
     });
   };
 
@@ -473,7 +473,7 @@ export default function Home() {
               <textarea
                 name="tags"
                 className="border border-gray-300 outline-0 bg-transparent grow h-16 p-2 rounded"
-                onChange={(event) => setEditVideo({ ...editVideo, tags: event.currentTarget.value.split(',') })}
+                onChange={(event) => setEditVideo({ ...editVideo, tags: event.currentTarget.value.split(",") })}
                 value={editVideo.tags}
                 placeholder="Tags"
               />

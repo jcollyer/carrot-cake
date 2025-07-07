@@ -1,6 +1,6 @@
 import { useContext } from "react";
-import {useRouter} from 'next/router'
-import { AuthContext } from '@/pages/_app';
+import {useRouter} from "next/router"
+import { AuthContext } from "@/pages/_app";
 
 const SigninPage = () => {
   const { setAuthenticated } = useContext(AuthContext);
@@ -12,16 +12,16 @@ const SigninPage = () => {
     const email = event.target[0].value;
     const password = event.target[1].value;
 
-    fetch('/api/firebase/sign-in', {
-      method: 'POST',
+    fetch("/api/firebase/sign-in", {
+      method: "POST",
       headers: {
-        'Content-Type': 'application/json',
+        "Content-Type": "application/json",
       },
       body: JSON.stringify({ email, password }),
     }).then(async (res) => {
       const user = await res.json();
       setAuthenticated(true)
-      push('/home');
+      push("/home");
     });
   }
   return (

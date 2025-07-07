@@ -1,10 +1,10 @@
-import { useState } from 'react';
-import { useRouter } from 'next/router';
-import clsx from 'clsx';
+import { useState } from "react";
+import { useRouter } from "next/router";
+import clsx from "clsx";
 
 const SignupPage = () => {
   const { push } = useRouter();
-  const [orignalPassword, setOrignalPassword] = useState('');
+  const [orignalPassword, setOrignalPassword] = useState("");
   const [passwordMatch, setPasswordMatch] = useState(false);
 
   const signup = (event: React.ChangeEvent<any>) => {
@@ -13,16 +13,16 @@ const SignupPage = () => {
     const email = event.target[0].value;
     const password = event.target[1].value;
 
-    fetch('/api/firebase/sign-up', {
-      method: 'POST',
+    fetch("/api/firebase/sign-up", {
+      method: "POST",
       headers: {
-        'Content-Type': 'application/json',
+        "Content-Type": "application/json",
       },
       body: JSON.stringify({ email, password }),
     }).then(async (res) => {
       // const data = await res.json();
 
-      push('/home');
+      push("/home");
     });
   }
 

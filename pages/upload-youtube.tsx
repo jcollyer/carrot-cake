@@ -1,19 +1,19 @@
-import { MenuProvider, Menu, MenuButton, MenuItem } from '@/app/components/primitives/Menu';
-import Button from '@/app/components/primitives/Button';
-import clsx from 'clsx';
+import { MenuProvider, Menu, MenuButton, MenuItem } from "@/app/components/primitives/Menu";
+import Button from "@/app/components/primitives/Button";
+import clsx from "clsx";
 import prisma from "@/lib/prisma";
-import { Reference } from '@prisma/client';
-const transparentImage = require('@/public/transparent.png');
+import { Reference } from "@prisma/client";
+const transparentImage = require("@/public/transparent.png");
 import { getServerSession } from "next-auth"
 import { authOptions } from "@/pages/api/auth/[...nextauth]"
-import { useCallback, useState } from 'react';
-import { BookMarked, BookmarkPlus, FilePlus, SquarePlus, Trash2 } from 'lucide-react';
-import { useDropzone } from 'react-dropzone';
-import { getCookie } from 'cookies-next'
-import { Categories, CategoriesType, getCategoryLabelfromId } from '@/app/utils/categories';
-import generateVideoThumb from '@/app/utils/generateVideoThumb';
-import moment from 'moment';
-import { SanitizedVideoProps } from '@/types/video'
+import { useCallback, useState } from "react";
+import { BookMarked, BookmarkPlus, FilePlus, SquarePlus, Trash2 } from "lucide-react";
+import { useDropzone } from "react-dropzone";
+import { getCookie } from "cookies-next"
+import { Categories, CategoriesType, getCategoryLabelfromId } from "@/app/utils/categories";
+import generateVideoThumb from "@/app/utils/generateVideoThumb";
+import moment from "moment";
+import { SanitizedVideoProps } from "@/types/video"
 
 export const getServerSideProps = async (context:any) => {
   const session = await getServerSession(context.req, context.res, authOptions);
@@ -43,7 +43,7 @@ export const getServerSideProps = async (context:any) => {
 };
 
 export default function UploadYouTubePage({ references }: { references: Reference[] }) {
-  const tokens = getCookie('tokens');
+  const tokens = getCookie("tokens");
   const [activeIndex, setActiveIndex] = useState<number>(0);
   const [allActive, setAllActive] = useState(false);
   const [videos, setVideos] = useState<SanitizedVideoProps[]>([]);
@@ -61,7 +61,7 @@ export default function UploadYouTubePage({ references }: { references: Referenc
             description: "",
             file,
             title: "",
-            scheduleDate: moment().format('YYYY-MM-DD'),
+            scheduleDate: moment().format("YYYY-MM-DD"),
             tags: undefined,
             thumbnail: thumbnail || transparentImage,
           },
@@ -77,7 +77,7 @@ export default function UploadYouTubePage({ references }: { references: Referenc
       if (allActive || i === index) {
         return {
           ...video,
-          [`${inputName}`]: inputName === 'thumbnail'
+          [`${inputName}`]: inputName === "thumbnail"
             ? URL.createObjectURL(event?.target?.files[0])
             : event.currentTarget.value,
         }
@@ -91,7 +91,7 @@ export default function UploadYouTubePage({ references }: { references: Referenc
   const tryToUpload = async (accessToken: string, urlparameters: string, video: SanitizedVideoProps) => {
     try {
       const location = await fetch(`https://www.googleapis.com/upload/youtube/v3/videos?${urlparameters}`, {
-        method: 'POST',
+        method: "POST",
         headers: {
           Authorization: `Bearer ${String(accessToken)}`,
         },
@@ -103,40 +103,40 @@ export default function UploadYouTubePage({ references }: { references: Referenc
             tags: video.tags
           },
           status: {
-            privacyStatus: 'private',
+            privacyStatus: "private",
             publishAt: new Date(video.scheduleDate ?? new Date()).toISOString(),
           },
         }),
       });
       // Url to upload video file from the location header
-      const videoUrl = await location.headers.get('Location');
+      const videoUrl = await location.headers.get("Location");
       try {
         const response = await fetch(`${videoUrl}`, {
-          method: 'PUT',
+          method: "PUT",
           headers: {
-            'Content-Type': 'video/mp4',
+            "Content-Type": "video/mp4",
           },
           body: video.file,
         });
-        console.log('Video uploaded:', response)
+        console.log("Video uploaded:", response)
         setVideos([]);
       } catch (error) {
-        console.error('Error uploading file:', error);
+        console.error("Error uploading file:", error);
       }
     } catch {
       // If the access token is expired, refresh it and try again
       try {
         const refreshToken = JSON.parse(tokens as string)?.refresh_token;
-        const refreshResponse = await fetch('/api/youtube/connect-yt', {
-          method: 'POST',
+        const refreshResponse = await fetch("/api/youtube/connect-yt", {
+          method: "POST",
           headers: {
-            'Content-Type': 'application/json',
+            "Content-Type": "application/json",
           },
           body: JSON.stringify({ refreshToken }),
         });
         
         if (!refreshResponse) {
-          console.error('No refresh response');
+          console.error("No refresh response");
           return;
         }
         const refreshData = await refreshResponse.json();
@@ -144,7 +144,7 @@ export default function UploadYouTubePage({ references }: { references: Referenc
         const {url, body, headers } = config;
         
         await fetch(url, {
-          method: 'POST',
+          method: "POST",
           headers,
           body,
         }).then(async (res) => {
@@ -153,7 +153,7 @@ export default function UploadYouTubePage({ references }: { references: Referenc
           await tryToUpload(access_token, urlparameters, video);
         });
       } catch (error) {
-        console.error('Error refreshing token:', error);
+        console.error("Error refreshing token:", error);
       }
     }
   }
@@ -161,10 +161,10 @@ export default function UploadYouTubePage({ references }: { references: Referenc
   const onSubmit = async (event: React.ChangeEvent<any>) => {
     event.preventDefault();
     const accessToken = !!tokens && JSON.parse(tokens as string).access_token;
-    const urlparameters = 'part=snippet%2Cstatus&uploadType=resumable';
+    const urlparameters = "part=snippet%2Cstatus&uploadType=resumable";
 
     if (!accessToken) {
-      console.error('No access token found');
+      console.error("No access token found");
       return;
     }
     if (!!videos.length) {
@@ -307,7 +307,7 @@ export default function UploadYouTubePage({ references }: { references: Referenc
                     </label>
                     <input
                       type="file"
-                      onChange={event => updateInput(event, 'thumbnail', index)}
+                      onChange={event => updateInput(event, "thumbnail", index)}
                       name="thumbnail"
                       accept="image/png, image/jpeg, application/octet-stream"
                       placeholder="thumbnail"
@@ -338,7 +338,7 @@ export default function UploadYouTubePage({ references }: { references: Referenc
                   <div className="flex gap-2 items-center">
                     <div className="font-semibold">Scheduled Date:</div>
                     <div>
-                      {moment(video.scheduleDate).format('MM/DD/YYYY')}
+                      {moment(video.scheduleDate).format("MM/DD/YYYY")}
                     </div>
                   </div>
                   <div className="flex items-center gap-2">
@@ -355,7 +355,7 @@ export default function UploadYouTubePage({ references }: { references: Referenc
                   <div className="flex gap-2 items-center">
                     <label htmlFor="title" className="font-semibold">Title:</label>
                     <input
-                      onChange={event => updateInput(event, 'title', index)}
+                      onChange={event => updateInput(event, "title", index)}
                       className="border border-gray-300 rounded w-full h-8 px-2 py-1 outline-0 bg-transparent"
                       name="title"
                       value={videos[activeIndex]?.title}
@@ -368,7 +368,7 @@ export default function UploadYouTubePage({ references }: { references: Referenc
                     <textarea
                       name="description"
                       className="border border-gray-300 outline-0 w-full h-12 px-2 py-1 rounded bg-transparent"
-                      onChange={event => updateInput(event, 'description', index)}
+                      onChange={event => updateInput(event, "description", index)}
                       value={videos[activeIndex]?.description}
                     />
                     {keyReferenceAddButton(activeIndex, "description", videos)}
@@ -377,7 +377,7 @@ export default function UploadYouTubePage({ references }: { references: Referenc
                   <div className="flex gap-2 items-center">
                     <label htmlFor="category" className="font-semibold">Category:</label>
                     <select
-                      onChange={event => updateInput(event, 'categoryId', index)}
+                      onChange={event => updateInput(event, "categoryId", index)}
                       className="outline-0 border-0 bg-transparent rounded"
                       name="category"
                       value={videos[activeIndex]?.categoryId}
@@ -393,7 +393,7 @@ export default function UploadYouTubePage({ references }: { references: Referenc
                     <label htmlFor="scheduleDate" className="font-semibold">Scheduled Date:</label>
                     <input
                       type="date"
-                      onChange={event => updateInput(event, 'scheduleDate', index)}
+                      onChange={event => updateInput(event, "scheduleDate", index)}
                       className="border-0 outline-0 bg-transparent"
                       name="scheduleDate"
                       value={videos[activeIndex]?.scheduleDate}
@@ -404,7 +404,7 @@ export default function UploadYouTubePage({ references }: { references: Referenc
                     <textarea
                       name="tags"
                       className="border border-gray-300 rounded w-full h-8 px-2 py-1 outline-0 bg-transparent "
-                      onChange={event => updateInput(event, 'tags', index)}
+                      onChange={event => updateInput(event, "tags", index)}
                       value={videos[activeIndex]?.tags}
                     />
                     {keyReferenceAddButton(activeIndex, "tags", videos)}
@@ -423,8 +423,7 @@ export default function UploadYouTubePage({ references }: { references: Referenc
               type="submit"
               onClick={onSubmit}
             >
-              {`Upload ${videos.length} Video${videos.length > 1 ? 's' : ''
-                } to YouTube`}
+              {`Upload ${videos.length} Video${videos.length > 1 ? "s" : ""} to YouTube`}
             </Button>
           </div>
         )}

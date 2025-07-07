@@ -1,8 +1,8 @@
-import Button from '@/app/components/primitives/Button';
-import Link from 'next/link';
-import Image from 'next/image'
-import { Music2, Youtube } from 'lucide-react';
-import { MenuProvider, Menu, MenuButton, MenuItem, MenuSeparator } from '@/app/components/primitives/Menu';
+import Button from "@/app/components/primitives/Button";
+import Link from "next/link";
+import Image from "next/image"
+import { Music2, Youtube } from "lucide-react";
+import { MenuProvider, Menu, MenuButton, MenuItem, MenuSeparator } from "@/app/components/primitives/Menu";
 import { useSession, signIn, signOut } from "next-auth/react"
 
 export default function Navbar() {

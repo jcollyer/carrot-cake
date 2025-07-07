@@ -1,8 +1,8 @@
-import { Dispatch, SetStateAction, useState } from 'react';
-import moment from 'moment';
+import { Dispatch, SetStateAction, useState } from "react";
+import moment from "moment";
 import { ChevronLeft, ChevronRight } from "lucide-react";
-import  Week from '@/app/components/Week';
-import type { SanitizedVideoProps } from '@/types/video';
+import  Week from "@/app/components/Week";
+import type { SanitizedVideoProps } from "@/types/video";
 
 type Props = {
   scheduledVideos: SanitizedVideoProps[];
@@ -12,17 +12,17 @@ type Props = {
 
 export function Calendar({ scheduledVideos, setEditVideo, canEdit }: Props) {
   const [month, setMonth] = useState(moment());
-  const [selected, setSelected] = useState(moment().startOf('day'));
+  const [selected, setSelected] = useState(moment().startOf("day"));
   const [duck, setDuck] = useState(0);
 
   const previous = () => {
     setDuck(duck - 1);
-    setMonth(month.subtract(1, 'month'));
+    setMonth(month.subtract(1, "month"));
   };
 
   const next = () => {
     setDuck(duck + 1);
-    setMonth(month.add(1, 'month'));
+    setMonth(month.add(1, "month"));
   };
 
   const select = (day: any) => {
@@ -35,9 +35,9 @@ export function Calendar({ scheduledVideos, setEditVideo, canEdit }: Props) {
     let done = false;
     const date = month
       .clone()
-      .startOf('month')
-      .add(1, 'w')
-      .day('Sunday');
+      .startOf("month")
+      .add(1, "w")
+      .day("Sunday");
     let count = 0;
     let monthIndex = date.month();
 
@@ -54,7 +54,7 @@ export function Calendar({ scheduledVideos, setEditVideo, canEdit }: Props) {
           canEdit={canEdit}
         />,
       );
-      date.add(1, 'w');
+      date.add(1, "w");
       done = count++ > 2 && monthIndex !== date.month();
       monthIndex = date.month();
     }
@@ -70,7 +70,7 @@ export function Calendar({ scheduledVideos, setEditVideo, canEdit }: Props) {
             className="text-gray-400"
             onClick={() => previous()}
           />
-          <span className="flex-[1]">{month.format('MMMM YYYY')}</span>
+          <span className="flex-[1]">{month.format("MMMM YYYY")}</span>
           <ChevronRight
             className="text-gray-400"
             onClick={() => next()}

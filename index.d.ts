@@ -1,4 +1,4 @@
-declare module 'youtube-api' {
+declare module "youtube-api" {
   export const youtube: any;
 }
   

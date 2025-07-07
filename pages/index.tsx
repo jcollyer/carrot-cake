@@ -1,8 +1,8 @@
-import Button from '@/app/components/primitives/Button';
-import { useEffect } from 'react';
-import { useRouter } from 'next/router';
-import Image from 'next/image';
-import { Rocket, Goal, Calendar, PencilRuler, Bell, ChartColumnBig } from 'lucide-react';
+import Button from "@/app/components/primitives/Button";
+import { useEffect } from "react";
+import { useRouter } from "next/router";
+import Image from "next/image";
+import { Rocket, Goal, Calendar, PencilRuler, Bell, ChartColumnBig } from "lucide-react";
 import { useSession, signIn } from "next-auth/react"
 
 type IconType = "Rocket" | "Goal" | "Calendar" | "PencilRuler" | "Bell" | "ChartColumnBig";
@@ -34,7 +34,7 @@ function LoggedOut() {
 
   useEffect(() => {
     if (session) {
-      push('/home');
+      push("/home");
     }
   }, [session]);
 

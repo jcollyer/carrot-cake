@@ -10,11 +10,11 @@ export default async function handler(
   const accessToken = getTokensCookie(cookie, "tiktok-tokens").access_token;
 
   try {
-    const response = await  fetch('https://open.tiktokapis.com/v2/video/list/?fields=id,title,video_description,duration,cover_image_url,embed_link,create_time', {
-      method: 'POST',
+    const response = await  fetch("https://open.tiktokapis.com/v2/video/list/?fields=id,title,video_description,duration,cover_image_url,embed_link,create_time", {
+      method: "POST",
       headers: {
         Authorization: `Bearer ${accessToken}`,
-        'Content-Type': 'application/json',
+        "Content-Type": "application/json",
       },
       body: JSON.stringify({
         max_count: 20

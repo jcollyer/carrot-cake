@@ -1,5 +1,5 @@
 import { Pencil } from "lucide-react";
-import type { SanitizedVideoProps } from '@/types/video';
+import type { SanitizedVideoProps } from "@/types/video";
 
 type Props = {
   day: {
