@@ -29,7 +29,7 @@ export const button = tv({
       icon: "h-9 w-9",
     },
     isDisabled: {
-      true: "opacity-75 pointer-events-none",
+      true: "opacity-50 pointer-events-none",
       false: "",
     },
     full: {

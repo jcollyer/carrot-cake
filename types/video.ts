@@ -47,13 +47,13 @@ export type SanitizedVideoProps = {
 export type TikTokVideoProps = {
   file: any;
   title: string;
-  privacyStatus: string;
+  privacyStatus?: string;
   commercialUseContent: boolean;
   commercialUseOrganic: boolean;
   interactionType: {
-    Comments: boolean;
-    Duet: boolean;
-    Stitch: boolean;
+    comment: boolean;
+    duet: boolean;
+    stitch: boolean;
   };
 };
 
@@ -66,3 +66,14 @@ export type TikTokUserInfo = {
   userName?: string;
   thumbnail?: string;
 }
+
+export type TikTokUserCreatorInfo = {
+  comment_disabled: boolean;
+  creator_avatar_url: string;
+  creator_nickname: string;
+  creator_username: string;
+  duet_disabled: boolean;
+  max_video_post_duration_sec: number;
+  privacy_level_options: string[];
+  stitch_disabled: boolean;
+};

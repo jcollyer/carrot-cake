@@ -1,27 +1,28 @@
-import { MenuProvider, Menu, MenuButton, MenuItem } from '@/app/components/primitives/Menu';
-import Button from '@/app/components/primitives/Button';
+import { MenuProvider, Menu, MenuButton, MenuItem } from "@/app/components/primitives/Menu";
+import Button from "@/app/components/primitives/Button";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/app/components/primitives/Select';
-import { Switch, SwitchThumb } from '@/app/components/primitives/Switch';
-import clsx from 'clsx';
+} from "@/app/components/primitives/Select";
+import { Switch, SwitchThumb } from "@/app/components/primitives/Switch";
+import clsx from "clsx";
 import prisma from "@/lib/prisma";
-import { Reference } from '@prisma/client';
-const transparentImage = require('@/public/transparent.png');
+import { Reference } from "@prisma/client";
+const transparentImage = require("@/public/transparent.png");
 import { getServerSession } from "next-auth"
 import { authOptions } from "@/pages/api/auth/[...nextauth]"
-import { useCallback, useEffect, useState } from 'react';
-import { BookMarked, BookmarkPlus, MessageCircle, SwitchCamera, Upload, Trash2, RotateCcw, MessagesSquare, CloudUpload } from 'lucide-react';
-import { useDropzone } from 'react-dropzone';
-import Image from 'next/image';
-import { getCookie } from 'cookies-next'
-import { TikTokUserInfo, TikTokVideoProps } from '@/types/video'
-import generateVideoThumb from '@/app/utils/generateVideoThumb';
-import { cn } from '@/app/utils/cn';
+import { useCallback, useEffect, useState } from "react";
+import { BookMarked, BookmarkPlus, MessageCircle, SwitchCamera, Upload, Trash2, RotateCcw, MessagesSquare, CloudUpload } from "lucide-react";
+import { useDropzone } from "react-dropzone";
+import Image from "next/image";
+import { getCookie } from "cookies-next"
+import { TikTokUserCreatorInfo, TikTokVideoProps } from "@/types/video"
+import generateVideoThumb from "@/app/utils/generateVideoThumb";
+import { cn } from "@/app/utils/cn";
+import secondsToMinutesAndSeconds from "@/app/utils/secondsToMinutes";
 
 export const getServerSideProps = async (context: any) => {
   const session = await getServerSession(context.req, context.res, authOptions);
@@ -52,22 +53,22 @@ export const getServerSideProps = async (context: any) => {
 
 const CHUNK_SIZE = 10000000; // 10MB
 
-const PRIVACY_STATUS_OPTIONS = [
-  { id: 'PUBLIC_TO_EVERYONE', label: 'Public to Everyone' },
-  { id: 'MUTUAL_FOLLOW_FRIENDS', label: 'Mutual Follow Friends' },
-  { id: 'FOLLOWER_OF_CREATOR', label: 'Follower of Creator' },
-  { id: 'SELF_ONLY', label: 'Unlisted' },
+const ALL_PRIVACY_STATUS_OPTIONS = [
+  { id: "PUBLIC_TO_EVERYONE", label: "Public to Everyone" },
+  { id: "MUTUAL_FOLLOW_FRIENDS", label: "Mutual Follow Friends" },
+  { id: "FOLLOWER_OF_CREATOR", label: "Followers of Creator" },
+  { id: "SELF_ONLY", label: "Unlisted" },
 ];
 
 type VideoAccessOption = {
-  name: 'Comments' | 'Duet' | 'Stitch';
+  name: "comment" | "duet" | "stitch";
   icon: React.ComponentType<{ strokeWidth?: number; size?: number; className?: string }>;
 };
 
 const VIDEO_ACCESS_OPTIONS: VideoAccessOption[] = [
-  { name: "Comments", icon: MessageCircle },
-  { name: "Duet", icon: MessagesSquare },
-  { name: "Stitch", icon: SwitchCamera }
+  { name: "comment", icon: MessageCircle },
+  { name: "duet", icon: MessagesSquare },
+  { name: "stitch", icon: SwitchCamera }
 ];
 
 type KeyReferenceMenuProps = {
@@ -184,11 +185,11 @@ const uploadChunks = async (file: File, uploadUrl: string) => {
     }
 
     const res = await fetch(uploadUrl, {
-      method: 'PUT',
+      method: "PUT",
       headers: {
-        'Content-Range': contentRange,
-        'Content-Length': chunk.size.toString(),
-        'Content-Type': 'video/mp4',
+        "Content-Range": contentRange,
+        "Content-Length": chunk.size.toString(),
+        "Content-Type": "video/mp4",
       },
       body: chunk,
     });
@@ -211,7 +212,7 @@ const uploadChunks = async (file: File, uploadUrl: string) => {
 };
 
 export default function UploadTikTokPage({ references }: { references: Reference[] }) {
-  const tikTokAccessToken = getCookie('tiktok-tokens');
+  const tikTokAccessToken = getCookie("tiktok-tokens");
 
   const [video, setVideo] = useState<TikTokVideoProps>();
   const [thumbnail, setThumbnail] = useState<string>(transparentImage);
@@ -219,8 +220,10 @@ export default function UploadTikTokPage({ references }: { references: Reference
   const [disclose, setDisclose] = useState<boolean>(false);
   const [yourBrand, setYourBrand] = useState<boolean>(false);
   const [brandedContent, setBrandedContent] = useState<boolean>(false);
-  const [tiktokUserInfo, setTiktokUserInfo] = useState<TikTokUserInfo>();
+  const [tiktokCreatorInfo, setTiktokCreatorInfo] = useState<TikTokUserCreatorInfo>();
 
+  const { minutes, remainingSeconds } = secondsToMinutesAndSeconds(tiktokCreatorInfo?.max_video_post_duration_sec || 0)
+  console.log("-=-----------", tiktokCreatorInfo);
   const onDrop = useCallback((acceptedFiles: any) => {
     if (acceptedFiles.length) {
       acceptedFiles.forEach(async (file: any) => {
@@ -229,14 +232,14 @@ export default function UploadTikTokPage({ references }: { references: Reference
         setThumbnail(thumb as string);
         setVideo({
           file,
-          title: file.name,
-          privacyStatus: '',
+          title: "",
+          privacyStatus: "",
           commercialUseContent: false,
           commercialUseOrganic: false,
           interactionType: {
-            Comments: false,
-            Duet: false,
-            Stitch: false,
+            comment: false,
+            duet: false,
+            stitch: false,
           },
         });
       });
@@ -245,45 +248,41 @@ export default function UploadTikTokPage({ references }: { references: Reference
 
   const { getRootProps, getInputProps } = useDropzone({ onDrop });
 
-  const getTikTokUserInfo = async () => {
-    fetch('/api/tiktok/get-user-info', {
-      method: 'GET',
+  const getTikTokCreatorInfo = async () => {
+    fetch("/api/tiktok/get-creator-info", {
+      method: "GET",
     })
       .then(response => response.json())
-      .then(data => {
-        const user = data.data.user;
-        setTiktokUserInfo({
-          thumbnail: user.avatar_url,
-          userName: user.display_name,
-        });
+      .then(({ data }) => {
+        setTiktokCreatorInfo({ ...data });
       })
       .catch(error => {
-        console.error('Fetch error:', error);
+        console.error("Fetch error:", error);
       });
   }
 
   const uploadTikTokVideo = async ({ draft }: { draft: boolean }) => {
     if (!video) return;
-    await fetch('/api/tiktok/direct-post-init', {
-      method: 'POST',
+    await fetch("/api/tiktok/direct-post-init", {
+      method: "POST",
       headers: {
-        'Content-Type': 'application/json',
+        "Content-Type": "application/json",
         cookie: `tokens=${JSON.parse(tikTokAccessToken as string || "{}").access_token}`,
       },
       body: JSON.stringify({
         draft,
         post_info: {
           title: video?.title,
-          privacy_level: video?.privacyStatus || 'SELF_ONLY',
-          disable_duet: !video?.interactionType.Duet,
-          disable_comment: !video?.interactionType.Comments,
-          disable_stitch: !video?.interactionType.Stitch,
+          privacy_level: video?.privacyStatus || "SELF_ONLY",
+          disable_duet: !video?.interactionType.duet,
+          disable_comment: !video?.interactionType.comment,
+          disable_stitch: !video?.interactionType.stitch,
           video_cover_timestamp_ms: 1000,
           brand_content_toggle: brandedContent,
           brand_organic_toggle: yourBrand,
         },
         source_info: {
-          source: 'FILE_UPLOAD',
+          source: "FILE_UPLOAD",
           video_size: video?.file?.size || 0,
           chunk_size: CHUNK_SIZE,
           total_chunk_count: Math.floor((video?.file?.size || 0) / CHUNK_SIZE)
@@ -300,14 +299,14 @@ export default function UploadTikTokPage({ references }: { references: Reference
         await uploadChunks(video.file, data.upload_url)
       })
       .catch((error) => {
-        console.error('Error uploading video:', error);
+        console.error("Error uploading video:", error);
       });
   };
 
   const onSubmit = async (event: React.ChangeEvent<any>) => {
     event.preventDefault();
     if (!tikTokAccessToken) {
-      console.error('No access token found');
+      console.error("No access token found");
       return;
     }
     if (!!video) {
@@ -316,7 +315,7 @@ export default function UploadTikTokPage({ references }: { references: Reference
   };
 
   useEffect(() => {
-    getTikTokUserInfo();
+    getTikTokCreatorInfo();
   }, []);
 
   return (
@@ -342,11 +341,14 @@ export default function UploadTikTokPage({ references }: { references: Reference
             </div>
           </div>
         ) : (
-          <div className="flex justify-between items-center mb-8">
-            <Image src="/tiktok.svg" alt="TikTok Logo" width="30" height="12" />
+          <div className="flex justify-between items-center mb-4">
+            <div className="flex gap-2">
+              <Image src="/tiktok.svg" alt="TikTok Logo" width="30" height="12" />
+              <p className="text-xs mt-auto">Upload video max: {minutes}m {remainingSeconds}s</p>
+            </div>
             <div className="flex gap-4">
-              {tiktokUserInfo?.thumbnail && <img src={tiktokUserInfo.thumbnail} alt="YouTube User Thumbnail" width="35" height="35" className="rounded-full" />}
-              <h2 className="text-2xl font-bold text-gray-800">{tiktokUserInfo?.userName}</h2>
+              {tiktokCreatorInfo?.creator_avatar_url && <img src={tiktokCreatorInfo.creator_avatar_url} alt="YouTube User Thumbnail" width="35" height="35" className="rounded-full" />}
+              <h2 className="text-2xl font-bold text-gray-800">{tiktokCreatorInfo?.creator_nickname}</h2>
             </div>
           </div>
         )}
@@ -354,7 +356,7 @@ export default function UploadTikTokPage({ references }: { references: Reference
         <div className="mt-2 mb-5">
           {!!video && (
             <div className="flex gap-6">
-              <div className="flex flex-col shrink-0 w-1/3 gap-1">
+              <div className="flex flex-col shrink-0 w-1/3 gap-4">
                 <img
                   src={thumbnail}
                   alt="thumbnail"
@@ -362,7 +364,7 @@ export default function UploadTikTokPage({ references }: { references: Reference
                 />
                 <div className="flex gap-2">
                   <div className="font-semibold text-xs truncate ml-2">{video.file.name}</div>
-                  <div className="font-semibold text-xs text-gray-500 ml-auto mr-2">{`${Math.round(video.file.size / 100000) / 10}MB`}</div>
+                  <div className="font-semibold text-xs ml-auto mr-2">{`${Math.round(video.file.size / 100000) / 10}MB`}</div>
                 </div>
               </div>
               <div className="flex flex-col">
@@ -397,7 +399,7 @@ export default function UploadTikTokPage({ references }: { references: Reference
                           <SelectValue placeholder="Select an option" />
                         </SelectTrigger>
                         <SelectContent>
-                          {PRIVACY_STATUS_OPTIONS.map((item) => (
+                          {ALL_PRIVACY_STATUS_OPTIONS.filter((item) => tiktokCreatorInfo?.privacy_level_options.includes(item.id)).map((item) => (
                             <SelectItem key={item.id} value={item.id}>
                               {item.label}
                             </SelectItem>
@@ -423,13 +425,26 @@ export default function UploadTikTokPage({ references }: { references: Reference
                             },
                           });
                         }}
+                          disabled={!!tiktokCreatorInfo?.[`${option.name}_disabled`]}
                           key={option.name}
                           className={cn("flex flex-col flex-1 items-center gap-2 mb-2 border border-gray-300 rounded p-2",
                             { "border-blue-700": video.interactionType[option.name] }
                           )}
                         >
-                          <option.icon strokeWidth={1.5} size={16} className={cn("text-gray-600", { "text-blue-700": video.interactionType[option.name] })} />
-                          <p className={cn("text-sm", { "text-blue-700": video.interactionType[option.name] })}>{option.name}</p>
+                          <option.icon strokeWidth={1.5} size={16} className={
+                            cn("text-gray-600", {
+                              "text-blue-700": video.interactionType[option.name],
+                              "opacity-50": !!tiktokCreatorInfo?.[`${option.name}_disabled`]
+                            })}
+                          />
+                          <p className={
+                            cn("text-sm capitalize", {
+                              "text-blue-700": video.interactionType[option.name],
+                              "text-gray-500": !!tiktokCreatorInfo?.[`${option.name}_disabled`]
+                            })}
+                          >
+                            {option.name}
+                          </p>
                         </button >
                       ))}
                     </div>
@@ -466,7 +481,7 @@ export default function UploadTikTokPage({ references }: { references: Reference
                     <p className="text-xs text-gray-500">Turn on to disclose that this video promotes goods or services in exchange for something of value. Your video could promote yourself, a third party, or both.</p>
 
                     {disclose && (
-                      <div className="flex flex-col gap-2 p-4">
+                      <div className="flex flex-col gap-2 pt-4 px-4">
                         <div className="mb-3">
                           <label className="flex items-start space-x-3">
                             <input
@@ -484,18 +499,18 @@ export default function UploadTikTokPage({ references }: { references: Reference
                           </label>
                         </div>
 
-                        <div className="mb-3">
+                        <div>
                           <label className="flex items-start space-x-3">
                             <input
                               type="checkbox"
-                              disabled={video?.privacyStatus === 'SELF_ONLY'}
+                              disabled={video?.privacyStatus === "SELF_ONLY"}
                               checked={brandedContent}
                               onChange={() => setBrandedContent(!brandedContent)}
                               className="mt-[4px]"
                             />
                             <div>
                               <p className={cn("text-sm font-medium", { "text-gray-500": video.privacyStatus === "SELF_ONLY" })} >Branded content</p>
-                              {video.privacyStatus === "SELF_ONLY" && (<p className="text-red-600 text-xs">Visibility for branded content can't be private.</p>)}
+                              {video.privacyStatus === "SELF_ONLY" && (<p className="text-red-600 text-xs">Visibility for branded content can"t be private.</p>)}
                               <p className={cn("text-sm text-gray-600", { "text-gray-500": video.privacyStatus === "SELF_ONLY" })}>
                                 You are promoting another brand or a third party. This video will be classified as Branded Content.
                               </p>
@@ -504,8 +519,8 @@ export default function UploadTikTokPage({ references }: { references: Reference
                         </div>
 
                         {(yourBrand || brandedContent) && (
-                          <p className="text-sm text-gray-600 mb-4">
-                            By posting, you agree to TikTok's{" "}
+                          <p className="text-sm text-gray-600">
+                            By posting, you agree to TikTok"s{" "}
 
                             {brandedContent && (
                               <>
@@ -520,9 +535,12 @@ export default function UploadTikTokPage({ references }: { references: Reference
                         )}
                       </div>
                     )}
+                    <div className="bg-amber-100 text-amber-900 text-sm p-3 mt-4 rounded">
+                      By posting, you agree to TikTok"s <a href="https://www.tiktok.com/legal/page/global/music-usage-confirmation/en" className="text-amber-600 underline">Music Usage Confirmation</a>.
+                    </div>
                   </div>
                 </div>
-                <div className="flex gap-2 mt-6">
+                <div className="flex gap-2 mt-5">
                   <Button
                     variant="secondary"
                     type="button"
@@ -535,6 +553,7 @@ export default function UploadTikTokPage({ references }: { references: Reference
                   <Button
                     variant="secondary"
                     type="submit"
+                    disabled={!video?.privacyStatus}
                     onClick={onSubmit}
                     className="flex flex-1 items-center gap-2"
                   >
