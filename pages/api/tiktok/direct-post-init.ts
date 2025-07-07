@@ -10,19 +10,22 @@ export default async function handler(
   }
 
   const { cookie } = req.headers;
+  const { draft } = req.body;
+  console.log("-----------------", req.body);
+
   const accessToken = getTokensCookie(cookie, "tiktok-tokens").access_token;
+  const url = draft
+    ? "https://open.tiktokapis.com/v2/post/publish/inbox/video/init/"
+    : "https://open.tiktokapis.com/v2/post/publish/video/init/";
   try {
-    const response = await fetch(
-      "https://open.tiktokapis.com/v2/post/publish/video/init/",
-      {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ ...req.body }),
-      }
-    );
+    const response = await fetch(url, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ ...req.body }),
+    });
 
     const data = await response.json();
     return res.status(200).json(data);

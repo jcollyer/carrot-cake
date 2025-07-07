@@ -263,17 +263,19 @@ export default function UploadTikTokPage({ references }: { references: Reference
       });
   }
 
-  const uploadTikTokVideo = async () => {
+  const uploadTikTokVideo = async ({draft}: {draft: boolean}) => {
     if (!video) return;
-    await fetch('/api/tiktok/get-upload-url', {
+    await fetch('/api/tiktok/direct-post-init', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
         cookie: `tokens=${JSON.parse(tikTokAccessToken as string || "{}").access_token}`,
       },
       body: JSON.stringify({
+        draft,
         post_info: {
-          title: video?.title || '',
+          title: video?.title,
+          description: video?.description,
           privacy_level: video?.privacyStatus || 'SELF_ONLY',
           disable_duet: !video?.interactionType.Duet,
           disable_comment: !video?.interactionType.Comments,
@@ -311,7 +313,7 @@ export default function UploadTikTokPage({ references }: { references: Reference
       return;
     }
     if (!!video) {
-      await uploadTikTokVideo();
+      await uploadTikTokVideo({ draft: true });
     }
   };
 
