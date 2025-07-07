@@ -11,7 +11,6 @@ export default async function handler(
 
   const { cookie } = req.headers;
   const { draft } = req.body;
-  console.log("-----------------", req.body);
 
   const accessToken = getTokensCookie(cookie, "tiktok-tokens").access_token;
   const url = draft
