@@ -435,7 +435,6 @@ export default function Home() {
                         </div>
                       </div>
                     </div>
-
                     <Calendar
                       scheduledVideos={sanitizeTikTokMetadata(tiktokVideos) || []}
                       setEditVideo={setEditVideo}
