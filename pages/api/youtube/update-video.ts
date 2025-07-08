@@ -1,7 +1,7 @@
 import { NextApiRequest, NextApiResponse } from "next";
 import { oauth } from "@/pages/api/youtube/connect-yt";
 import { getTokensCookie } from "@/app/utils/getTokensCookie";
-import { YouTubeVideo } from "@/types/video";
+import { YouTubeVideo } from "@/types";
 const Youtube = require("youtube-api");
 
 export default async function handler(

@@ -1,6 +1,6 @@
 import Day from "@/app/components/Day";
 import moment from "moment";
-import type { SanitizedVideoProps } from "@/types/video";
+import type { SanitizedVideoProps } from "@/types";
 
 type Props = {
   date: moment.Moment,

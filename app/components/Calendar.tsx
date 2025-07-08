@@ -2,7 +2,7 @@ import { Dispatch, SetStateAction, useState } from "react";
 import moment from "moment";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import  Week from "@/app/components/Week";
-import type { SanitizedVideoProps } from "@/types/video";
+import type { SanitizedVideoProps } from "@/types";
 
 type Props = {
   scheduledVideos: SanitizedVideoProps[];
@@ -63,7 +63,7 @@ export function Calendar({ scheduledVideos, setEditVideo, canEdit }: Props) {
   };
 
   return (
-    <section className="mt-4 bg-white w-full max-w-screen-xl border border-gray-200 text-center rounded-md">
+    <section className="bg-white w-full max-w-screen-xl border border-gray-200 text-center rounded-md">
       <header className="text-gray-500 font-lg font-bold uppercase select-none border-t border-gray-100">
         <div className="items-center py-2 bg-gray-200 flex w-full border-b border-gray-300">
           <ChevronLeft

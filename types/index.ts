@@ -63,8 +63,14 @@ export type YouTubeUserInfo = {
 };
 
 export type TikTokUserInfo = {
-  userName?: string;
-  thumbnail?: string;
+  display_name?: string;
+  avatar_url?: string;
+  bio_description?: string;
+  is_verified?: boolean;
+  follower_count?: number;
+  following_count?: number;
+  likes_count?: number;
+  video_count?: number;
 }
 
 export type TikTokUserCreatorInfo = {

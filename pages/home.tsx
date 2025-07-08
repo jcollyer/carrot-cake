@@ -1,10 +1,11 @@
 import Button from "@/app/components/primitives/Button";
+import { TooltipProvider, Tooltip, TooltipTrigger, TooltipContent } from "@/app/components/primitives/Tooltip";
 import { useEffect, useState } from "react";
 import Image from "next/image";
 import { getServerSession } from "next-auth"
 import { authOptions } from "@/pages/api/auth/[...nextauth]"
 import { getCookie, setCookie, deleteCookie } from "cookies-next"
-import { CircleX } from "lucide-react";
+import { CircleX, Film, UserRoundPlus, HeartPlus } from "lucide-react";
 import { Categories } from "@/app/utils/categories";
 import {
   Tabs,
@@ -14,7 +15,7 @@ import {
 } from "@/app/components/primitives/Tabs";
 import Calendar from "@/app/components/Calendar";
 import clsx from "clsx";
-import { SanitizedVideoProps, YouTubeVideo, YouTubeUserInfo, TikTokVideo, TikTokUserInfo } from "@/types/video"
+import { SanitizedVideoProps, YouTubeVideo, YouTubeUserInfo, TikTokVideo, TikTokUserInfo } from "@/types"
 import moment from "moment";
 
 export const getServerSideProps = async (context: any) => {
@@ -128,12 +129,9 @@ export default function Home() {
       method: "GET",
     })
       .then(response => response.json())
-      .then(data => {
-        const user = data.data.user;
-        setTiktokUserInfo({
-          thumbnail: user.avatar_url,
-          userName: user.display_name,
-        });
+      .then(({ data }) => {
+        const { user } = data;
+        setTiktokUserInfo({ ...user });
         setTabOpen("tiktok");
       })
       .catch(error => {
@@ -289,9 +287,9 @@ export default function Home() {
   useEffect(() => {
     if (playlistId)
       getYTChannelInfo();
-      getVideos();
+    getVideos();
   }, [playlistId]);
-
+  console.log("--------tiktokUserInfo-------", tiktokUserInfo)
   return (
     <main className="flex mt-8">
       <div className="w-full">
@@ -326,8 +324,18 @@ export default function Home() {
         {(!!videos || !!tiktokUserInfo) && (
           <Tabs defaultValue={tabOpen} className="mt-[3px] max-w-screen-lg mx-auto">
             <TabsList aria-label="social media opitons" className="px-5">
-              <TabsTrigger value="youtube">YouTube</TabsTrigger>
-              <TabsTrigger value="tiktok">TikTok</TabsTrigger>
+              <TabsTrigger value="youtube">
+                <div className="flex items-center gap-2">
+                  <Image src="/youtube_logo.png" alt="YouTube Logo" width="16" height="16" />
+                  <p className="font-semibold">YouTube</p>
+                </div>
+              </TabsTrigger>
+              <TabsTrigger value="tiktok">
+                <div className="flex items-center gap-2">
+                  <Image src="/tiktok.svg" alt="TikTok Logo" width="16" height="6" />
+                  <p className="font-semibold">TikTok</p>
+                </div>
+              </TabsTrigger>
             </TabsList>
 
             <TabsContent value="youtube">
@@ -372,12 +380,59 @@ export default function Home() {
             </TabsContent>
 
             <TabsContent value="tiktok">
-              <div className="flex flex-col items-center gap-8 mb-16 px-4">
+              <div className="flex flex-col gap-4 mb-16 px-4">
                 {!!tiktokUserInfo && (
                   <>
-                    <div className="flex gap-4">
-                      {tiktokUserInfo.thumbnail && <img src={tiktokUserInfo.thumbnail} alt="YouTube User Thumbnail" width="35" height="35" className="rounded-full" />}
-                      <h2 className="text-2xl font-bold text-gray-800">{tiktokUserInfo.userName}</h2>
+                    <div className="flex gap-2 items-center">
+                      {tiktokUserInfo.avatar_url && <img src={tiktokUserInfo.avatar_url} alt="YouTube User Thumbnail" width="35" height="35" className="rounded-full" />}
+                      <h2 className="text-2xl font-bold text-gray-800">{tiktokUserInfo.display_name}</h2>
+                      <div className="flex gap-4 ml-auto">
+                        <div className="flex gap-1 items-center border-l pl-4 border-gray-200">
+                          <TooltipProvider>
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <div className="flex gap-1 items-center">
+                                  <Film className="text-gray-600" size="16" strokeWidth={2.5} />
+                                  <p className="text-gray-600 font-semibold">{tiktokUserInfo.video_count}</p>
+                                </div>
+                              </TooltipTrigger>
+                              <TooltipContent>
+                                <p className="text-gray-600 font-semibold">Video Count</p>
+                              </TooltipContent>
+                            </Tooltip>
+                          </TooltipProvider>
+                        </div>
+                        <div className="flex gap-1 items-center border-l pl-4 border-gray-200">
+                          <TooltipProvider>
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <div className="flex gap-1 items-center">
+                                  <UserRoundPlus className="text-gray-600" size="16" strokeWidth={2.5} />
+                                  <p className="text-gray-600 font-semibold">{tiktokUserInfo.follower_count}</p>
+                                </div>
+                              </TooltipTrigger>
+                              <TooltipContent>
+                                <p className="text-gray-600 font-semibold">Follower Count</p>
+                              </TooltipContent>
+                            </Tooltip>
+                          </TooltipProvider>
+                        </div>
+                        <div className="flex gap-1 items-center border-l pl-4 border-gray-200">
+                          <TooltipProvider>
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <div className="flex gap-1 items-center">
+                                  <HeartPlus className="text-gray-600" size="16" strokeWidth={2.5} />
+                                  <p className="text-gray-600 font-semibold">{tiktokUserInfo.likes_count}</p>
+                                </div>
+                              </TooltipTrigger>
+                              <TooltipContent>
+                                <p className="text-gray-600 font-semibold">Likes Count</p>
+                              </TooltipContent>
+                            </Tooltip>
+                          </TooltipProvider>
+                        </div>
+                      </div>
                     </div>
 
                     <Calendar

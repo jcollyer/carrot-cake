@@ -13,7 +13,7 @@ import { getCookie } from "cookies-next"
 import { Categories, CategoriesType, getCategoryLabelfromId } from "@/app/utils/categories";
 import generateVideoThumb from "@/app/utils/generateVideoThumb";
 import moment from "moment";
-import { SanitizedVideoProps } from "@/types/video"
+import { SanitizedVideoProps } from "@/types"
 
 export const getServerSideProps = async (context:any) => {
   const session = await getServerSession(context.req, context.res, authOptions);

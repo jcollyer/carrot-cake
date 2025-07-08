@@ -11,7 +11,7 @@ export default async function handler(
 
   try {
     const response = await fetch(
-      "https://open.tiktokapis.com/v2/user/info/?fields=open_id,union_id,avatar_url,display_name",
+      "https://open.tiktokapis.com/v2/user/info/?fields=open_id,union_id,avatar_url,display_name,bio_description,is_verified,follower_count,following_count,likes_count,video_count",
       {
         method: "GET",
         headers: {
@@ -21,7 +21,7 @@ export default async function handler(
       }
     );
     if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
+      throw new Error(`HTTP error! status: ${response.status}, ${response.statusText}`);
     }
     const data = await response.json();
     // Handle the user info data
