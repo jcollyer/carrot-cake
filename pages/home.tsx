@@ -1,11 +1,12 @@
 import Button from "@/app/components/primitives/Button";
+import ButtonLink from "@/app/components/primitives/ButtonLink";
 import { TooltipProvider, Tooltip, TooltipTrigger, TooltipContent } from "@/app/components/primitives/Tooltip";
 import { useEffect, useState } from "react";
 import Image from "next/image";
 import { getServerSession } from "next-auth"
 import { authOptions } from "@/pages/api/auth/[...nextauth]"
 import { getCookie, setCookie, deleteCookie } from "cookies-next"
-import { CircleX, Film, UserRoundPlus, HeartPlus } from "lucide-react";
+import { CircleX, Film, UserRoundPlus, HeartPlus, Upload, CloudUpload } from "lucide-react";
 import { Categories } from "@/app/utils/categories";
 import {
   Tabs,
@@ -289,7 +290,7 @@ export default function Home() {
       getYTChannelInfo();
     getVideos();
   }, [playlistId]);
-  console.log("--------tiktokUserInfo-------", tiktokUserInfo)
+
   return (
     <main className="flex mt-8">
       <div className="w-full">
@@ -440,18 +441,27 @@ export default function Home() {
                       setEditVideo={setEditVideo}
                       canEdit={false}
                     />
-
-                    <Button
-                      className="w-fit ml-auto mt-4"
-                      variant="secondary"
-                      onClick={() => {
-                        deleteCookie("tiktok-tokens");
-                        setTiktokVideos([]);
-                        setTiktokUserInfo(undefined);
-                      }}
-                    >
-                      Disconnect from Tiktok
-                    </Button>
+                    <div className="flex gap-2">
+                      <ButtonLink
+                        variant="primary"
+                        className="w-fit mt-4"
+                        href="/upload-tiktok"
+                      >
+                        <CloudUpload className="mr-2" size="20" strokeWidth={2} />
+                        Upload Video to TikTok
+                      </ButtonLink>
+                      <Button
+                        className="w-fit ml-auto mt-4"
+                        variant="secondary"
+                        onClick={() => {
+                          deleteCookie("tiktok-tokens");
+                          setTiktokVideos([]);
+                          setTiktokUserInfo(undefined);
+                        }}
+                      >
+                        Disconnect from Tiktok
+                      </Button>
+                    </div>
                   </>
                 )}
                 {!tiktokUserInfo && (

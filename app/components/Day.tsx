@@ -20,7 +20,7 @@ export function Day({ day, select, selected, videoScheduled, editVideo, canEdit 
   if (!!videoScheduled) {
     return (
       <div
-        className="flex flex-col flex-1 text-left rounded-sm bg-cover bg-center max-w-[128px]"
+        className="flex flex-col flex-1 text-left rounded-sm bg-cover bg-center max-w-[128px] bg-gray-800"
         style={{
           backgroundImage: `url(${videoScheduled.thumbnail})`,
         }}
