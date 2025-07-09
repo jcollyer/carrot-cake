@@ -5,7 +5,7 @@ export interface YouTubeVideo {
     title: string;
     description: string;
     publishedAt?: string;
-    tags?: string[];
+    tags?: string;
     thumbnails: {
       default: {
         url: string;
@@ -39,7 +39,7 @@ export type SanitizedVideoProps = {
   file?: any;
   id?: string;
   scheduleDate?: string;
-  tags?: string[];
+  tags?: string;
   title: string;
   thumbnail: string;
 };

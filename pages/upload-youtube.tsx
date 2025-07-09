@@ -344,7 +344,7 @@ export default function UploadYouTubePage({ references }: { references: Referenc
                   <div className="flex items-center gap-2">
                     <div className="font-semibold">Tags:</div>
                     <div className="flex flex-row justify-center gap-1">
-                      {!!video.tags && video.tags.length > 0 && video?.tags.map(tag => (
+                      {!!video.tags && video.tags.split(",").length > 0 && video?.tags.split(",").map(tag => (
                         <div key={tag} className="bg-gray-600 text-white rounded-full px-2 py-1 text-xs">{tag}</div>
                       ))}
                     </div>

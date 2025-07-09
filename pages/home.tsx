@@ -86,7 +86,7 @@ export default function Home() {
     file: "",
     id: "",
     scheduleDate: "",
-    tags: [],
+    tags: "",
     title: "",
     thumbnail: "",
   });
@@ -237,7 +237,7 @@ export default function Home() {
                 title: editVideo.title,
                 description: editVideo.description,
                 categoryId: editVideo.categoryId,
-                tags: editVideo.tags,
+                tags: editVideo?.tags,
               },
               status: {
                 publishAt: editVideo.scheduleDate,
@@ -254,7 +254,7 @@ export default function Home() {
           file: "",
           id: "",
           scheduleDate: "",
-          tags: [],
+          tags: "",
           title: "",
           thumbnail: "",
         });
@@ -271,7 +271,7 @@ export default function Home() {
       file: "",
       id: "",
       scheduleDate: "",
-      tags: [],
+      tags: "",
       title: "",
       thumbnail: "",
     });
@@ -599,7 +599,7 @@ export default function Home() {
               <textarea
                 name="tags"
                 className="border border-gray-300 outline-0 bg-transparent grow h-16 p-2 rounded"
-                onChange={(event) => setEditVideo({ ...editVideo, tags: event.currentTarget.value.split(",") })}
+                onChange={(event) => setEditVideo({ ...editVideo, tags: event.currentTarget.value })}
                 value={editVideo.tags}
                 placeholder="Tags"
               />
