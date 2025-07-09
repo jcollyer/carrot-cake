@@ -60,6 +60,9 @@ export type TikTokVideoProps = {
 export type YouTubeUserInfo = {
   userName?: string;
   thumbnail?: string;
+  subscriberCount?: string;
+  videoCount?: string;
+  viewCount?: string;
 };
 
 export type TikTokUserInfo = {
