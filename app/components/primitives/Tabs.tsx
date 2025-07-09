@@ -31,7 +31,7 @@ export const TabsList = ({
     {...rest}
   >
     {children}
-    <div className="grow border-b border-gray-200"></div>
+    <div className="grow border-b-2 border-gray-200"></div>
   </RadixTabs.List>
 );
 
@@ -45,7 +45,7 @@ export const TabsTrigger: React.FC<TabsTriggerProps> = ({
   children,
 }) => (
   <RadixTabs.Trigger
-    className="border-b border-gray-200 px-4 py-2 font-normal text-gray-600 hover:text-gray-800 focus:outline-hidden data-[state=active]:rounded-t data-[state=active]:border data-[state=active]:border-gray-200 data-[state=active]:border-b-white data-[state=active]:font-medium data-[state=active]:text-gray-900"
+    className="border-b-2 border-gray-200 px-4 py-2 font-normal text-gray-600 hover:text-gray-800 focus:outline-hidden data-[state=active]:rounded-t data-[state=active]:border-2 data-[state=active]:border-gray-200 data-[state=active]:border-b-gray-50 data-[state=active]:font-medium data-[state=active]:text-gray-900"
     value={value}
   >
     {children}

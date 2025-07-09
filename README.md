@@ -50,3 +50,4 @@ feature list:
 - UI handle multiple videos scheduled on the same day
 - Aadd loading UI for video upload proccessing
 - Add delete video from calendar view
+- youtube upload toggle to go every "x" sequential

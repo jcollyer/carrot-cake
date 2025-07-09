@@ -40,7 +40,7 @@ export default function Navbar() {
                     onClick={() => {
                       // clear previous yt token and userPlaylistId cookies
                       document.cookie =
-                        "tokens=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+                        "youtube-tokens=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
                       document.cookie =
                         "userPlaylistId=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
                       signOut({ callbackUrl: "/" })

@@ -1,4 +1,5 @@
 import Button from "@/app/components/primitives/Button";
+import ButtonIcon from "@/app/components/primitives/ButtonIcon";
 import ButtonLink from "@/app/components/primitives/ButtonLink";
 import { TooltipProvider, Tooltip, TooltipTrigger, TooltipContent } from "@/app/components/primitives/Tooltip";
 import { useEffect, useState } from "react";
@@ -6,7 +7,7 @@ import Image from "next/image";
 import { getServerSession } from "next-auth"
 import { authOptions } from "@/pages/api/auth/[...nextauth]"
 import { getCookie, setCookie, deleteCookie } from "cookies-next"
-import { CircleX, Film, UserRoundPlus, HeartPlus, CloudUpload, Eye } from "lucide-react";
+import { CircleX, Film, UserRoundPlus, HeartPlus, CloudUpload, Eye, Unplug } from "lucide-react";
 import { Categories } from "@/app/utils/categories";
 import formatBigNumber from "@/app/utils/formatBigNumbers";
 import {
@@ -16,9 +17,11 @@ import {
   TabsTrigger,
 } from "@/app/components/primitives/Tabs";
 import Calendar from "@/app/components/Calendar";
+import { useRouter } from "next/router";
 import clsx from "clsx";
 import { SanitizedVideoProps, YouTubeVideo, YouTubeUserInfo, TikTokVideo, TikTokUserInfo } from "@/types"
 import moment from "moment";
+
 
 export const getServerSideProps = async (context: any) => {
   const session = await getServerSession(context.req, context.res, authOptions);
@@ -73,6 +76,7 @@ const sanitizeTikTokMetadata = (videos: TikTokVideo[] | undefined) => {
 }
 
 export default function Home() {
+  const router = useRouter();
   const [tokens, setTokens] = useState(getCookie("youtube-tokens"));
   const [tiktokTokens, setTiktokTokens] = useState(getCookie("tiktok-tokens"));
   const [playlistId, setPlaylistId] = useState(getCookie("userPlaylistId"));
@@ -345,17 +349,19 @@ export default function Home() {
             </TabsList>
 
             <TabsContent value="youtube">
-              <div className="flex flex-col items-center gap-4 mb-16 px-4">
+              <div className="flex flex-col items-center gap-6 mb-16 px-4">
                 {!!ytUserInfo && (
                   <>
-                    <div className="flex gap-2 items-center w-full">
-                      {ytUserInfo.thumbnail && <img src={ytUserInfo.thumbnail} alt="YouTube User Thumbnail" width="35" height="35" className="rounded-full" />}
-                      <h2 className="text-2xl font-bold text-gray-800">{ytUserInfo.userName}</h2>
-                      <div className="flex gap-4 ml-auto">
-                        <div className="flex gap-1 items-center border-l pl-4 border-gray-200">
+                    <div className="flex gap-6 items-center w-full">
+                      <div className="flex gap-2 shrink-0 items-center">
+                        <img src={ytUserInfo.thumbnail} alt="YouTube User Thumbnail" width="35" height="35" className="rounded-full" />
+                        <h2 className="text-2xl font-bold text-gray-800">{ytUserInfo.userName}</h2>
+                      </div>
+                      <div className="flex gap-4">
+                        <div className="flex gap-1 items-center">
                           <TooltipProvider>
                             <Tooltip>
-                              <TooltipTrigger asChild>
+                              <TooltipTrigger asChild className="cursor-pointer">
                                 <div className="flex gap-1 items-center">
                                   <Film className="text-gray-600" size="16" strokeWidth={2.5} />
                                   <p className="text-gray-600 font-semibold">{formatBigNumber(Number(ytUserInfo.videoCount) || 0)}</p>
@@ -367,10 +373,10 @@ export default function Home() {
                             </Tooltip>
                           </TooltipProvider>
                         </div>
-                        <div className="flex gap-1 items-center border-l pl-4 border-gray-200">
+                        <div className="flex gap-1 items-center border-l pl-4 border-gray-300">
                           <TooltipProvider>
                             <Tooltip>
-                              <TooltipTrigger asChild>
+                              <TooltipTrigger asChild className="cursor-pointer">
                                 <div className="flex gap-1 items-center">
                                   <UserRoundPlus className="text-gray-600" size="16" strokeWidth={2.5} />
                                   <p className="text-gray-600 font-semibold">{formatBigNumber(Number(ytUserInfo.subscriberCount) || 0)}</p>
@@ -382,10 +388,10 @@ export default function Home() {
                             </Tooltip>
                           </TooltipProvider>
                         </div>
-                        <div className="flex gap-1 items-center border-l pl-4 border-gray-200">
+                        <div className="flex gap-1 items-center border-l pl-4 border-gray-300">
                           <TooltipProvider>
                             <Tooltip>
-                              <TooltipTrigger asChild>
+                              <TooltipTrigger asChild className="cursor-pointer">
                                 <div className="flex gap-1 items-center">
                                   <Eye className="text-gray-600" size="16" strokeWidth={2.5} />
                                   <p className="text-gray-600 font-semibold">{formatBigNumber(Number(ytUserInfo.viewCount) || 0)}</p>
@@ -398,33 +404,41 @@ export default function Home() {
                           </TooltipProvider>
                         </div>
                       </div>
-                    </div>
 
-                    <Calendar
-                      scheduledVideos={sanitizeYTMetadata(videos) || []}
-                      setEditVideo={setEditVideo}
-                      canEdit
-                    />
-                    <div className="flex gap-2 w-full">
-                      <ButtonLink
-                        variant="primary"
-                        className="w-fit mt-4"
-                        href="/upload-youtube"
-                      >
-                        <CloudUpload className="mr-2" size="20" strokeWidth={2} />
-                        Upload Video to YouTube
-                      </ButtonLink>
-                      <Button
-                        variant="secondary"
-                        className="w-fit ml-auto mt-4"
-                        onClick={() => {
-                          deleteCookie("userPlaylistId");
-                          deleteCookie("youtube-tokens");
-                          setVideos([]);
-                        }}
-                      >
-                        Disconnect from Youtube
-                      </Button>
+                      <div className="flex gap-2 ml-auto">
+                        <ButtonIcon
+                          icon={Unplug}
+                          onClick={() => {
+                            deleteCookie("userPlaylistId");
+                            deleteCookie("youtube-tokens");
+                            setVideos([]);
+                          }}
+                          size={24}
+                          strokeWidth={2}
+                          label="Disconnect YouTube"
+                          tooltip
+                        >
+                          YouTube from Disconnect
+                        </ButtonIcon>
+                        <ButtonIcon
+                          icon={CloudUpload}
+                          label="Upload to YouTube"
+                          className="flex gap-2"
+                          variant="cta"
+                          size={24}
+                          strokeWidth={2}
+                          tooltip
+                          onClick={() => router.push("/upload-youtube")}
+                        />
+                      </div>
+                    </div>
+                    <div className="flex flex-col gap-[2px] w-full">
+                      <h2 className="text-sm text-gray-400 uppercase font-semibold mr-auto">Uploaded Videos</h2>
+                      <Calendar
+                        scheduledVideos={sanitizeYTMetadata(videos) || []}
+                        setEditVideo={setEditVideo}
+                        canEdit
+                      />
                     </div>
                   </>
                 )}
@@ -453,7 +467,7 @@ export default function Home() {
                         <div className="flex gap-1 items-center border-l pl-4 border-gray-200">
                           <TooltipProvider>
                             <Tooltip>
-                              <TooltipTrigger asChild>
+                              <TooltipTrigger asChild className="cursor-pointer">
                                 <div className="flex gap-1 items-center">
                                   <Film className="text-gray-600" size="16" strokeWidth={2.5} />
                                   <p className="text-gray-600 font-semibold">{formatBigNumber(Number(tiktokUserInfo.video_count) || 0)}</p>
@@ -468,7 +482,7 @@ export default function Home() {
                         <div className="flex gap-1 items-center border-l pl-4 border-gray-200">
                           <TooltipProvider>
                             <Tooltip>
-                              <TooltipTrigger asChild>
+                              <TooltipTrigger asChild className="cursor-pointer">
                                 <div className="flex gap-1 items-center">
                                   <UserRoundPlus className="text-gray-600" size="16" strokeWidth={2.5} />
                                   <p className="text-gray-600 font-semibold">{formatBigNumber(Number(tiktokUserInfo.follower_count) || 0)}</p>
@@ -483,7 +497,7 @@ export default function Home() {
                         <div className="flex gap-1 items-center border-l pl-4 border-gray-200">
                           <TooltipProvider>
                             <Tooltip>
-                              <TooltipTrigger asChild>
+                              <TooltipTrigger asChild className="cursor-pointer">
                                 <div className="flex gap-1 items-center">
                                   <HeartPlus className="text-gray-600" size="16" strokeWidth={2.5} />
                                   <p className="text-gray-600 font-semibold">{formatBigNumber(Number(tiktokUserInfo.likes_count) || 0)}</p>
@@ -547,7 +561,7 @@ export default function Home() {
             <h3 className="text-gray-700 text-xl font-bold">Edit Video</h3>
             <CircleX className="ml-auto text-gray-500 hover:text-gray-900 cursor-pointer" size="34" strokeWidth={1} onClick={() => closeEditVideo()} />
           </div>
-          <div className="flex flex-col gap-6">
+          <div className="flex flex-col gap-8">
             <img src={editVideo.thumbnail} alt="Thumbnail" width="340" height="210" />
             <div className="flex gap-2 items-center">
               <p className="font-semibold">Title:</p>

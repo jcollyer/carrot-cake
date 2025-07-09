@@ -43,7 +43,7 @@ export const getServerSideProps = async (context:any) => {
 };
 
 export default function UploadYouTubePage({ references }: { references: Reference[] }) {
-  const tokens = getCookie("tokens");
+  const tokens = getCookie("youtube-tokens");
   const [activeIndex, setActiveIndex] = useState<number>(0);
   const [allActive, setAllActive] = useState(false);
   const [videos, setVideos] = useState<SanitizedVideoProps[]>([]);

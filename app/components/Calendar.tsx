@@ -1,7 +1,8 @@
-import { Dispatch, SetStateAction, useState } from "react";
-import moment from "moment";
+import Week from "@/app/components/Week";
+import ButtonIcon from "@/app/components/primitives/ButtonIcon";
 import { ChevronLeft, ChevronRight } from "lucide-react";
-import  Week from "@/app/components/Week";
+import moment from "moment";
+import { Dispatch, SetStateAction, useState } from "react";
 import type { SanitizedVideoProps } from "@/types";
 
 type Props = {
@@ -64,26 +65,34 @@ export function Calendar({ scheduledVideos, setEditVideo, canEdit }: Props) {
 
   return (
     <section className="bg-white w-full max-w-screen-xl border border-gray-200 text-center rounded-md">
-      <header className="text-gray-500 font-lg font-bold uppercase select-none border-t border-gray-100">
-        <div className="items-center py-2 bg-gray-200 flex w-full border-b border-gray-300">
-          <ChevronLeft
-            className="text-gray-400"
+      <header className="font-lg font-bold uppercase select-none border-t border-gray-100">
+        <div className="items-center p-2 bg-gray-200 flex w-full border-b border-gray-300">
+          <ButtonIcon
+            icon={ChevronLeft}
+            label="Previous Month"
+            size={22}
+            strokeWidth={2}
             onClick={() => previous()}
+            tooltip
           />
-          <span className="flex-[1]">{month.format("MMMM YYYY")}</span>
-          <ChevronRight
-            className="text-gray-400"
+          <p className="text-xs text-gray-500 w-full">{month.format("MMMM YYYY")}</p>
+          <ButtonIcon
+            icon={ChevronRight}
+            label="Next Month"
+            size={22}
+            strokeWidth={2}
             onClick={() => next()}
+            tooltip
           />
         </div>
-        <div className="flex w-full text-gray-600 py-3">
-          <span className="flex-1 border-r border-gray-200">Sun</span>
-          <span className="flex-1 border-r border-gray-200">Mon</span>
-          <span className="flex-1 border-r border-gray-200">Tue</span>
-          <span className="flex-1 border-r border-gray-200">Wed</span>
-          <span className="flex-1 border-r border-gray-200">Thu</span>
-          <span className="flex-1 border-r border-gray-200">Fri</span>
-          <span className="flex-1">Sat</span>
+        <div className="flex w-full py-3">
+          <span className="flex-1 border-r border-gray-200 text-gray-600 text-xs">Sun</span>
+          <span className="flex-1 border-r border-gray-200 text-gray-600 text-xs">Mon</span>
+          <span className="flex-1 border-r border-gray-200 text-gray-600 text-xs">Tue</span>
+          <span className="flex-1 border-r border-gray-200 text-gray-600 text-xs">Wed</span>
+          <span className="flex-1 border-r border-gray-200 text-gray-600 text-xs">Thu</span>
+          <span className="flex-1 border-r border-gray-200 text-gray-600 text-xs">Fri</span>
+          <span className="flex-1 text-gray-600 text-xs">Sat</span>
         </div>
       </header>
       {renderWeeks()}
