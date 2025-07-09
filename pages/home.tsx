@@ -2,6 +2,7 @@ import Button from "@/app/components/primitives/Button";
 import ButtonIcon from "@/app/components/primitives/ButtonIcon";
 import ButtonLink from "@/app/components/primitives/ButtonLink";
 import { TooltipProvider, Tooltip, TooltipTrigger, TooltipContent } from "@/app/components/primitives/Tooltip";
+import SocialDisplay from "@/app/components/SocialDisplay";
 import { useEffect, useState } from "react";
 import Image from "next/image";
 import { getServerSession } from "next-auth"
@@ -350,99 +351,32 @@ export default function Home() {
 
             <TabsContent value="youtube">
               <div className="flex flex-col items-center gap-6 mb-16 px-4">
-                {!!ytUserInfo && (
+                {!!ytUserInfo ? (
                   <>
-                    <div className="flex gap-6 items-center w-full">
-                      <div className="flex gap-2 shrink-0 items-center">
-                        <img src={ytUserInfo.thumbnail} alt="YouTube User Thumbnail" width="35" height="35" className="rounded-full" />
-                        <h2 className="text-2xl font-bold text-gray-800">{ytUserInfo.userName}</h2>
-                      </div>
-                      <div className="flex gap-4">
-                        <div className="flex gap-1 items-center">
-                          <TooltipProvider>
-                            <Tooltip>
-                              <TooltipTrigger asChild className="cursor-pointer">
-                                <div className="flex gap-1 items-center">
-                                  <Film className="text-gray-600" size="16" strokeWidth={2.5} />
-                                  <p className="text-gray-600 font-semibold">{formatBigNumber(Number(ytUserInfo.videoCount) || 0)}</p>
-                                </div>
-                              </TooltipTrigger>
-                              <TooltipContent>
-                                <p className="text-gray-600 font-semibold">Video Count</p>
-                              </TooltipContent>
-                            </Tooltip>
-                          </TooltipProvider>
-                        </div>
-                        <div className="flex gap-1 items-center border-l pl-4 border-gray-300">
-                          <TooltipProvider>
-                            <Tooltip>
-                              <TooltipTrigger asChild className="cursor-pointer">
-                                <div className="flex gap-1 items-center">
-                                  <UserRoundPlus className="text-gray-600" size="16" strokeWidth={2.5} />
-                                  <p className="text-gray-600 font-semibold">{formatBigNumber(Number(ytUserInfo.subscriberCount) || 0)}</p>
-                                </div>
-                              </TooltipTrigger>
-                              <TooltipContent>
-                                <p className="text-gray-600 font-semibold">Follower Count</p>
-                              </TooltipContent>
-                            </Tooltip>
-                          </TooltipProvider>
-                        </div>
-                        <div className="flex gap-1 items-center border-l pl-4 border-gray-300">
-                          <TooltipProvider>
-                            <Tooltip>
-                              <TooltipTrigger asChild className="cursor-pointer">
-                                <div className="flex gap-1 items-center">
-                                  <Eye className="text-gray-600" size="16" strokeWidth={2.5} />
-                                  <p className="text-gray-600 font-semibold">{formatBigNumber(Number(ytUserInfo.viewCount) || 0)}</p>
-                                </div>
-                              </TooltipTrigger>
-                              <TooltipContent>
-                                <p className="text-gray-600 font-semibold">Views Count</p>
-                              </TooltipContent>
-                            </Tooltip>
-                          </TooltipProvider>
-                        </div>
-                      </div>
-
-                      <div className="flex gap-2 ml-auto">
-                        <ButtonIcon
-                          icon={Unplug}
-                          onClick={() => {
-                            deleteCookie("userPlaylistId");
-                            deleteCookie("youtube-tokens");
-                            setVideos([]);
-                          }}
-                          size={24}
-                          strokeWidth={2}
-                          label="Disconnect YouTube"
-                          tooltip
-                        >
-                          YouTube from Disconnect
-                        </ButtonIcon>
-                        <ButtonIcon
-                          icon={CloudUpload}
-                          label="Upload to YouTube"
-                          className="flex gap-2"
-                          variant="cta"
-                          size={24}
-                          strokeWidth={2}
-                          tooltip
-                          onClick={() => router.push("/upload-youtube")}
-                        />
-                      </div>
-                    </div>
-                    <div className="flex flex-col gap-[2px] w-full">
-                      <h2 className="text-sm text-gray-400 uppercase font-semibold mr-auto">Uploaded Videos</h2>
-                      <Calendar
-                        scheduledVideos={sanitizeYTMetadata(videos) || []}
-                        setEditVideo={setEditVideo}
-                        canEdit
-                      />
-                    </div>
+                    <SocialDisplay
+                      userName={ytUserInfo.userName}
+                      thumbnail={ytUserInfo.thumbnail}
+                      videoCount={ytUserInfo.videoCount}
+                      subscriberCount={ytUserInfo.subscriberCount}
+                      viewCount={ytUserInfo.viewCount}
+                      type="youtube"
+                      onLogout={() => {
+                        deleteCookie("userPlaylistId");
+                        deleteCookie("youtube-tokens");
+                        setVideos([]);
+                        setYtUserInfo(undefined);
+                        setPlaylistId("");
+                        router.push("/");
+                      }}
+                    />
+                    <Calendar
+                      scheduledVideos={sanitizeYTMetadata(videos) || []}
+                      setEditVideo={setEditVideo}
+                      title="Uploaded Videos"
+                      canEdit
+                    />
                   </>
-                )}
-                {!ytUserInfo && (
+                ) : (
                   <Button
                     variant="white"
                     size="xlarge"
@@ -460,83 +394,24 @@ export default function Home() {
               <div className="flex flex-col gap-4 mb-16 px-4">
                 {!!tiktokUserInfo && (
                   <>
-                    <div className="flex gap-2 items-center">
-                      {tiktokUserInfo.avatar_url && <img src={tiktokUserInfo.avatar_url} alt="YouTube User Thumbnail" width="35" height="35" className="rounded-full" />}
-                      <h2 className="text-2xl font-bold text-gray-800">{tiktokUserInfo.display_name}</h2>
-                      <div className="flex gap-4 ml-auto">
-                        <div className="flex gap-1 items-center border-l pl-4 border-gray-200">
-                          <TooltipProvider>
-                            <Tooltip>
-                              <TooltipTrigger asChild className="cursor-pointer">
-                                <div className="flex gap-1 items-center">
-                                  <Film className="text-gray-600" size="16" strokeWidth={2.5} />
-                                  <p className="text-gray-600 font-semibold">{formatBigNumber(Number(tiktokUserInfo.video_count) || 0)}</p>
-                                </div>
-                              </TooltipTrigger>
-                              <TooltipContent>
-                                <p className="text-gray-600 font-semibold">Video Count</p>
-                              </TooltipContent>
-                            </Tooltip>
-                          </TooltipProvider>
-                        </div>
-                        <div className="flex gap-1 items-center border-l pl-4 border-gray-200">
-                          <TooltipProvider>
-                            <Tooltip>
-                              <TooltipTrigger asChild className="cursor-pointer">
-                                <div className="flex gap-1 items-center">
-                                  <UserRoundPlus className="text-gray-600" size="16" strokeWidth={2.5} />
-                                  <p className="text-gray-600 font-semibold">{formatBigNumber(Number(tiktokUserInfo.follower_count) || 0)}</p>
-                                </div>
-                              </TooltipTrigger>
-                              <TooltipContent>
-                                <p className="text-gray-600 font-semibold">Follower Count</p>
-                              </TooltipContent>
-                            </Tooltip>
-                          </TooltipProvider>
-                        </div>
-                        <div className="flex gap-1 items-center border-l pl-4 border-gray-200">
-                          <TooltipProvider>
-                            <Tooltip>
-                              <TooltipTrigger asChild className="cursor-pointer">
-                                <div className="flex gap-1 items-center">
-                                  <HeartPlus className="text-gray-600" size="16" strokeWidth={2.5} />
-                                  <p className="text-gray-600 font-semibold">{formatBigNumber(Number(tiktokUserInfo.likes_count) || 0)}</p>
-                                </div>
-                              </TooltipTrigger>
-                              <TooltipContent>
-                                <p className="text-gray-600 font-semibold">Likes Count</p>
-                              </TooltipContent>
-                            </Tooltip>
-                          </TooltipProvider>
-                        </div>
-                      </div>
-                    </div>
+                    <SocialDisplay
+                      userName={tiktokUserInfo.display_name}
+                      thumbnail={tiktokUserInfo.avatar_url}
+                      videoCount={tiktokUserInfo.video_count}
+                      likesCount={tiktokUserInfo.likes_count}
+                      onLogout={() => {
+                        deleteCookie("tiktok-tokens");
+                        setTiktokVideos([]);
+                        setTiktokUserInfo(undefined);
+                      }}
+                      type="tiktok"
+                    />
                     <Calendar
                       scheduledVideos={sanitizeTikTokMetadata(tiktokVideos) || []}
                       setEditVideo={setEditVideo}
+                      title="Uploaded Videos"
                       canEdit={false}
                     />
-                    <div className="flex gap-2">
-                      <ButtonLink
-                        variant="primary"
-                        className="w-fit mt-4"
-                        href="/upload-tiktok"
-                      >
-                        <CloudUpload className="mr-2" size="20" strokeWidth={2} />
-                        Upload Video to TikTok
-                      </ButtonLink>
-                      <Button
-                        className="w-fit ml-auto mt-4"
-                        variant="secondary"
-                        onClick={() => {
-                          deleteCookie("tiktok-tokens");
-                          setTiktokVideos([]);
-                          setTiktokUserInfo(undefined);
-                        }}
-                      >
-                        Disconnect from Tiktok
-                      </Button>
-                    </div>
                   </>
                 )}
                 {!tiktokUserInfo && (
