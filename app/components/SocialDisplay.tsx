@@ -112,7 +112,7 @@ const SocialDisplay = ({ userName, thumbnail, videoCount, subscriberCount, viewC
           size={24}
           strokeWidth={2}
           tooltip
-          onClick={() => router.push("/upload-youtube")}
+          onClick={() => router.push(`/upload-${type === "youtube" ? "youtube" : "tiktok"}`)}
         />
       </div>
     </div>

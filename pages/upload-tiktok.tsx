@@ -347,13 +347,13 @@ export default function UploadTikTokPage({ references }: { references: Reference
           </div>
           <div className="flex gap-4">
             {tiktokCreatorInfo?.creator_avatar_url && <img src={tiktokCreatorInfo.creator_avatar_url} alt="YouTube User Thumbnail" width="35" height="35" className="rounded-full" />}
-            <h2 className="text-2xl font-bold text-gray-800">{tiktokCreatorInfo?.creator_nickname}</h2>
+            <h2 className="text-2xl font-bold text-gray-700">{tiktokCreatorInfo?.creator_nickname}</h2>
           </div>
         </div>
 
         <div className="mt-2 mb-5">
           <div className="flex gap-6">
-            <div className="flex flex-col shrink-0 w-1/3 gap-4">
+            <div className="flex flex-col shrink-0 w-1/4 gap-2">
               {!video ? (
                 <div
                   className="flex flex-col items-center h-full border border-dashed text-center justify-center p-3 rounded-lg bg-gray-50 hover:bg-gray-100 transition-colors border-gray-400"
@@ -375,7 +375,7 @@ export default function UploadTikTokPage({ references }: { references: Reference
                 <img
                   src={thumbnail}
                   alt="thumbnail"
-                  className="rounded-xl"
+                  className="rounded-xl object-cover"
                 />
               )}
               {!!video && (
@@ -579,38 +579,36 @@ export default function UploadTikTokPage({ references }: { references: Reference
                     </div>
                   </>
                 )}
-
-                <div className="bg-amber-100 text-amber-900 text-sm p-3 mt-4 rounded">
-                  By posting, you agree to TikTok"s <a href="https://www.tiktok.com/legal/page/global/music-usage-confirmation/en" className="text-amber-600 underline">Music Usage Confirmation</a>.
-                </div>
-
-              </div>
-              <div className="flex gap-2 mt-5">
-                <Button
-                  variant="secondary"
-                  type="button"
-                  onClick={() => {
-                    setVideo(undefined)
-                    setDisclose(false);
-                    setYourBrand(false);
-                  }}
-                  className="flex flex-1 gap-2"
-                >
-                  <RotateCcw strokeWidth={1.5} />
-                  <>Reset Video</>
-                </Button>
-                <Button
-                  variant="secondary"
-                  type="submit"
-                  disabled={!video?.privacyStatus && directPostToggle}
-                  onClick={onSubmit}
-                  className="flex flex-1 items-center gap-2"
-                >
-                  <CloudUpload />
-                  Upload Video to TikTok
-                </Button>
               </div>
             </div>
+          </div>
+          <div className="flex gap-2 mt-5">
+            <Button
+              variant="secondary"
+              type="button"
+              onClick={() => {
+                setVideo(undefined)
+                setDisclose(false);
+                setYourBrand(false);
+              }}
+              className="flex flex-1 gap-2"
+            >
+              <RotateCcw strokeWidth={2} />
+              <>Reset Video</>
+            </Button>
+            <Button
+              variant="secondary"
+              type="submit"
+              disabled={!video?.privacyStatus && directPostToggle}
+              onClick={onSubmit}
+              className="flex flex-1 items-center gap-2"
+            >
+              <CloudUpload />
+              Upload Video to TikTok
+            </Button>
+          </div>
+          <div className="bg-amber-100 text-amber-900 text-sm p-3 mt-4 rounded">
+            By posting, you agree to TikTok"s <a href="https://www.tiktok.com/legal/page/global/music-usage-confirmation/en" className="text-amber-600 underline">Music Usage Confirmation</a>.
           </div>
         </div>
       </form>
