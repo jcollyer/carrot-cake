@@ -245,6 +245,7 @@ export default function UploadTikTokPage({ references }: { references: Reference
   const [brandedContent, setBrandedContent] = useState<boolean>(false);
   const [tiktokCreatorInfo, setTiktokCreatorInfo] = useState<TikTokUserCreatorInfo>();
   const [uploadProgress, setUploadProgress] = useState<number>(0);
+  const [editAll, setEditAll] = useState<boolean>(false);
 
   const { minutes, remainingSeconds } = secondsToMinutesAndSeconds(tiktokCreatorInfo?.max_video_post_duration_sec || 0)
 
@@ -348,28 +349,39 @@ export default function UploadTikTokPage({ references }: { references: Reference
     <div className="flex flex-col items-center max-w-4xl mx-auto mt-6 p-6">
       <form action="uploadVideo" method="post" encType="multipart/form-data" className="mt-12 w-full">
         <div className="flex justify-between items-center mb-4">
-          <div className="flex gap-2">
-            <Image src="/tiktok.svg" alt="TikTok Logo" width="30" height="12" />
-            <p className="text-xs mt-auto">Upload video max: {minutes}m {remainingSeconds}s</p>
+          <div className="flex flex-col gap-2">
+            <div className="flex gap-2">
+              <Image src="/tiktok.svg" alt="TikTok Logo" width="30" height="12" />
+              <p className="text-xs mt-auto">Upload video max: {minutes}m {remainingSeconds}s</p>
+            </div>
+            <div className="flex gap-2">
+              <img src={tiktokCreatorInfo?.creator_avatar_url} alt="YouTube User Thumbnail" width="35" height="35" className="rounded-full" />
+              <h2 className="text-2xl font-bold text-gray-700">{tiktokCreatorInfo?.creator_nickname}</h2>
+            </div>
           </div>
-          <div className="flex gap-4">
-            {tiktokCreatorInfo?.creator_avatar_url && <img src={tiktokCreatorInfo.creator_avatar_url} alt="YouTube User Thumbnail" width="35" height="35" className="rounded-full" />}
-            <h2 className="text-2xl font-bold text-gray-700">{tiktokCreatorInfo?.creator_nickname}</h2>
-          </div>
+          {videos && videos.length > 1 && (
+            <div className="flex gap-2 mb-4 items-center ml-auto mt-auto">
+              <p className="text-sm font-medium">Set All Videos</p>
+              <Switch
+                checked={editAll}
+                onClick={() => setEditAll(!editAll)}
+                className="cursor-pointer"
+              />
+            </div>
+          )}
         </div>
-
         <div className="mt-2 mb-5">
           {videos && videos.length > 0 && videos.map((video, index) => (
             <div className="flex gap-6 mb-6" key={video.file.name}>
-              <div className="flex flex-col shrink-0 w-1/4">
+              <div className="flex flex-col shrink-0 w-1/4 relative">
                 <img
                   src={thumbnails[index] || transparentImage}
                   alt="thumbnail"
-                  className="rounded-xl h-full object-cover"
+                  className="rounded-xl object-cover h-[362px]"
                 />
 
                 {!!videos && videos.length > 0 && (
-                  <div className="flex gap-2 mt-2">
+                  <div className="flex gap-2 absolute bottom-1 left-0 right-0 items-center text-white">
                     <div className="font-semibold text-xs truncate ml-2">{videos[index]?.file.name}</div>
                     <div className="font-semibold text-xs ml-auto mr-2">{`${Math.round(videos[index]?.file.size / 100000) / 10}MB`}</div>
                   </div>
@@ -416,7 +428,7 @@ export default function UploadTikTokPage({ references }: { references: Reference
                           <p className="text-xs text-gray-500">Title displayed on TikTok</p>
                         </div>
                         <input
-                          onChange={event => !!videos && setVideos(videos.map((v, i) => i === index ? { ...v, title: event.currentTarget.value } : v))}
+                          onChange={event => editAll ? !!videos && setVideos(videos.map((video) => ({ ...video, title: event.currentTarget.value }))) : !!videos && setVideos(videos.map((v, i) => i === index ? { ...v, title: event.currentTarget.value } : v))}
                           className="border border-gray-300 rounded w-full h-10 px-2 py-1 outline-0 bg-transparent ml-2"
                           name="title"
                           value={videos && videos[index]?.title}
@@ -444,7 +456,7 @@ export default function UploadTikTokPage({ references }: { references: Reference
                         </div>
                         <div className="w-[calc(100%-236px)]">
                           <Select
-                            onValueChange={(value) => !!videos && setVideos(videos.map((v, i) => i === index ? { ...v, privacyStatus: value } : v))}
+                            onValueChange={(value) => editAll ? !!videos && setVideos(videos.map((video) => ({ ...video, privacyStatus: value }))) : !!videos && setVideos(videos.map((v, i) => i === index ? { ...v, privacyStatus: value } : v))}
                             value={videos && videos[index]?.privacyStatus}
                           >
                             <SelectTrigger className="outline-0 border border-gray-300 bg-transparent rounded h-10 ml-2">
@@ -472,7 +484,12 @@ export default function UploadTikTokPage({ references }: { references: Reference
                               onClick={(e) => {
                                 e.preventDefault();
                                 !!videos &&
-                                  setVideos(videos.map((v, i) => i === index ? {
+                                  editAll ? setVideos(videos.map((video) => ({
+                                    ...video, interactionType: {
+                                      ...video.interactionType,
+                                      [option.name]: !video.interactionType[option.name],
+                                    }
+                                  }))) : setVideos(videos.map((v, i) => i === index ? {
                                     ...v,
                                     interactionType: {
                                       ...v.interactionType,
@@ -513,11 +530,10 @@ export default function UploadTikTokPage({ references }: { references: Reference
                               onClick={() => {
                                 setDisclose(!disclose);
                                 !!videos &&
-                                  setVideos(videos.map((v, i) => i === index ? {
+                                  editAll ? setVideos(videos.map((video) => ({ ...video, commercialUseContent: !disclose }))) : setVideos(videos.map((v, i) => i === index ? {
                                     ...v,
                                     commercialUseContent: !disclose,
-                                  } : v)
-                                  );
+                                  } : v));
                                 if (!disclose) {
                                   setYourBrand(false);
                                   setBrandedContent(false);
@@ -600,7 +616,7 @@ export default function UploadTikTokPage({ references }: { references: Reference
             </div>
           ))}
           <div className="flex gap-6 mt-8">
-            <div className="flex flex-col shrink-0 w-1/4 gap-2">
+            <div className="flex flex-col shrink-0 w-1/4">
               <div
                 className="flex flex-col items-center h-full border border-dashed text-center justify-center p-3 rounded-lg bg-gray-50 hover:bg-gray-100 transition-colors border-gray-400"
                 {...getRootProps()}
@@ -617,7 +633,6 @@ export default function UploadTikTokPage({ references }: { references: Reference
                   Supports .mp4 and .mov files up to 2GB
                 </p>
               </div>
-              <div className="mt-1">&nbsp;</div>
             </div>
             <div className="flex flex-col w-full opacity-40">
               <div className="flex flex-col gap-5 h-fit w-full border border-gray-100 rounded-xl p-4 bg-white">
