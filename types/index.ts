@@ -55,7 +55,12 @@ export type TikTokVideoProps = {
     duet: boolean;
     stitch: boolean;
   };
+  //internal types
   directPost: boolean;
+  disclose: boolean;
+  yourBrand: boolean;
+  brandedContent: boolean;
+  uploadProgress?: number;
 };
 
 export type YouTubeUserInfo = {

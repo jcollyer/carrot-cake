@@ -180,14 +180,11 @@ const KeyReferenceAddButton = ({ type, value, localReferences, setLocalReference
 type UploadChunksProps = {
   file: File;
   uploadUrl: string;
-  setUploadProgress: React.Dispatch<React.SetStateAction<number>>;
   setVideos: React.Dispatch<React.SetStateAction<TikTokVideoProps[] | undefined>>;
-  setDisclose?: React.Dispatch<React.SetStateAction<boolean>>;
-  setYourBrand?: React.Dispatch<React.SetStateAction<boolean>>;
-  setBrandedContent?: React.Dispatch<React.SetStateAction<boolean>>;
+  videoIndex?: number;
 };
 
-const uploadChunks = async ({ file, uploadUrl, setUploadProgress, setVideos, setDisclose, setYourBrand, setBrandedContent }: UploadChunksProps) => {
+const uploadChunks = async ({ file, uploadUrl, setVideos, videoIndex }: UploadChunksProps) => {
   const totalSize = file.size;
   let offset = 0;
   let chunkIndex = 0;
@@ -217,15 +214,13 @@ const uploadChunks = async ({ file, uploadUrl, setUploadProgress, setVideos, set
       return;
     }
     if (res.status === 206) {
-      setUploadProgress((prev) => prev + (chunk.size / totalSize) * 100);
+      setVideos((prev) => prev?.map((v, i) => i === 0 ? {
+        ...v,
+        uploadProgress: (v.uploadProgress || 0) + Math.floor((chunk.size / totalSize) * 100)
+      } : v));
     }
     if (res.status === 201) {
-      setVideos(undefined);
-      setUploadProgress(0);
-      setDisclose?.(false);
-      setYourBrand?.(false);
-      setBrandedContent?.(false);
-      return;
+      setVideos((prev) => prev?.filter((_, i) => i !== videoIndex));
     }
 
     offset += CHUNK_SIZE;
@@ -237,14 +232,9 @@ export default function UploadTikTokPage({ references }: { references: Reference
   const tikTokAccessToken = getCookie("tiktok-tokens");
 
   const [videos, setVideos] = useState<TikTokVideoProps[] | undefined>(undefined);
-  const [currentVideoIndex, setCurrentVideoIndex] = useState<number>(0);
   const [thumbnails, setThumbnails] = useState<string[]>([]);
   const [localReferences, setLocalReferences] = useState<Reference[]>(references || []);
-  const [disclose, setDisclose] = useState<boolean>(false);
-  const [yourBrand, setYourBrand] = useState<boolean>(false);
-  const [brandedContent, setBrandedContent] = useState<boolean>(false);
   const [tiktokCreatorInfo, setTiktokCreatorInfo] = useState<TikTokUserCreatorInfo>();
-  const [uploadProgress, setUploadProgress] = useState<number>(0);
   const [editAll, setEditAll] = useState<boolean>(false);
 
   const { minutes, remainingSeconds } = secondsToMinutesAndSeconds(tiktokCreatorInfo?.max_video_post_duration_sec || 0)
@@ -267,6 +257,10 @@ export default function UploadTikTokPage({ references }: { references: Reference
               stitch: false,
             },
             directPost: true,
+            disclose: false,
+            yourBrand: false,
+            brandedContent: false,
+            uploadProgress: 0,
           }]);
       });
     }
@@ -279,16 +273,16 @@ export default function UploadTikTokPage({ references }: { references: Reference
       method: "GET",
     })
       .then(response => response.json())
-      .then(({ data }) => {
-        setTiktokCreatorInfo({ ...data });
+      .then(async ({ data }) => {
+        await setTiktokCreatorInfo({ ...data });
       })
       .catch(error => {
         console.error("Fetch error:", error);
       });
   }
 
-  const uploadTikTokVideo = async ({ draft }: { draft: boolean }) => {
-    if (!videos) return;
+  const uploadTikTokVideo = async ({ video, draft, index }: { video: TikTokVideoProps; draft: boolean, index: number }) => {
+    if (!video.file) return;
     await fetch("/api/tiktok/direct-post-init", {
       method: "POST",
       headers: {
@@ -298,20 +292,20 @@ export default function UploadTikTokPage({ references }: { references: Reference
       body: JSON.stringify({
         draft,
         post_info: {
-          title: videos[currentVideoIndex].title,
-          privacy_level: videos[currentVideoIndex]?.privacyStatus || "SELF_ONLY",
-          disable_duet: !videos[currentVideoIndex]?.interactionType.duet,
-          disable_comment: !videos[currentVideoIndex]?.interactionType.comment,
-          disable_stitch: !videos[currentVideoIndex]?.interactionType.stitch,
+          title: video.title,
+          privacy_level: video.privacyStatus || "SELF_ONLY",
+          disable_duet: !video.interactionType.duet,
+          disable_comment: !video.interactionType.comment,
+          disable_stitch: !video.interactionType.stitch,
           video_cover_timestamp_ms: 1000,
-          brand_content_toggle: brandedContent,
-          brand_organic_toggle: yourBrand,
+          brand_content_toggle: video.brandedContent,
+          brand_organic_toggle: video.yourBrand,
         },
         source_info: {
           source: "FILE_UPLOAD",
-          video_size: videos[currentVideoIndex]?.file?.size || 0,
+          video_size: video.file?.size || 0,
           chunk_size: CHUNK_SIZE,
-          total_chunk_count: Math.floor((videos[currentVideoIndex]?.file?.size || 0) / CHUNK_SIZE)
+          total_chunk_count: Math.floor((video.file?.size || 0) / CHUNK_SIZE)
         }
       }),
     })
@@ -322,11 +316,14 @@ export default function UploadTikTokPage({ references }: { references: Reference
         return response.json();
       })
       .then(async ({ data }) => {
-        await uploadChunks({ file: videos[currentVideoIndex].file, uploadUrl: data.upload_url, setUploadProgress, setVideos, setDisclose, setYourBrand, setBrandedContent });
+        await uploadChunks({ file: video.file, uploadUrl: data.upload_url, setVideos, videoIndex: index });
       })
       .catch((error) => {
         console.error("Error uploading video:", error);
-        setUploadProgress(0);
+        videos && setVideos(videos.map((v, i) => i === index ? {
+          ...v,
+          uploadProgress: 0
+        } : v));
       });
   };
 
@@ -337,7 +334,9 @@ export default function UploadTikTokPage({ references }: { references: Reference
       return;
     }
     if (!!videos && videos.length > 0) {
-      await uploadTikTokVideo({ draft: videos[currentVideoIndex].directPost });
+      for(const [index, video] of videos.entries()) {
+        await uploadTikTokVideo({ video, draft: video.directPost, index });
+      }
     }
   };
 
@@ -389,17 +388,17 @@ export default function UploadTikTokPage({ references }: { references: Reference
               </div>
               <div className={cn("flex flex-col w-full", { "opacity-40": !videos || videos.length === 0 })}>
                 <div className="flex flex-col gap-4 h-fit w-full border border-gray-100 rounded-xl p-4 bg-white">
-                  {uploadProgress > 0 && (
+                  {videos[index]?.uploadProgress || 0 > 0 && (
                     <div className="flex gap-2 w-full items-center">
                       <p className="text-sm font-medium w-1/4 shrink-0">Upload progress</p>
-                      <div className="px-2 w-full"><Progress value={uploadProgress} /></div>
+                      <div className="px-2 w-full"><Progress value={videos?.[index].uploadProgress} /></div>
                     </div>
                   )}
                   <div className="flex gap-2 items-center">
                     <p className="text-xs font-medium">Upload Draft</p>
                     <Switch
                       checked={video.directPost}
-                      onClick={() => setVideos(videos.map((v, i) => i === index ? { ...v, directPost: !v.directPost } : v))}
+                      onClick={() => editAll ? setVideos(videos.map((v) => ({ ...v, directPost: !v.directPost }))) : setVideos(videos.map((v, i) => i === index ? { ...v, directPost: !v.directPost } : v))}
                       className="flex items-center cursor-pointer"
                     >
                       <SwitchThumb />
@@ -525,42 +524,38 @@ export default function UploadTikTokPage({ references }: { references: Reference
                           <div className="flex gap-4 items-center">
                             <p className="text-sm font-medium">Disclose video content</p>
                             <Switch
-                              checked={disclose}
+                              checked={videos?.[index]?.disclose}
                               className="cursor-pointer"
                               onClick={() => {
-                                setDisclose(!disclose);
                                 !!videos &&
-                                  editAll ? setVideos(videos.map((video) => ({ ...video, commercialUseContent: !disclose }))) : setVideos(videos.map((v, i) => i === index ? {
+                                  editAll ? setVideos(videos.map((video) => ({ ...video, disclose: !videos[index].disclose }))) : setVideos(videos.map((v, i) => i === index ? {
                                     ...v,
-                                    commercialUseContent: !disclose,
+                                    disclose: !videos[index].disclose,
                                   } : v));
-                                if (!disclose) {
-                                  setYourBrand(false);
-                                  setBrandedContent(false);
-                                } else {
-                                  setYourBrand(true);
-                                }
                               }}
                             >
                               <SwitchThumb />
                             </Switch>
                           </div>
                         </div>
-                        {disclose && (
+                        {videos[index].disclose && (
                           <div className="bg-blue-100 text-blue-900 text-sm p-3 rounded mb-1">
                             Your video will be labeled “Promotional content”. This cannot be changed once your video is posted.
                           </div>
                         )}
                         <p className="text-xs text-gray-500">Turn on to disclose that this video promotes goods or services in exchange for something of value. Your video could promote yourself, a third party, or both.</p>
 
-                        {disclose && (
+                        {videos[index].disclose && (
                           <div className="flex flex-col gap-2 pt-4 px-4">
                             <div className="mb-3">
                               <label className="flex items-start space-x-3">
                                 <input
                                   type="checkbox"
-                                  checked={yourBrand}
-                                  onChange={() => setYourBrand(!yourBrand)}
+                                  checked={videos[index].yourBrand}
+                                  onChange={() => editAll ? setVideos(videos.map((v) => ({ ...v, yourBrand: !videos[index].yourBrand }))) : setVideos(videos.map((v, i) => i === index ? {
+                                    ...v,
+                                    yourBrand: !videos[index].yourBrand
+                                  } : v))}
                                   className="mt-[4px]"
                                 />
                                 <div>
@@ -577,8 +572,11 @@ export default function UploadTikTokPage({ references }: { references: Reference
                                 <input
                                   type="checkbox"
                                   disabled={videos?.[index]?.privacyStatus === "SELF_ONLY"}
-                                  checked={brandedContent}
-                                  onChange={() => setBrandedContent(!brandedContent)}
+                                  checked={videos?.[index].brandedContent}
+                                  onChange={() => editAll ? setVideos(videos.map((v) => ({ ...v, brandedContent: !videos[index].brandedContent }))) : setVideos(videos.map((v, i) => i === index ? {
+                                    ...v,
+                                    brandedContent: !videos[index].brandedContent
+                                  } : v))}
                                   className="mt-[4px]"
                                 />
                                 <div>
@@ -591,11 +589,11 @@ export default function UploadTikTokPage({ references }: { references: Reference
                               </label>
                             </div>
 
-                            {(yourBrand || brandedContent) && (
+                            {(videos?.[index].yourBrand || videos?.[index].brandedContent) && (
                               <p className="text-sm text-gray-600">
                                 By posting, you agree to TikTok"s{" "}
 
-                                {brandedContent && (
+                                {videos?.[index].brandedContent && (
                                   <>
                                     <a href="https://www.tiktok.com/legal/page/global/music-usage-confirmation/en" className="text-blue-600 underline">
                                       Branded Content Policy{" "}
@@ -636,12 +634,6 @@ export default function UploadTikTokPage({ references }: { references: Reference
             </div>
             <div className="flex flex-col w-full opacity-40">
               <div className="flex flex-col gap-5 h-fit w-full border border-gray-100 rounded-xl p-4 bg-white">
-                {uploadProgress > 0 && (
-                  <div className="flex gap-2 w-full items-center">
-                    <p className="text-sm font-medium w-1/4 shrink-0">Upload progress</p>
-                    <div className="px-2 w-full"><Progress value={uploadProgress} /></div>
-                  </div>
-                )}
                 <div className="flex gap-2 items-center">
                   <p className="text-xs font-medium">Upload Draft</p>
                   <Switch
@@ -723,49 +715,14 @@ export default function UploadTikTokPage({ references }: { references: Reference
                       <div className="flex gap-4 items-center">
                         <p className="text-sm font-medium">Disclose video content</p>
                         <Switch
-                          checked={disclose}
+                          checked={false}
                           className="cursor-pointer"
                         >
                           <SwitchThumb />
                         </Switch>
                       </div>
                     </div>
-                    {disclose && (
-                      <div className="bg-blue-100 text-blue-900 text-sm p-3 rounded mb-1">
-                        Your video will be labeled “Promotional content”. This cannot be changed once your video is posted.
-                      </div>
-                    )}
                     <p className="text-xs text-gray-500">Turn on to disclose that this video promotes goods or services in exchange for something of value. Your video could promote yourself, a third party, or both.</p>
-
-                    {disclose && (
-                      <div className="flex flex-col gap-2 pt-4 px-4">
-                        <div className="mb-3">
-                          <label className="flex items-start space-x-3">
-                            <input
-                              type="checkbox"
-                              checked={yourBrand}
-                              className="mt-[4px]"
-                            />
-                            <div>
-                              <p className="text-sm font-medium">Your brand</p>
-                              <p className="text-sm text-gray-600">
-                                You are promoting yourself or your own business. This video will be classified as Brand Organic.
-                              </p>
-                            </div>
-                          </label>
-                        </div>
-
-                        <div>
-                          <label className="flex items-start space-x-3">
-                            <input
-                              type="checkbox"
-                              checked={true}
-                              className="mt-[4px]"
-                            />
-                          </label>
-                        </div>
-                      </div>
-                    )}
                   </div>
                 </>
               </div>
@@ -777,8 +734,6 @@ export default function UploadTikTokPage({ references }: { references: Reference
               type="button"
               onClick={() => {
                 setVideos(undefined)
-                setDisclose(false);
-                setYourBrand(false);
               }}
               className="flex flex-1 gap-2"
             >
@@ -788,7 +743,7 @@ export default function UploadTikTokPage({ references }: { references: Reference
             <Button
               variant="secondary"
               type="submit"
-              disabled={true}
+              disabled={!videos?.every(v => v.privacyStatus !== "" || !v.directPost)}
               onClick={onSubmit}
               className="flex flex-1 items-center gap-2"
             >
