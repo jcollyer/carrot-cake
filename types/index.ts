@@ -55,6 +55,7 @@ export type TikTokVideoProps = {
     duet: boolean;
     stitch: boolean;
   };
+  directPost: boolean;
 };
 
 export type YouTubeUserInfo = {
