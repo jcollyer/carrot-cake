@@ -42,6 +42,8 @@ export type SanitizedVideoProps = {
   tags?: string;
   title: string;
   thumbnail: string;
+  //internal types
+  uploadProgress?: number;
 };
 
 export type TikTokVideoProps = {
@@ -61,6 +63,7 @@ export type TikTokVideoProps = {
   yourBrand: boolean;
   brandedContent: boolean;
   uploadProgress?: number;
+  thumbnail?: string;
 };
 
 export type YouTubeUserInfo = {

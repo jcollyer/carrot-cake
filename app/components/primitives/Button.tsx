@@ -3,22 +3,24 @@ import { type ComponentProps, forwardRef, type ReactNode } from "react";
 import { type VariantProps, tv } from "tailwind-variants";
 
 export const button = tv({
-  base: "inline-flex items-center justify-center font-medium border-2 leading-none transform transition duration-100 focus-visible:ring-2 ring-offset-2 outline-none ring-offset-black ring-gray-400",
+  base: "inline-flex items-center justify-center font-medium leading-none transform transition duration-100 focus-visible:ring-2 ring-offset-2 outline-none ring-offset-black ring-gray-400",
   variants: {
     variant: {
       primary:
-        "text-orange-600 border-orange-400 hover:text-orange-600 hover:border-orange-600 py-2.5 rounded-lg",
+        "text-orange-600 border-2 border-orange-400 hover:text-orange-600 hover:border-orange-600 py-2.5 rounded-lg",
       secondary:
-        "text-gray-600 hover:text-gray-700 border-gray-400 hover:border-gray-500 focus:ring-4 focus:outline-none focus:ring-gray-300 rounded-lg text-sm px-5 py-2.5 text-center",
+        "text-gray-600 hover:text-gray-700 border-2 border-gray-400 hover:border-gray-500 focus:ring-4 focus:outline-none focus:ring-gray-300 rounded-lg text-sm px-5 py-2.5 text-center",
       danger:
         "text-white bg-red-500 hover:bg-red-600 active:bg-red-700 border-none !ring-red-400",
       none: "border-none text-left justify-start",
       outline:
-        "border-gray-300 bg-transparent shadow-xs hover:border-gray-400",
+        "border-gray-300 border-2 bg-transparent shadow-xs hover:border-gray-400",
+      thin:
+        "border-gray-300 bg-transparent shadow-xs hover:border-gray-400 border",
       white:
-        "bg-white hover:bg-gray-100 border-gray-200 focus:ring-4 focus:outline-none focus:ring-gray-100 rounded-lg px-4 py-2.5",
+        "bg-white hover:bg-gray-100 border-2 border-gray-200 focus:ring-4 focus:outline-none focus:ring-gray-100 rounded-lg px-4 py-2.5",
       cta:
-        "bg-gradient-to-r from-red-500 to-orange-500 text-white font-bold py-2 rounded text-center hover:border border-white",
+        "bg-gradient-to-r from-red-500 to-orange-500 text-white font-bold py-2 rounded text-center hover:border-2 border-white",
     },
     size: {
       xlarge: "h-[64px] px-6 text-xl",

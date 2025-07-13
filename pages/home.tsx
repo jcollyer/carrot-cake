@@ -1,16 +1,11 @@
 import Button from "@/app/components/primitives/Button";
-import ButtonIcon from "@/app/components/primitives/ButtonIcon";
-import ButtonLink from "@/app/components/primitives/ButtonLink";
-import { TooltipProvider, Tooltip, TooltipTrigger, TooltipContent } from "@/app/components/primitives/Tooltip";
 import SocialDisplay from "@/app/components/SocialDisplay";
 import { useEffect, useState } from "react";
 import Image from "next/image";
 import { getServerSession } from "next-auth"
 import { authOptions } from "@/pages/api/auth/[...nextauth]"
 import { getCookie, setCookie, deleteCookie } from "cookies-next"
-import { CircleX, Film, UserRoundPlus, HeartPlus, CloudUpload, Eye, Unplug } from "lucide-react";
-import { Categories } from "@/app/utils/categories";
-import formatBigNumber from "@/app/utils/formatBigNumbers";
+import { CircleX } from "lucide-react";
 import {
   Tabs,
   TabsContent,
@@ -18,11 +13,12 @@ import {
   TabsTrigger,
 } from "@/app/components/primitives/Tabs";
 import Calendar from "@/app/components/Calendar";
+import { useGetYouTubeUserInfo } from "@/app/hooks/use-get-youtube-user-info";
+import { CATEGORIES } from "@/app/constants";
 import { useRouter } from "next/router";
 import clsx from "clsx";
 import { SanitizedVideoProps, YouTubeVideo, YouTubeUserInfo, TikTokVideo, TikTokUserInfo } from "@/types"
 import moment from "moment";
-
 
 export const getServerSideProps = async (context: any) => {
   const session = await getServerSession(context.req, context.res, authOptions);
@@ -170,28 +166,15 @@ export default function Home() {
     });
   }
 
-  const getYTChannelInfo = async () => {
-    await fetch("/api/youtube/get-channel", {
-      method: "GET",
-      headers: {
-        cookie: `youtube-tokens=${tokens}`,
-      },
-    }).then(async (res) => {
-      const { data } = await res.json();
-      const { snippet, statistics } = data;
-      const { title, thumbnails } = snippet;
-      const { subscriberCount, videoCount, viewCount } = statistics;
-      const { medium } = thumbnails;
-
-      setYtUserInfo({
-        userName: title,
-        thumbnail: medium.url,
-        subscriberCount,
-        videoCount,
-        viewCount,
-      });
-    });
-  }
+  useEffect(() => {
+    const getUserInfo = async () => {
+      if(tokens){
+        const data = await useGetYouTubeUserInfo({ tokens: tokens as string })
+        setYtUserInfo({...data})
+      }
+    }
+    getUserInfo()
+  }, [tokens]);
 
   const getVideos = async () => {
     await fetch("/api/youtube/get-videos", {
@@ -297,7 +280,7 @@ export default function Home() {
 
   useEffect(() => {
     if (playlistId)
-      getYTChannelInfo();
+      // getYTChannelInfo();
     getVideos();
   }, [playlistId]);
 
@@ -476,7 +459,7 @@ export default function Home() {
                 name="categoryId"
                 defaultValue={editVideo.categoryId}
               >
-                {Categories.map(item => (
+                {CATEGORIES.map(item => (
                   <option key={item.label} value={item.id}>
                     {item.label}
                   </option>

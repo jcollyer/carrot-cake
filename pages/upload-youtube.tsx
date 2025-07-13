@@ -1,21 +1,31 @@
-import { MenuProvider, Menu, MenuButton, MenuItem } from "@/app/components/primitives/Menu";
 import Button from "@/app/components/primitives/Button";
-import clsx from "clsx";
+import ButtonIcon from "@/app/components/primitives/ButtonIcon";
+import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/app/components/primitives/Select";
+import { Progress } from "@/app/components/primitives/Progress";
+import { Switch } from "@/app/components/primitives/Switch";
+import KeyReferenceAddButton from "@/app/components/KeyReferenceAddButton";
+import KeyReferenceMenuButton from "@/app/components/KeyReferenceMenuButton";
+import TagsInput from "@/app/components/TagsInput";
+import { useGetYouTubeUserInfo } from "@/app/hooks/use-get-youtube-user-info";
 import prisma from "@/lib/prisma";
 import { Reference } from "@prisma/client";
 const transparentImage = require("@/public/transparent.png");
 import { getServerSession } from "next-auth"
 import { authOptions } from "@/pages/api/auth/[...nextauth]"
-import { useCallback, useState } from "react";
-import { BookMarked, BookmarkPlus, FilePlus, SquarePlus, Trash2 } from "lucide-react";
+import { forwardRef, useCallback, useEffect, useState } from "react";
+import { Upload, X, Calendar1, RotateCcw, CloudUpload } from "lucide-react";
+import DatePicker from "react-datepicker";
 import { useDropzone } from "react-dropzone";
 import { getCookie } from "cookies-next"
-import { Categories, CategoriesType, getCategoryLabelfromId } from "@/app/utils/categories";
+import Image from "next/image";
 import generateVideoThumb from "@/app/utils/generateVideoThumb";
 import moment from "moment";
-import { SanitizedVideoProps } from "@/types"
+import { cn } from "@/app/utils/cn";
+import { CATEGORIES } from "@/app/constants";
+import { SanitizedVideoProps, YouTubeUserInfo } from "@/types"
+import "react-datepicker/dist/react-datepicker.css";
 
-export const getServerSideProps = async (context:any) => {
+export const getServerSideProps = async (context: any) => {
   const session = await getServerSession(context.req, context.res, authOptions);
   if (!session) {
     return {
@@ -28,7 +38,7 @@ export const getServerSideProps = async (context:any) => {
 
   const references = await prisma.user.findUnique({
     where: {
-      email:session?.user?.email,
+      email: session?.user?.email,
     },
     select: {
       references: {
@@ -44,10 +54,11 @@ export const getServerSideProps = async (context:any) => {
 
 export default function UploadYouTubePage({ references }: { references: Reference[] }) {
   const tokens = getCookie("youtube-tokens");
-  const [activeIndex, setActiveIndex] = useState<number>(0);
-  const [allActive, setAllActive] = useState(false);
+  const [editAll, setEditAll] = useState<boolean>(false);
   const [videos, setVideos] = useState<SanitizedVideoProps[]>([]);
   const [localReferences, setLocalReferences] = useState<Reference[]>(references || []);
+  const [ytUserInfo, setYtUserInfo] = useState<YouTubeUserInfo>();
+  const [selectedDate, setSelectedDate] = useState(new Date());
 
   const onDrop = useCallback((acceptedFiles: any) => {
     if (acceptedFiles.length) {
@@ -64,29 +75,35 @@ export default function UploadYouTubePage({ references }: { references: Referenc
             scheduleDate: moment().format("YYYY-MM-DD"),
             tags: undefined,
             thumbnail: thumbnail || transparentImage,
+            uploadProgress: 0,
           },
         ]);
       });
     }
   }, []);
 
-  const { getRootProps, getInputProps, isDragActive } = useDropzone({ onDrop });
+  const { getRootProps, getInputProps } = useDropzone({ onDrop });
 
-  const updateInput = (event: React.ChangeEvent<any>, inputName: string, index: number) => {
-    const updatedVideos = videos.map((video, i) => {
-      if (allActive || i === index) {
-        return {
-          ...video,
-          [`${inputName}`]: inputName === "thumbnail"
-            ? URL.createObjectURL(event?.target?.files[0])
-            : event.currentTarget.value,
-        }
-      }
-      return video;
-    });
+  type DateCustomInputProps = {
+    value?: string;
+    onClick?: () => void;
+    className?: string;
+  }
 
-    setVideos(updatedVideos);
-  };
+  const DateCustomInput = forwardRef<HTMLButtonElement, DateCustomInputProps>(
+    ({ value, onClick, className }, ref) => (
+      <Button
+        className={cn("flex gap-3 items-center", className)}
+        variant="thin"
+        onClick={onClick}
+        type="button"
+        ref={ref}
+      >
+        {value}
+        <Calendar1 size={22} strokeWidth={1.5} />
+      </Button>
+    ),
+  );
 
   const tryToUpload = async (accessToken: string, urlparameters: string, video: SanitizedVideoProps) => {
     try {
@@ -134,15 +151,15 @@ export default function UploadYouTubePage({ references }: { references: Referenc
           },
           body: JSON.stringify({ refreshToken }),
         });
-        
+
         if (!refreshResponse) {
           console.error("No refresh response");
           return;
         }
         const refreshData = await refreshResponse.json();
         const config = refreshData?.res?.config;
-        const {url, body, headers } = config;
-        
+        const { url, body, headers } = config;
+
         await fetch(url, {
           method: "POST",
           headers,
@@ -158,7 +175,7 @@ export default function UploadYouTubePage({ references }: { references: Referenc
     }
   }
 
-  const onSubmit = async (event: React.ChangeEvent<any>) => {
+  const onSubmit = (event: React.ChangeEvent<any>) => {
     event.preventDefault();
     const accessToken = !!tokens && JSON.parse(tokens as string).access_token;
     const urlparameters = "part=snippet%2Cstatus&uploadType=resumable";
@@ -172,243 +189,218 @@ export default function UploadYouTubePage({ references }: { references: Referenc
     }
   };
 
-  const setReferencePost = useCallback((value: string, type: string) => {
-    fetch("/api/reference/create", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        referenceTitle: value.split(" ").slice(0, 2).join(" "),
-        referenceValue: value,
-        referenceType: type,
-        publish: true,
-      }),
-    }).then(async (data) => {
-      const newReference = await data.json();
-      setLocalReferences([...localReferences, newReference]);
-    });
-  }, []);
-
-  const hasKey = (key: string) => {
-    return localReferences.some((reference) => reference.type === key);
-  };
-
-  const setReference = (value: string, key: string) => {
-    const updatedVideos = videos.map((video, i) => {
-      if (allActive || i === activeIndex) {
-        return {
-          ...video,
-          [key]: value,
-        }
+  useEffect(() => {
+    const getUserInfo = async () => {
+      if (tokens) {
+        const data = await useGetYouTubeUserInfo({ tokens: tokens as string })
+        setYtUserInfo({ ...data })
       }
-      return video;
-    });
+    }
+    getUserInfo()
+  }, [tokens]);
 
-    setVideos(updatedVideos);
-  };
-
-  const isNewReference = (value: string) => {
-    return !localReferences?.some((reference) => reference.value === value);
-  };
-
-  const deleteReference = (id: string) => {
-    fetch(`/api/reference/delete/${id}`, {
-      method: "DELETE",
-    }).then(() => {
-      setLocalReferences(localReferences.filter((reference) => reference.id !== id));
-    });
-  };
-
-  const keyReferenceAddButton = (activeIndex: number, keyName: string, videos: any) => {
-    const showButton = !!videos[activeIndex][keyName] && videos[activeIndex][keyName] !== "" && isNewReference(videos[activeIndex][keyName]);
-    return showButton ? (
-      <>
-        <button
-          type="button"
-          onClick={() => setReferencePost(videos[activeIndex][keyName], keyName)}
-        >
-          <BookmarkPlus size={24} strokeWidth={1} />
-        </button>
-      </>
-    ) : null;
-  };
-
-  const keyReferenceMenu = (key: string) => (
-    <MenuProvider>
-      <MenuButton>
-        <BookMarked strokeWidth={1} size={24} />
-      </MenuButton>
-      <Menu>
-        {localReferences
-          .filter((reference) => reference.type === key)
-          .map((ref) =>
-            <MenuItem key={ref.id}>
-              <button
-                type="button"
-                key={ref.id}
-                onClick={() => setReference(ref.value, key)}
-                className="truncate max-w-48 mr-2"
-              >
-                {ref.value}
-              </button>
-              <button type="button" onClick={() => deleteReference(ref.id)} className="hover:bg-gray-300 rounded p-1">
-                <Trash2 strokeWidth={1} size={18} />
-              </button>
-            </MenuItem>
-          )
-        }
-      </Menu>
-    </MenuProvider>
-  );
 
   return (
     <div className="flex flex-col max-w-3xl mx-auto mt-12 p-6">
-      <h3 className="text-center text-3xl mt-6 font-semibold text-gray-600">Upload Video</h3>
-      <form action="uploadVideo" method="post" encType="multipart/form-data" className="mt-12">
-        <div className="flex justify-between">
-          <div
-            className="w-full h-[180px] border border-gray-300 flex items-center justify-center"
-            {...getRootProps()}
-          >
-            <input {...getInputProps()} name="file" />
-            <SquarePlus className="mr-4" />
-            {isDragActive ? (
-              <p>Drop the files here ...</p>
-            ) : (
-              <p>Click to add files</p>
-            )}
+      <form action="uploadVideo" method="post" encType="multipart/form-data" onSubmit={onSubmit} className="mt-12">
+        <div className="flex justify-between items-center mb-4">
+          <div className="flex flex-col gap-4">
+            <div className="flex gap-2">
+              <Image src="/youtube_logo.png" alt="Youtube Logo" width="50" height="20" className="w-12" />
+              <p className="text-xs mt-auto">Upload video max: 2GB</p>
+            </div>
+            <div className="flex gap-2">
+              <img src={ytUserInfo?.thumbnail} alt="YouTube User Thumbnail" width="35" height="35" className="rounded-full" />
+              <h2 className="text-2xl font-bold text-gray-700">{ytUserInfo?.userName}</h2>
+            </div>
           </div>
+          {videos && videos.length > 1 && (
+            <div className="flex gap-2 mb-4 items-center ml-auto mt-auto">
+              <p className="text-sm font-medium">Set All Videos</p>
+              <Switch
+                checked={editAll}
+                onClick={() => setEditAll(!editAll)}
+                className="cursor-pointer"
+              />
+            </div>
+          )}
         </div>
-        {!!videos.length && (
-          <div className="flex flex-row gap-2 mt-4">
-            <p className="font-semibold">EDIT ALL</p>
-            <input
-              type="checkbox"
-              onClick={() => setAllActive(!allActive)}
-              className="h4 w-4"
-            />
-          </div>
-        )}
         <div className="mt-2 mb-5">
-          {videos?.map((video, index) => (
-            <div key={index} className={clsx({ "border-gray-800": activeIndex === index }, "flex flex-row py-2 border-b border-gray-400")}>
-              <div className={clsx({ "border-gray-800": activeIndex === index }, "max-w-44 pr-2 border-r border-gray-400")}>
-                <div className="truncate mb-2">{video.file?.name}</div>
-                <div className="flex gap-2 items-center">
-                  <div className="relative mb-2">
-                    <img
-                      src={video.thumbnail}
-                      alt="thumbnail"
-                      className="opacity-50 rounded"
-                    />
-                    <label htmlFor="thumbnial" className="top-10 left-5 absolute cursor-pointer">
-                      <FilePlus strokeWidth={1} className="w-10 h-10 text-gray-700" />
-                    </label>
-                    <input
-                      type="file"
-                      onChange={event => updateInput(event, "thumbnail", index)}
-                      name="thumbnail"
-                      accept="image/png, image/jpeg, application/octet-stream"
-                      placeholder="thumbnail"
-                      className="hidden"
-                      id="thumbnial"
-                    />
-                  </div>
-                  <div className="font-semibold text-xs pl-2">{`${Math.round(video.file.size / 100000) / 10}MB`}</div>
-                </div>
-              </div>
-              <div
-                className="flex-row grow pl-2"
-                onClick={() => setActiveIndex(index)}
-              >
-                <div className={clsx({ "hidden": activeIndex === index }, "flex flex-col gap-2")}>
-                  <div className="flex gap-2 items-center">
-                    <div className="font-semibold mb-2">Title:</div>
-                    <div>{video.title}</div>
-                  </div>
-                  <div className="flex gap-2 items-center">
-                    <div className="font-semibold">Description:</div>
-                    <div className="h-12">{video.description}</div>
-                  </div>
-                  <div className="flex gap-2 items-center">
-                    <div className="font-semibold">Category:</div>
-                    <div>{getCategoryLabelfromId(video.categoryId || "1")}</div>
-                  </div>
-                  <div className="flex gap-2 items-center">
-                    <div className="font-semibold">Scheduled Date:</div>
-                    <div>
-                      {moment(video.scheduleDate).format("MM/DD/YYYY")}
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <div className="font-semibold">Tags:</div>
-                    <div className="flex flex-row justify-center gap-1">
-                      {!!video.tags && video.tags.split(",").length > 0 && video?.tags.split(",").map(tag => (
-                        <div key={tag} className="bg-gray-600 text-white rounded-full px-2 py-1 text-xs">{tag}</div>
-                      ))}
-                    </div>
-                  </div>
-                </div>
 
-                <div className={clsx({ "hidden": activeIndex !== index }, "flex flex-col gap-2")}>
-                  <div className="flex gap-2 items-center">
-                    <label htmlFor="title" className="font-semibold">Title:</label>
+          {videos && videos.length > 0 && videos.map((video, index) => (
+            <div className="flex gap-6 mb-6" key={video.file.name}>
+              <div className="flex flex-col shrink-0 w-1/4 h-fit relative">
+                <img
+                  src={videos?.[index].thumbnail || transparentImage}
+                  alt="thumbnail"
+                  className="rounded-xl object-cover h-[362px]"
+                />
+
+                {!!videos && videos.length > 0 && (
+                  <div className="flex gap-2 absolute bottom-1 left-0 right-0 items-center text-white">
+                    <div className="font-semibold text-xs truncate ml-2">{videos[index]?.file.name}</div>
+                    <div className="font-semibold text-xs ml-auto mr-2">{`${Math.round(videos[index]?.file.size / 100000) / 10}MB`}</div>
+                  </div>
+                )}
+              </div>
+
+              <div className="flex flex-col w-full">
+                <div className="flex flex-col gap-4 h-fit w-full border border-gray-100 rounded-xl p-4 bg-white">
+                  {videos[index]?.uploadProgress || 0 > 0 && (
+                    <div className="flex gap-2 w-full items-center">
+                      <p className="text-sm font-medium w-1/4 shrink-0">Upload progress</p>
+                      <div className="px-2 w-full"><Progress value={videos?.[index].uploadProgress} /></div>
+                    </div>
+                  )}
+                  <ButtonIcon
+                    icon={X}
+                    label="Remove Video"
+                    size={26}
+                    strokeWidth={1.5}
+                    onClick={() => {
+                      if (videos && videos.length >= 1) {
+                        setVideos(videos.filter((_, i) => i !== index));
+                      }
+                    }}
+                    className="ml-auto"
+                    tooltip
+                  />
+
+                  <div className="flex gap-2">
+                    <div className="w-1/4 shrink-0">
+                      <p className="text-sm font-medium">Title of your video</p>
+                      <p className="text-xs text-gray-500">Main video title</p>
+                    </div>
                     <input
-                      onChange={event => updateInput(event, "title", index)}
-                      className="border border-gray-300 rounded w-full h-8 px-2 py-1 outline-0 bg-transparent"
+                      onChange={event => editAll ?
+                        !!videos && setVideos(videos.map((video) => ({ ...video, title: event.currentTarget.value }))) :
+                        !!videos && setVideos(videos.map((v, i) => i === index ? { ...v, title: event.currentTarget.value } : v))}
+                      className="border border-gray-300 rounded w-full h-10 px-2 py-1 outline-0 bg-transparent ml-2"
                       name="title"
-                      value={videos[activeIndex]?.title}
+                      value={videos && videos[index]?.title}
                     />
-                    {keyReferenceAddButton(activeIndex, "title", videos)}
-                    {hasKey("title") && keyReferenceMenu("title")}
+                    <div className="flex items-start pr-1">
+                      <KeyReferenceAddButton
+                        type="title"
+                        value={videos && videos[index]?.["title"] || ""}
+                        localReferences={localReferences}
+                        setLocalReferences={setLocalReferences}
+                      />
+                      <KeyReferenceMenuButton
+                        type="title"
+                        localReferences={localReferences}
+                        setLocalReferences={setLocalReferences}
+                        callback={(key, value) => setVideos(videos.map((v, i) => i === index ? { ...v, [key]: value } : v))}
+                      />
+                    </div>
                   </div>
-                  <div className="flex gap-2 items-center">
-                    <label htmlFor="description" className="font-semibold">Description:</label>
+
+                  <div className="flex gap-2">
+                    <div className="w-1/4 shrink-0">
+                      <p className="text-sm font-medium">Video Description</p>
+                      <p className="text-xs text-gray-500">Description displayed on YouTube</p>
+                    </div>
                     <textarea
+                      onChange={event => editAll ?
+                        !!videos && setVideos(videos.map((video) => ({ ...video, description: event.currentTarget.value }))) :
+                        !!videos && setVideos(videos.map((v, i) => i === index ? { ...v, description: event.currentTarget.value } : v))}
+                      className="border border-gray-300 rounded w-full h-20 px-2 py-1 outline-0 bg-transparent ml-2"
                       name="description"
-                      className="border border-gray-300 outline-0 w-full h-12 px-2 py-1 rounded bg-transparent"
-                      onChange={event => updateInput(event, "description", index)}
-                      value={videos[activeIndex]?.description}
+                      value={videos && videos[index]?.description}
                     />
-                    {keyReferenceAddButton(activeIndex, "description", videos)}
-                    {hasKey("description") && keyReferenceMenu("description")}
+                    <div className="flex items-start pr-1">
+                      <KeyReferenceAddButton
+                        type="description"
+                        value={videos && videos[index]?.["description"] || ""}
+                        localReferences={localReferences}
+                        setLocalReferences={setLocalReferences}
+                      />
+                      <KeyReferenceMenuButton
+                        type="description"
+                        localReferences={localReferences}
+                        setLocalReferences={setLocalReferences}
+                        callback={(key, value) => setVideos(videos.map((v, i) => i === index ? { ...v, [key]: value } : v))}
+                      />
+                    </div>
                   </div>
-                  <div className="flex gap-2 items-center">
-                    <label htmlFor="category" className="font-semibold">Category:</label>
-                    <select
-                      onChange={event => updateInput(event, "categoryId", index)}
-                      className="outline-0 border-0 bg-transparent rounded"
-                      name="category"
-                      value={videos[activeIndex]?.categoryId}
-                    >
-                      {Categories.map((item: CategoriesType) => (
-                        <option key={item.id} value={item.id}>
-                          {item.label}
-                        </option>
-                      ))}
-                    </select>
+
+                  <div className="flex gap-2">
+                    <div className="w-1/4 shrink-0">
+                      <p className="text-sm font-medium">Video category</p>
+                      <p className="text-xs text-gray-500">Genre type</p>
+                    </div>
+                    <div className="w-[calc(100%-210px)]">
+                      <Select
+                        onValueChange={(value) => editAll ?
+                          !!videos && setVideos(videos.map((video) => ({ ...video, categoryId: value }))) :
+                          !!videos && setVideos(videos.map((v, i) => i === index ? { ...v, categoryId: value } : v))}
+                        value={videos && videos[index]?.categoryId}
+                      >
+                        <SelectTrigger className="outline-0 border border-gray-300 bg-transparent rounded h-10 ml-2">
+                          <SelectValue placeholder="Select an option" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {CATEGORIES.map((item) => (
+                            <SelectItem key={item.id} value={item.id}>
+                              {item.label}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
                   </div>
-                  <div className="flex gap-2 items-center">
-                    <label htmlFor="scheduleDate" className="font-semibold">Scheduled Date:</label>
-                    <input
-                      type="date"
-                      onChange={event => updateInput(event, "scheduleDate", index)}
-                      className="border-0 outline-0 bg-transparent"
-                      name="scheduleDate"
-                      value={videos[activeIndex]?.scheduleDate}
+
+                  <div className="flex gap-2 ml-2">
+                    <div className="w-1/4 shrink-0">
+                      <p className="text-sm font-medium">Scheduled Date</p>
+                      <p className="text-xs text-gray-500">Video release</p>
+                    </div>
+                    <div className="w-[calc(100%-200px)] [&_.react-datepicker-wrapper]:w-full">
+                      <DatePicker
+                        className="w-full l"
+                        selected={selectedDate}
+                        onChange={(date) => setSelectedDate(date || new Date())}
+                        customInput={<DateCustomInput className="example-custom-input" />}
+                      />
+                    </div>
+                  </div>
+
+                  <div className="flex gap-2">
+                    <div className="w-1/4 shrink-0">
+                      <p className="text-sm font-medium">Video Tags</p>
+                      <p className="text-xs text-gray-500">Keywords</p>
+                    </div>
+                    <TagsInput
+                      onAddTags={(e) => editAll ?
+                        !!videos && setVideos(videos.map((video) => ({ ...video, tags: video.tags ? `${video.tags},${e}` : e }))) :
+                        !!videos && setVideos(videos.map((v, i) => i === index ? { ...v, tags: v.tags ? `${v.tags},${e}` : e } : v))}
+                      onRemoveTags={(indexToRemove) => editAll ? !!videos && setVideos(videos.map((video) => {
+                        let tagsArr = video.tags?.split(",")
+                        tagsArr?.splice(indexToRemove, 1)
+                        const tagsString = tagsArr?.join(",")
+                        return { ...video, tags: tagsString }
+                      })) : setVideos(videos.map((v, i) => {
+                        let tagsArr = video.tags?.split(",")
+                        tagsArr?.splice(indexToRemove, 1)
+                        const tagsString = tagsArr?.join(",")
+                        return i === index ? { ...v, tags: tagsString } : { ...v }
+                      }))}
+                      tags={videos[index]?.tags?.split(",") || []}
                     />
-                  </div>
-                  <div className="flex gap-2 items-center">
-                    <label htmlFor="tags" className="font-semibold">Tags:</label>
-                    <textarea
-                      name="tags"
-                      className="border border-gray-300 rounded w-full h-8 px-2 py-1 outline-0 bg-transparent "
-                      onChange={event => updateInput(event, "tags", index)}
-                      value={videos[activeIndex]?.tags}
-                    />
-                    {keyReferenceAddButton(activeIndex, "tags", videos)}
-                    {hasKey("tags") && keyReferenceMenu("tags")}
+                    <div className="flex items-start pr-1">
+                      <KeyReferenceAddButton
+                        type="tags"
+                        value={videos && videos[index]?.["tags"] || ""}
+                        localReferences={localReferences}
+                        setLocalReferences={setLocalReferences}
+                      />
+                      <KeyReferenceMenuButton
+                        type="tags"
+                        localReferences={localReferences}
+                        setLocalReferences={setLocalReferences}
+                        callback={(key, value) => setVideos(videos.map((v, i) => i === index ? { ...v, [key]: value } : v))}
+                      />
+                    </div>
                   </div>
                 </div>
               </div>
@@ -417,17 +409,161 @@ export default function UploadYouTubePage({ references }: { references: Referenc
         </div>
 
         {!!videos.length && (
-          <div className="flex flex-col items-center mb-10">
+          <div className="flex gap-2 mt-5">
             <Button
               variant="secondary"
-              type="submit"
-              onClick={onSubmit}
+              type="button"
+              onClick={() => {
+                setVideos([])
+              }}
+              className="flex flex-1 gap-2"
             >
+              <RotateCcw strokeWidth={2} />
+              Reset Video{videos && videos?.length > 1 ? "s" : ""}
+            </Button>
+            <Button
+              variant="secondary"
+              type="button"
+              className="flex gap-2 items-center flex-1"
+            >
+              <CloudUpload />
               {`Upload ${videos.length} Video${videos.length > 1 ? "s" : ""} to YouTube`}
             </Button>
           </div>
         )}
       </form>
+
+      <div className="flex gap-6 mt-8">
+        <div className="flex flex-col shrink-0 w-1/4">
+          <div
+            className="flex flex-col items-center h-full border border-dashed text-center justify-center p-3 rounded-lg bg-gray-50 hover:bg-gray-100 transition-colors border-gray-400"
+            {...getRootProps()}
+          >
+            <input {...getInputProps()} name="file" />
+            <Upload strokeWidth={1} className="m-1" />
+            <h3 className="text-sm font-medium text-gray-900">
+              Drag n&apos; drop some files here
+            </h3>
+            <p className="text-xs">
+              or <span className="underline">click here</span> to select files
+            </p>
+            <p className="mt-2 text-xs">
+              Supports .mp4 and .mov files up to 2GB
+            </p>
+          </div>
+        </div>
+        <div className="flex flex-col w-full opacity-40">
+          <div className="flex flex-col gap-5 h-fit w-full border border-gray-100 rounded-xl p-4 bg-white">
+            <div className="flex gap-2">
+              <div className="w-1/4 shrink-0">
+                <p className="text-sm font-medium">Title of your video</p>
+                <p className="text-xs text-gray-500">Main video title</p>
+              </div>
+              <input
+                className="border border-gray-300 rounded w-full h-10 px-2 py-1 outline-0 bg-transparent ml-2"
+                name="title"
+              />
+              <div className="flex items-start pr-1">
+                <KeyReferenceAddButton
+                  type="title"
+                  value={""}
+                  localReferences={localReferences}
+                  setLocalReferences={setLocalReferences}
+                />
+                <KeyReferenceMenuButton
+                  type="title"
+                  localReferences={localReferences}
+                  setLocalReferences={setLocalReferences}
+                  callback={() => ""}
+                />
+              </div>
+            </div>
+            <div className="flex gap-2">
+              <div className="w-1/4 shrink-0">
+                <p className="text-sm font-medium">Video Description</p>
+                <p className="text-xs text-gray-500">Description displayed on YouTube</p>
+              </div>
+              <textarea
+                className="border border-gray-300 rounded w-full h-20 px-2 py-1 outline-0 bg-transparent ml-2"
+                name="description"
+                value={""}
+              />
+              <div className="flex items-start pr-1">
+                <KeyReferenceAddButton
+                  type="description"
+                  value={""}
+                  localReferences={localReferences}
+                  setLocalReferences={setLocalReferences}
+                />
+                <KeyReferenceMenuButton
+                  type="description"
+                  localReferences={localReferences}
+                  setLocalReferences={setLocalReferences}
+                  callback={() => ""}
+                />
+              </div>
+            </div>
+            <div className="flex gap-2">
+              <div className="w-1/4 shrink-0">
+                <p className="text-sm font-medium">Video category</p>
+                <p className="text-xs text-gray-500">Genre type</p>
+              </div>
+              <div className="w-[calc(100%-210px)]">
+                <Select value={""}>
+                  <SelectTrigger className="outline-0 border border-gray-300 bg-transparent rounded h-10 ml-2">
+                    <SelectValue placeholder="Select an option" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {CATEGORIES.map((item) => (
+                      <SelectItem key={item.id} value={item.id}>
+                        {item.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+            <div className="flex gap-2 ml-2">
+              <div className="w-1/4 shrink-0">
+                <p className="text-sm font-medium">Scheduled Date</p>
+                <p className="text-xs text-gray-500">Video release</p>
+              </div>
+              <div className="w-[calc(100%-200px)] [&_.react-datepicker-wrapper]:w-full">
+                <DatePicker
+                  className="w-full l"
+                  selected={selectedDate}
+                  customInput={<DateCustomInput className="example-custom-input" />}
+                />
+              </div>
+            </div>
+            <div className="flex gap-2">
+              <div className="w-1/4 shrink-0">
+                <p className="text-sm font-medium">Video Tags</p>
+                <p className="text-xs text-gray-500">Keywords</p>
+              </div>
+              <TagsInput
+                onAddTags={() => ""}
+                onRemoveTags={() => ""}
+                tags={["Youtube"]}
+              />
+              <div className="flex items-start pr-1">
+                <KeyReferenceAddButton
+                  type="tags"
+                  value={""}
+                  localReferences={localReferences}
+                  setLocalReferences={setLocalReferences}
+                />
+                <KeyReferenceMenuButton
+                  type="tags"
+                  localReferences={localReferences}
+                  setLocalReferences={setLocalReferences}
+                  callback={() => ""}
+                />
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
   );
 }

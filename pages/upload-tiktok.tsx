@@ -1,4 +1,3 @@
-import { MenuProvider, Menu, MenuButton, MenuItem } from "@/app/components/primitives/Menu";
 import Button from "@/app/components/primitives/Button";
 import ButtonIcon from "@/app/components/primitives/ButtonIcon";
 import {
@@ -10,14 +9,15 @@ import {
 } from "@/app/components/primitives/Select";
 import { Switch, SwitchThumb } from "@/app/components/primitives/Switch";
 import { Progress } from "@/app/components/primitives/Progress";
-import clsx from "clsx";
+import KeyReferenceAddButton from "@/app/components/KeyReferenceAddButton";
+import KeyReferenceMenuButton from "@/app/components/KeyReferenceMenuButton";
 import prisma from "@/lib/prisma";
 import { Reference } from "@prisma/client";
 const transparentImage = require("@/public/transparent.png");
 import { getServerSession } from "next-auth"
 import { authOptions } from "@/pages/api/auth/[...nextauth]"
 import { useCallback, useEffect, useState } from "react";
-import { BookMarked, BookmarkPlus, MessageCircle, SwitchCamera, Upload, Trash2, RotateCcw, MessagesSquare, CloudUpload, X } from "lucide-react";
+import { Upload, RotateCcw, CloudUpload, X } from "lucide-react";
 import { useDropzone } from "react-dropzone";
 import Image from "next/image";
 import { getCookie } from "cookies-next"
@@ -25,6 +25,7 @@ import { TikTokUserCreatorInfo, TikTokVideoProps } from "@/types"
 import generateVideoThumb from "@/app/utils/generateVideoThumb";
 import { cn } from "@/app/utils/cn";
 import secondsToMinutesAndSeconds from "@/app/utils/secondsToMinutes";
+import { CHUNK_SIZE, ALL_PRIVACY_STATUS_OPTIONS, VIDEO_ACCESS_OPTIONS } from "@/app/constants";
 
 export const getServerSideProps = async (context: any) => {
   const session = await getServerSession(context.req, context.res, authOptions);
@@ -51,130 +52,6 @@ export const getServerSideProps = async (context: any) => {
   return {
     props: references,
   };
-};
-
-const CHUNK_SIZE = 10000000; // 10MB
-
-const ALL_PRIVACY_STATUS_OPTIONS = [
-  { id: "PUBLIC_TO_EVERYONE", label: "Public to Everyone" },
-  { id: "MUTUAL_FOLLOW_FRIENDS", label: "Mutual Follow Friends" },
-  { id: "FOLLOWER_OF_CREATOR", label: "Followers of Creator" },
-  { id: "SELF_ONLY", label: "Unlisted" },
-];
-
-type VideoAccessOption = {
-  name: "comment" | "duet" | "stitch";
-  icon: React.ComponentType<{ strokeWidth?: number; size?: number; className?: string }>;
-};
-
-const VIDEO_ACCESS_OPTIONS: VideoAccessOption[] = [
-  { name: "comment", icon: MessageCircle },
-  { name: "duet", icon: MessagesSquare },
-  { name: "stitch", icon: SwitchCamera }
-];
-
-type KeyReferenceMenuProps = {
-  type: string;
-  localReferences: Reference[];
-  setLocalReferences: React.Dispatch<React.SetStateAction<Reference[]>>;
-  setVideos: React.Dispatch<React.SetStateAction<TikTokVideoProps[] | undefined>>;
-  currentVideoIndex: number;
-};
-
-const KeyReferenceMenu = ({ type, localReferences, setLocalReferences, setVideos, currentVideoIndex }: KeyReferenceMenuProps) => {
-  const setReference = (value: string, key: string) => {
-    setVideos((prevVideos) => {
-      if (!prevVideos) return prevVideos;
-      return prevVideos.map((video, index) => {
-        if (index === currentVideoIndex) {
-          return {
-            ...video,
-            [key]: value,
-          };
-        }
-        return video;
-      });
-    });
-  };
-
-  const deleteReference = (id: string) => {
-    fetch(`/api/reference/delete/${id}`, {
-      method: "DELETE",
-    }).then(() => {
-      setLocalReferences(localReferences.filter((reference) => reference.id !== id));
-    });
-  };
-
-  return (
-    <MenuProvider>
-      <MenuButton>
-        <BookMarked strokeWidth={1.5} size={24} className={clsx("text-gray-600", { "opacity-50": localReferences.length === 0 })} />
-      </MenuButton>
-      <Menu>
-        {localReferences
-          .filter((reference) => reference.type === type)
-          .map((ref) =>
-            <MenuItem key={ref.id}>
-              <button
-                type="button"
-                key={ref.id}
-                onClick={() => setReference(ref.value, type)}
-                className="truncate max-w-48 mr-2"
-              >
-                {ref.value}
-              </button>
-              <button type="button" onClick={() => deleteReference(ref.id)} className="hover:bg-gray-300 rounded">
-                <Trash2 strokeWidth={1} size={18} />
-              </button>
-            </MenuItem>
-          )
-        }
-      </Menu>
-    </MenuProvider>
-  )
-};
-
-type KeyReferenceAddButtonProps = {
-  type: string;
-  value: string;
-  localReferences: Reference[];
-  setLocalReferences: React.Dispatch<React.SetStateAction<Reference[]>>;
-};
-
-const KeyReferenceAddButton = ({ type, value, localReferences, setLocalReferences }: KeyReferenceAddButtonProps) => {
-  const disabled = !value ||
-    !!localReferences
-      .filter((reference) => reference.type === type)
-      .find((reference) => reference.value === value);
-
-  const setReferencePost = useCallback((value: string, type: string) => {
-    fetch("/api/reference/create", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        referenceTitle: value.split(" ").slice(0, 2).join(" "),
-        referenceValue: value,
-        referenceType: type,
-        publish: true,
-      }),
-    }).then(async (data) => {
-      const newReference = await data.json();
-      setLocalReferences([...localReferences, newReference]);
-    });
-  }, []);
-
-  return (
-    <button
-      type="button"
-      disabled={disabled}
-      onClick={() => setReferencePost(value, type)}
-      className="hover:bg-gray-200 rounded-md p-1 disabled:opacity-50 h-fit disabled:bg-transparent"
-    >
-      <BookmarkPlus size={24} strokeWidth={1.5} className={clsx("text-gray-600", { "opacity-50": disabled })} />
-    </button>
-  );
 };
 
 type UploadChunksProps = {
@@ -232,7 +109,6 @@ export default function UploadTikTokPage({ references }: { references: Reference
   const tikTokAccessToken = getCookie("tiktok-tokens");
 
   const [videos, setVideos] = useState<TikTokVideoProps[] | undefined>(undefined);
-  const [thumbnails, setThumbnails] = useState<string[]>([]);
   const [localReferences, setLocalReferences] = useState<Reference[]>(references || []);
   const [tiktokCreatorInfo, setTiktokCreatorInfo] = useState<TikTokUserCreatorInfo>();
   const [editAll, setEditAll] = useState<boolean>(false);
@@ -243,7 +119,6 @@ export default function UploadTikTokPage({ references }: { references: Reference
     if (acceptedFiles.length) {
       acceptedFiles.forEach(async (file: any) => {
         const thumb = await generateVideoThumb(file);
-        setThumbnails((prev) => [...prev, thumb as string]);
         setVideos((prev) => [
           ...prev || [], {
             file,
@@ -261,6 +136,7 @@ export default function UploadTikTokPage({ references }: { references: Reference
             yourBrand: false,
             brandedContent: false,
             uploadProgress: 0,
+            thumbnail: thumb as string,
           }]);
       });
     }
@@ -334,7 +210,7 @@ export default function UploadTikTokPage({ references }: { references: Reference
       return;
     }
     if (!!videos && videos.length > 0) {
-      for(const [index, video] of videos.entries()) {
+      for (const [index, video] of videos.entries()) {
         await uploadTikTokVideo({ video, draft: video.directPost, index });
       }
     }
@@ -374,7 +250,7 @@ export default function UploadTikTokPage({ references }: { references: Reference
             <div className="flex gap-6 mb-6" key={video.file.name}>
               <div className="flex flex-col shrink-0 w-1/4 relative">
                 <img
-                  src={thumbnails[index] || transparentImage}
+                  src={videos?.[index].thumbnail || transparentImage}
                   alt="thumbnail"
                   className="rounded-xl object-cover h-[362px]"
                 />
@@ -412,7 +288,6 @@ export default function UploadTikTokPage({ references }: { references: Reference
                       onClick={() => {
                         if (videos && videos.length >= 1) {
                           setVideos(videos.filter((_, i) => i !== index));
-                          setThumbnails(thumbnails.filter((_, i) => i !== index));
                         }
                       }}
                       className="ml-auto"
@@ -427,7 +302,9 @@ export default function UploadTikTokPage({ references }: { references: Reference
                           <p className="text-xs text-gray-500">Title displayed on TikTok</p>
                         </div>
                         <input
-                          onChange={event => editAll ? !!videos && setVideos(videos.map((video) => ({ ...video, title: event.currentTarget.value }))) : !!videos && setVideos(videos.map((v, i) => i === index ? { ...v, title: event.currentTarget.value } : v))}
+                          onChange={event => editAll ?
+                            !!videos && setVideos(videos.map((video) => ({ ...video, title: event.currentTarget.value }))) :
+                            !!videos && setVideos(videos.map((v, i) => i === index ? { ...v, title: event.currentTarget.value } : v))}
                           className="border border-gray-300 rounded w-full h-10 px-2 py-1 outline-0 bg-transparent ml-2"
                           name="title"
                           value={videos && videos[index]?.title}
@@ -439,12 +316,11 @@ export default function UploadTikTokPage({ references }: { references: Reference
                             localReferences={localReferences}
                             setLocalReferences={setLocalReferences}
                           />
-                          <KeyReferenceMenu
+                          <KeyReferenceMenuButton
                             type="title"
                             localReferences={localReferences}
                             setLocalReferences={setLocalReferences}
-                            setVideos={setVideos}
-                            currentVideoIndex={index}
+                            callback={(key, value) => !!videos && setVideos(videos.map((v, i) => i === index ? { ...v, [key]: value } : v))}
                           />
                         </div>
                       </div>
@@ -455,7 +331,9 @@ export default function UploadTikTokPage({ references }: { references: Reference
                         </div>
                         <div className="w-[calc(100%-236px)]">
                           <Select
-                            onValueChange={(value) => editAll ? !!videos && setVideos(videos.map((video) => ({ ...video, privacyStatus: value }))) : !!videos && setVideos(videos.map((v, i) => i === index ? { ...v, privacyStatus: value } : v))}
+                            onValueChange={(value) => editAll ?
+                              !!videos && setVideos(videos.map((video) => ({ ...video, privacyStatus: value }))) :
+                              !!videos && setVideos(videos.map((v, i) => i === index ? { ...v, privacyStatus: value } : v))}
                             value={videos && videos[index]?.privacyStatus}
                           >
                             <SelectTrigger className="outline-0 border border-gray-300 bg-transparent rounded h-10 ml-2">
@@ -528,7 +406,9 @@ export default function UploadTikTokPage({ references }: { references: Reference
                               className="cursor-pointer"
                               onClick={() => {
                                 !!videos &&
-                                  editAll ? setVideos(videos.map((video) => ({ ...video, disclose: !videos[index].disclose }))) : setVideos(videos.map((v, i) => i === index ? {
+                                  editAll ?
+                                  setVideos(videos.map((video) => ({ ...video, disclose: !videos[index].disclose }))) :
+                                  setVideos(videos.map((v, i) => i === index ? {
                                     ...v,
                                     disclose: !videos[index].disclose,
                                   } : v));
@@ -552,10 +432,12 @@ export default function UploadTikTokPage({ references }: { references: Reference
                                 <input
                                   type="checkbox"
                                   checked={videos[index].yourBrand}
-                                  onChange={() => editAll ? setVideos(videos.map((v) => ({ ...v, yourBrand: !videos[index].yourBrand }))) : setVideos(videos.map((v, i) => i === index ? {
-                                    ...v,
-                                    yourBrand: !videos[index].yourBrand
-                                  } : v))}
+                                  onChange={() => editAll ?
+                                    setVideos(videos.map((v) => ({ ...v, yourBrand: !videos[index].yourBrand }))) :
+                                    setVideos(videos.map((v, i) => i === index ? {
+                                      ...v,
+                                      yourBrand: !videos[index].yourBrand
+                                    } : v))}
                                   className="mt-[4px]"
                                 />
                                 <div>
@@ -573,10 +455,12 @@ export default function UploadTikTokPage({ references }: { references: Reference
                                   type="checkbox"
                                   disabled={videos?.[index]?.privacyStatus === "SELF_ONLY"}
                                   checked={videos?.[index].brandedContent}
-                                  onChange={() => editAll ? setVideos(videos.map((v) => ({ ...v, brandedContent: !videos[index].brandedContent }))) : setVideos(videos.map((v, i) => i === index ? {
-                                    ...v,
-                                    brandedContent: !videos[index].brandedContent
-                                  } : v))}
+                                  onChange={() => editAll ?
+                                    setVideos(videos.map((v) => ({ ...v, brandedContent: !videos[index].brandedContent }))) :
+                                    setVideos(videos.map((v, i) => i === index ? {
+                                      ...v,
+                                      brandedContent: !videos[index].brandedContent
+                                    } : v))}
                                   className="mt-[4px]"
                                 />
                                 <div>
@@ -661,12 +545,11 @@ export default function UploadTikTokPage({ references }: { references: Reference
                         localReferences={localReferences}
                         setLocalReferences={setLocalReferences}
                       />
-                      <KeyReferenceMenu
+                      <KeyReferenceMenuButton
                         type="title"
                         localReferences={localReferences}
                         setLocalReferences={setLocalReferences}
-                        setVideos={setVideos}
-                        currentVideoIndex={Infinity}
+                        callback={(key, value) => setVideos(videos?.map((video) => ({ ...video, [key]: value })))}
                       />
                     </div>
                   </div>
