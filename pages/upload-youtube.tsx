@@ -21,7 +21,6 @@ import generateVideoThumb from "@/app/utils/generateVideoThumb";
 import moment from "moment";
 import { CATEGORIES } from "@/app/constants";
 import { SanitizedVideoProps, YouTubeUserInfo } from "@/types"
-import "react-datepicker/dist/react-datepicker.css";
 
 export const getServerSideProps = async (context: any) => {
   const session = await getServerSession(context.req, context.res, authOptions);
