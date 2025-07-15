@@ -222,7 +222,7 @@ export default function UploadTikTokPage({ references }: { references: Reference
 
   return (
     <div className="flex flex-col items-center max-w-4xl mx-auto mt-6 p-6">
-      <form action="uploadVideo" method="post" encType="multipart/form-data" className="mt-12 w-full">
+      <form action="uploadVideo" method="post" encType="multipart/form-data" className="w-full">
         <div className="flex justify-between items-center mb-4">
           <div className="flex flex-col gap-2">
             <div className="flex gap-2">

@@ -23,10 +23,11 @@ const KeyReferenceMenuButton = ({ type, localReferences, setLocalReferences, cal
     });
   };
 
+  const disabled = localReferences.filter(ref => ref.type === type).length === 0;
   return (
     <MenuProvider>
-      <MenuButton>
-        <BookMarked strokeWidth={1.5} size={24} className={clsx("text-gray-600", { "opacity-50": localReferences.length === 0 })} />
+      <MenuButton disabled={disabled}>
+        <BookMarked strokeWidth={1.5} size={24} className={clsx("text-gray-600", { "opacity-50": disabled })} />
       </MenuButton>
       <Menu>
         {localReferences
@@ -41,8 +42,12 @@ const KeyReferenceMenuButton = ({ type, localReferences, setLocalReferences, cal
               >
                 {ref.value}
               </button>
-              <button type="button" onClick={() => deleteReference(ref.id)} className="hover:bg-gray-300 rounded">
-                <Trash2 strokeWidth={1} size={18} />
+              <button 
+                type="button" 
+                onClick={() => deleteReference(ref.id)} 
+                className="hover:bg-gray-300 rounded ml-auto"
+                >
+                <Trash2 strokeWidth={2} size={18} />
               </button>
             </MenuItem>
           )

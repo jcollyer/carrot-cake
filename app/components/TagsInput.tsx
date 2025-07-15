@@ -27,6 +27,7 @@ const TagsInput = ({tags, onAddTags, onRemoveTags}:TagsInputProps) => {
       <input
         type="text"
         className="h-8 text-sm px-1 outline-none"
+        onKeyDown={(e) => e.key === 'Enter' && e.preventDefault()}
         onKeyUp={event => {
           event.preventDefault();
           if(event.key === "Enter") {

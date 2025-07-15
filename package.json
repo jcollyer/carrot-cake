@@ -32,7 +32,6 @@
     "next-auth": "^4.24.11",
     "querystring": "^0.2.1",
     "react": "^19.0.0",
-    "react-datepicker": "^8.4.0",
     "react-dom": "^19.0.0",
     "react-dropzone": "^14.3.5",
     "sharp": "^0.33.5",

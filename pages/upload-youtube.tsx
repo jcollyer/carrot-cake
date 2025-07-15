@@ -12,15 +12,13 @@ import { Reference } from "@prisma/client";
 const transparentImage = require("@/public/transparent.png");
 import { getServerSession } from "next-auth"
 import { authOptions } from "@/pages/api/auth/[...nextauth]"
-import { forwardRef, useCallback, useEffect, useState } from "react";
-import { Upload, X, Calendar1, RotateCcw, CloudUpload } from "lucide-react";
-import DatePicker from "react-datepicker";
+import { useCallback, useEffect, useState } from "react";
+import { Upload, X, RotateCcw, CloudUpload } from "lucide-react";
 import { useDropzone } from "react-dropzone";
 import { getCookie } from "cookies-next"
 import Image from "next/image";
 import generateVideoThumb from "@/app/utils/generateVideoThumb";
 import moment from "moment";
-import { cn } from "@/app/utils/cn";
 import { CATEGORIES } from "@/app/constants";
 import { SanitizedVideoProps, YouTubeUserInfo } from "@/types"
 import "react-datepicker/dist/react-datepicker.css";
@@ -58,7 +56,7 @@ export default function UploadYouTubePage({ references }: { references: Referenc
   const [videos, setVideos] = useState<SanitizedVideoProps[]>([]);
   const [localReferences, setLocalReferences] = useState<Reference[]>(references || []);
   const [ytUserInfo, setYtUserInfo] = useState<YouTubeUserInfo>();
-  const [selectedDate, setSelectedDate] = useState(new Date());
+  const [isUploading, setIsUploading] = useState<boolean>(false);
 
   const onDrop = useCallback((acceptedFiles: any) => {
     if (acceptedFiles.length) {
@@ -84,28 +82,7 @@ export default function UploadYouTubePage({ references }: { references: Referenc
 
   const { getRootProps, getInputProps } = useDropzone({ onDrop });
 
-  type DateCustomInputProps = {
-    value?: string;
-    onClick?: () => void;
-    className?: string;
-  }
-
-  const DateCustomInput = forwardRef<HTMLButtonElement, DateCustomInputProps>(
-    ({ value, onClick, className }, ref) => (
-      <Button
-        className={cn("flex gap-3 items-center", className)}
-        variant="thin"
-        onClick={onClick}
-        type="button"
-        ref={ref}
-      >
-        {value}
-        <Calendar1 size={22} strokeWidth={1.5} />
-      </Button>
-    ),
-  );
-
-  const tryToUpload = async (accessToken: string, urlparameters: string, video: SanitizedVideoProps) => {
+  const tryToUpload = async (accessToken: string, urlparameters: string, video: SanitizedVideoProps, videoIndex: number) => {
     try {
       const location = await fetch(`https://www.googleapis.com/upload/youtube/v3/videos?${urlparameters}`, {
         method: "POST",
@@ -121,25 +98,31 @@ export default function UploadYouTubePage({ references }: { references: Referenc
           },
           status: {
             privacyStatus: "private",
-            publishAt: new Date(video.scheduleDate ?? new Date()).toISOString(),
+            // publishAt: new Date(video.scheduleDate ?? new Date()).toISOString(),
           },
         }),
       });
+
       // Url to upload video file from the location header
       const videoUrl = await location.headers.get("Location");
-      try {
-        const response = await fetch(`${videoUrl}`, {
-          method: "PUT",
-          headers: {
-            "Content-Type": "video/mp4",
-          },
-          body: video.file,
-        });
-        console.log("Video uploaded:", response)
-        setVideos([]);
-      } catch (error) {
-        console.error("Error uploading file:", error);
+      const res = await fetch(`${videoUrl}`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "video/mp4",
+        },
+        body: video.file,
+      });
+
+      if (!res.ok) {
+        console.error("Error uploading video:", res.statusText);
+        return;
       }
+
+      if (res.status === 200) {
+        // remove uploaded video
+        setVideos(videos.filter((_, i) => i !== 0));
+      }
+
     } catch {
       // If the access token is expired, refresh it and try again
       try {
@@ -167,7 +150,7 @@ export default function UploadYouTubePage({ references }: { references: Referenc
         }).then(async (res) => {
           const { access_token } = await res.json();
           // Try uploading the video again with the new access token
-          await tryToUpload(access_token, urlparameters, video);
+          await tryToUpload(access_token, urlparameters, video, videoIndex);
         });
       } catch (error) {
         console.error("Error refreshing token:", error);
@@ -175,7 +158,7 @@ export default function UploadYouTubePage({ references }: { references: Referenc
     }
   }
 
-  const onSubmit = (event: React.ChangeEvent<any>) => {
+  const onSubmit = async (event: React.ChangeEvent<any>) => {
     event.preventDefault();
     const accessToken = !!tokens && JSON.parse(tokens as string).access_token;
     const urlparameters = "part=snippet%2Cstatus&uploadType=resumable";
@@ -185,7 +168,14 @@ export default function UploadYouTubePage({ references }: { references: Referenc
       return;
     }
     if (!!videos.length) {
-      videos.forEach(async (video) => tryToUpload(accessToken, urlparameters, video));
+      setIsUploading(true);
+      for (const [i, video] of videos.entries()) {
+        await tryToUpload(accessToken, urlparameters, video, i)
+        if (i === videos.length - 1) {
+          setIsUploading(false);
+          setVideos([]);
+        }
+      }
     }
   };
 
@@ -199,10 +189,9 @@ export default function UploadYouTubePage({ references }: { references: Referenc
     getUserInfo()
   }, [tokens]);
 
-
   return (
-    <div className="flex flex-col max-w-3xl mx-auto mt-12 p-6">
-      <form action="uploadVideo" method="post" encType="multipart/form-data" onSubmit={onSubmit} className="mt-12">
+    <div className="flex flex-col max-w-4xl mx-auto mt-12 p-6">
+      <form action="uploadVideo" method="post" encType="multipart/form-data" className="w-full">
         <div className="flex justify-between items-center mb-4">
           <div className="flex flex-col gap-4">
             <div className="flex gap-2">
@@ -226,7 +215,14 @@ export default function UploadYouTubePage({ references }: { references: Referenc
           )}
         </div>
         <div className="mt-2 mb-5">
-
+          {isUploading && videos.length !== 0 && <div className="flex justify-end mb-4">
+            <div role="status">
+            <svg aria-hidden="true" className="w-8 h-8 text-gray-200 animate-spin dark:text-gray-600 fill-gray-600" viewBox="0 0 100 101" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M100 50.5908C100 78.2051 77.6142 100.591 50 100.591C22.3858 100.591 0 78.2051 0 50.5908C0 22.9766 22.3858 0.59082 50 0.59082C77.6142 0.59082 100 22.9766 100 50.5908ZM9.08144 50.5908C9.08144 73.1895 27.4013 91.5094 50 91.5094C72.5987 91.5094 90.9186 73.1895 90.9186 50.5908C90.9186 27.9921 72.5987 9.67226 50 9.67226C27.4013 9.67226 9.08144 27.9921 9.08144 50.5908Z" fill="currentColor" />
+              <path d="M93.9676 39.0409C96.393 38.4038 97.8624 35.9116 97.0079 33.5539C95.2932 28.8227 92.871 24.3692 89.8167 20.348C85.8452 15.1192 80.8826 10.7238 75.2124 7.41289C69.5422 4.10194 63.2754 1.94025 56.7698 1.05124C51.7666 0.367541 46.6976 0.446843 41.7345 1.27873C39.2613 1.69328 37.813 4.19778 38.4501 6.62326C39.0873 9.04874 41.5694 10.4717 44.0505 10.1071C47.8511 9.54855 51.7191 9.52689 55.5402 10.0491C60.8642 10.7766 65.9928 12.5457 70.6331 15.2552C75.2735 17.9648 79.3347 21.5619 82.5849 25.841C84.9175 28.9121 86.7997 32.2913 88.1811 35.8758C89.083 38.2158 91.5421 39.6781 93.9676 39.0409Z" fill="currentFill" />
+            </svg>
+            <span className="sr-only">Loading...</span>
+          </div></div>}
           {videos && videos.length > 0 && videos.map((video, index) => (
             <div className="flex gap-6 mb-6" key={video.file.name}>
               <div className="flex flex-col shrink-0 w-1/4 h-fit relative">
@@ -249,7 +245,7 @@ export default function UploadYouTubePage({ references }: { references: Referenc
                   {videos[index]?.uploadProgress || 0 > 0 && (
                     <div className="flex gap-2 w-full items-center">
                       <p className="text-sm font-medium w-1/4 shrink-0">Upload progress</p>
-                      <div className="px-2 w-full"><Progress value={videos?.[index].uploadProgress} /></div>
+                      <div className="px-2 w-full"><Progress value={Number(videos?.[index].uploadProgress)} /></div>
                     </div>
                   )}
                   <ButtonIcon
@@ -272,6 +268,7 @@ export default function UploadYouTubePage({ references }: { references: Referenc
                       <p className="text-xs text-gray-500">Main video title</p>
                     </div>
                     <input
+                      onKeyDown={(e) => e.key === 'Enter' && e.preventDefault()}
                       onChange={event => editAll ?
                         !!videos && setVideos(videos.map((video) => ({ ...video, title: event.currentTarget.value }))) :
                         !!videos && setVideos(videos.map((v, i) => i === index ? { ...v, title: event.currentTarget.value } : v))}
@@ -329,7 +326,7 @@ export default function UploadYouTubePage({ references }: { references: Referenc
                       <p className="text-sm font-medium">Video category</p>
                       <p className="text-xs text-gray-500">Genre type</p>
                     </div>
-                    <div className="w-[calc(100%-210px)]">
+                    <div className="w-[calc(100%-235px)]">
                       <Select
                         onValueChange={(value) => editAll ?
                           !!videos && setVideos(videos.map((video) => ({ ...video, categoryId: value }))) :
@@ -350,17 +347,20 @@ export default function UploadYouTubePage({ references }: { references: Referenc
                     </div>
                   </div>
 
-                  <div className="flex gap-2 ml-2">
+                  <div className="flex gap-2">
                     <div className="w-1/4 shrink-0">
                       <p className="text-sm font-medium">Scheduled Date</p>
                       <p className="text-xs text-gray-500">Video release</p>
                     </div>
-                    <div className="w-[calc(100%-200px)] [&_.react-datepicker-wrapper]:w-full">
-                      <DatePicker
-                        className="w-full l"
-                        selected={selectedDate}
-                        onChange={(date) => setSelectedDate(date || new Date())}
-                        customInput={<DateCustomInput className="example-custom-input" />}
+                    <div className="w-[calc(100%-235px)] ml-2">
+                      <input
+                        onKeyDown={(e) => e.key === 'Enter' && e.preventDefault()}
+                        type="date"
+                        className="w-full border border-gray-300 rounded h-10 px-2"
+                        value={videos[index]?.scheduleDate ? videos[index]?.scheduleDate : new Date().toISOString().split("T")[0]}
+                        onChange={(e) => editAll ?
+                          !!videos && setVideos(videos.map((video) => ({ ...video, scheduleDate: e.target.value }))) :
+                          !!videos && setVideos(videos.map((v, i) => i === index ? { ...v, scheduleDate: e.target.value } : v))}
                       />
                     </div>
                   </div>
@@ -371,9 +371,9 @@ export default function UploadYouTubePage({ references }: { references: Referenc
                       <p className="text-xs text-gray-500">Keywords</p>
                     </div>
                     <TagsInput
-                      onAddTags={(e) => editAll ?
-                        !!videos && setVideos(videos.map((video) => ({ ...video, tags: video.tags ? `${video.tags},${e}` : e }))) :
-                        !!videos && setVideos(videos.map((v, i) => i === index ? { ...v, tags: v.tags ? `${v.tags},${e}` : e } : v))}
+                      onAddTags={(tag) => editAll ?
+                        !!videos && setVideos(videos.map((video) => ({ ...video, tags: video.tags ? `${video.tags},${tag}` : tag }))) :
+                        !!videos && setVideos(videos.map((v, i) => i === index ? { ...v, tags: v.tags ? `${v.tags},${tag}` : tag } : v))}
                       onRemoveTags={(indexToRemove) => editAll ? !!videos && setVideos(videos.map((video) => {
                         let tagsArr = video.tags?.split(",")
                         tagsArr?.splice(indexToRemove, 1)
@@ -398,7 +398,9 @@ export default function UploadYouTubePage({ references }: { references: Referenc
                         type="tags"
                         localReferences={localReferences}
                         setLocalReferences={setLocalReferences}
-                        callback={(key, value) => setVideos(videos.map((v, i) => i === index ? { ...v, [key]: value } : v))}
+                        callback={(key, value) => editAll ?
+                          setVideos(videos.map((video) => ({ ...video, [key]: value }))) :
+                          setVideos(videos.map((v, i) => i === index ? { ...v, [key]: value } : v))}
                       />
                     </div>
                   </div>
@@ -416,6 +418,7 @@ export default function UploadYouTubePage({ references }: { references: Referenc
               onClick={() => {
                 setVideos([])
               }}
+              disabled={isUploading}
               className="flex flex-1 gap-2"
             >
               <RotateCcw strokeWidth={2} />
@@ -423,7 +426,9 @@ export default function UploadYouTubePage({ references }: { references: Referenc
             </Button>
             <Button
               variant="secondary"
-              type="button"
+              type="submit"
+              onClick={onSubmit}
+              disabled={isUploading}
               className="flex gap-2 items-center flex-1"
             >
               <CloudUpload />
@@ -508,7 +513,7 @@ export default function UploadYouTubePage({ references }: { references: Referenc
                 <p className="text-sm font-medium">Video category</p>
                 <p className="text-xs text-gray-500">Genre type</p>
               </div>
-              <div className="w-[calc(100%-210px)]">
+              <div className="w-[calc(100%-235px)]">
                 <Select value={""}>
                   <SelectTrigger className="outline-0 border border-gray-300 bg-transparent rounded h-10 ml-2">
                     <SelectValue placeholder="Select an option" />
@@ -523,16 +528,17 @@ export default function UploadYouTubePage({ references }: { references: Referenc
                 </Select>
               </div>
             </div>
-            <div className="flex gap-2 ml-2">
+            <div className="flex gap-2">
               <div className="w-1/4 shrink-0">
                 <p className="text-sm font-medium">Scheduled Date</p>
                 <p className="text-xs text-gray-500">Video release</p>
               </div>
-              <div className="w-[calc(100%-200px)] [&_.react-datepicker-wrapper]:w-full">
-                <DatePicker
-                  className="w-full l"
-                  selected={selectedDate}
-                  customInput={<DateCustomInput className="example-custom-input" />}
+              <div className="w-[calc(100%-235px)] ml-2">
+                <input
+                  onKeyDown={(e) => e.key === 'Enter' && e.preventDefault()}
+                  type="date"
+                  className="w-full border border-gray-300 rounded h-10 px-2"
+                  value={new Date().toISOString().split("T")[0]}
                 />
               </div>
             </div>
