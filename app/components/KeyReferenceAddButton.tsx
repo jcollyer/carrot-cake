@@ -1,4 +1,4 @@
-import React, { useCallback } from "react";
+import React, { Dispatch, SetStateAction, useCallback } from "react";
 import { BookmarkPlus } from "lucide-react";
 import clsx from "clsx";
 import { Reference } from "@prisma/client";
@@ -8,7 +8,7 @@ type KeyReferenceAddButtonProps = {
   type: string;
   value: string;
   localReferences: Reference[];
-  setLocalReferences: React.Dispatch<React.SetStateAction<Reference[]>>;
+  setLocalReferences: Dispatch<SetStateAction<Reference[]>>;
 };
 
 const KeyReferenceAddButton = ({ type, value, localReferences, setLocalReferences }: KeyReferenceAddButtonProps) => {

@@ -1,12 +1,12 @@
-import { useContext } from "react";
-import {useRouter} from "next/router"
 import { AuthContext } from "@/pages/_app";
+import {useRouter} from "next/router"
+import { ChangeEvent, useContext } from "react";
 
 const SigninPage = () => {
   const { setAuthenticated } = useContext(AuthContext);
   const { push } = useRouter();
 
-  const login = (event: React.ChangeEvent<any>) => {
+  const login = (event: ChangeEvent<any>) => {
     event.preventDefault();
 
     const email = event.target[0].value;

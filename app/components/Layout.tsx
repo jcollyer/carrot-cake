@@ -1,7 +1,8 @@
 import Navbar from "@/app/components/Navbar";
 import Footer from "@/app/components/Footer";
+import { ReactNode } from "react";
 
-export default function Layout({ children }: { children: React.ReactNode }) {
+export default function Layout({ children }: { children: ReactNode }) {
   return (
     <div className="flex flex-col h-screen bg-gray-50">
       <Navbar />

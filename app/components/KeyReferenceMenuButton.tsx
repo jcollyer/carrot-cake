@@ -2,11 +2,12 @@ import { MenuProvider, Menu, MenuButton, MenuItem } from "@/app/components/primi
 import { BookMarked, Trash2 } from "lucide-react";
 import clsx from "clsx";
 import { Reference } from "@prisma/client";
+import { Dispatch, SetStateAction } from "react";
 
 type KeyReferenceMenuButtonProps = {
   type: string;
   localReferences: Reference[];
-  setLocalReferences: React.Dispatch<React.SetStateAction<Reference[]>>;
+  setLocalReferences: Dispatch<SetStateAction<Reference[]>>;
   callback: (value: string, key: string) => void;
 };
 

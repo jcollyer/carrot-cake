@@ -1,5 +1,5 @@
 import * as RadixTabs from "@radix-ui/react-tabs";
-import React, { ReactNode } from "react";
+import React, { FC, ReactNode } from "react";
 import { clsx } from "clsx";
 
 type TabsProps = {
@@ -8,7 +8,7 @@ type TabsProps = {
   className?: string;
 };
 
-export const Tabs: React.FC<TabsProps> = ({
+export const Tabs: FC<TabsProps> = ({
   defaultValue,
   children,
   className,
@@ -40,7 +40,7 @@ type TabsTriggerProps = {
   children: ReactNode;
 };
 
-export const TabsTrigger: React.FC<TabsTriggerProps> = ({
+export const TabsTrigger: FC<TabsTriggerProps> = ({
   value,
   children,
 }) => (
@@ -57,7 +57,7 @@ type TabsContentProps = {
   children: ReactNode;
 };
 
-export const TabsContent: React.FC<TabsContentProps> = ({
+export const TabsContent: FC<TabsContentProps> = ({
   value,
   children,
 }) => (

@@ -1,8 +1,9 @@
 import { MessageCircle, SwitchCamera, MessagesSquare } from "lucide-react";
+import { ComponentType } from "react";
 
 type VideoAccessOption = {
   name: "comment" | "duet" | "stitch";
-  icon: React.ComponentType<{ strokeWidth?: number; size?: number; className?: string }>;
+  icon: ComponentType<{ strokeWidth?: number; size?: number; className?: string }>;
 };
 
 export const VIDEO_ACCESS_OPTIONS: VideoAccessOption[] = [

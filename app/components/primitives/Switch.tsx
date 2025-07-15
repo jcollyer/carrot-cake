@@ -1,9 +1,9 @@
 import * as Switch from "@radix-ui/react-switch";
-import { forwardRef } from "react";
+import { ComponentPropsWithoutRef, ElementRef, forwardRef } from "react";
 
 const SwitchPrimitive = forwardRef<
-  React.ElementRef<typeof Switch.Root>,
-  React.ComponentPropsWithoutRef<typeof Switch.Root>
+  ElementRef<typeof Switch.Root>,
+  ComponentPropsWithoutRef<typeof Switch.Root>
 >(({ className, ...props }, ref) => (
   <Switch.Root
     ref={ref}
@@ -14,8 +14,8 @@ const SwitchPrimitive = forwardRef<
   </Switch.Root>
 ));
 const SwitchThumb = forwardRef<
-  React.ElementRef<typeof Switch.Thumb>,
-  React.ComponentPropsWithoutRef<typeof Switch.Thumb>
+  ElementRef<typeof Switch.Thumb>,
+  ComponentPropsWithoutRef<typeof Switch.Thumb>
 >(({ className, ...props }, ref) => (
   <Switch.Thumb
     ref={ref}

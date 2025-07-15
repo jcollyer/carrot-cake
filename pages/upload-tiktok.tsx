@@ -9,6 +9,7 @@ import {
 } from "@/app/components/primitives/Select";
 import { Switch, SwitchThumb } from "@/app/components/primitives/Switch";
 import { Progress } from "@/app/components/primitives/Progress";
+import Spinner from "@/app/components/primitives/Spinner";
 import KeyReferenceAddButton from "@/app/components/KeyReferenceAddButton";
 import KeyReferenceMenuButton from "@/app/components/KeyReferenceMenuButton";
 import prisma from "@/lib/prisma";
@@ -16,7 +17,7 @@ import { Reference } from "@prisma/client";
 const transparentImage = require("@/public/transparent.png");
 import { getServerSession } from "next-auth"
 import { authOptions } from "@/pages/api/auth/[...nextauth]"
-import { useCallback, useEffect, useState } from "react";
+import { ChangeEvent, useCallback, useEffect, useState } from "react";
 import { Upload, RotateCcw, CloudUpload, X } from "lucide-react";
 import { useDropzone } from "react-dropzone";
 import Image from "next/image";
@@ -26,6 +27,7 @@ import generateVideoThumb from "@/app/utils/generateVideoThumb";
 import { cn } from "@/app/utils/cn";
 import secondsToMinutesAndSeconds from "@/app/utils/secondsToMinutes";
 import { CHUNK_SIZE, ALL_PRIVACY_STATUS_OPTIONS, VIDEO_ACCESS_OPTIONS } from "@/app/constants";
+import { useUploadChunk } from "@/app/hooks/use-upload-chunk";
 
 export const getServerSideProps = async (context: any) => {
   const session = await getServerSession(context.req, context.res, authOptions);
@@ -52,57 +54,6 @@ export const getServerSideProps = async (context: any) => {
   return {
     props: references,
   };
-};
-
-type UploadChunksProps = {
-  file: File;
-  uploadUrl: string;
-  setVideos: React.Dispatch<React.SetStateAction<TikTokVideoProps[] | undefined>>;
-  videoIndex?: number;
-};
-
-const uploadChunks = async ({ file, uploadUrl, setVideos, videoIndex }: UploadChunksProps) => {
-  const totalSize = file.size;
-  let offset = 0;
-  let chunkIndex = 0;
-  while (offset + CHUNK_SIZE < totalSize) {
-    let contentRange = ""
-    let chunk = null;
-    if ((offset + (CHUNK_SIZE * 2)) > totalSize) {
-      chunk = file.slice(offset, totalSize);
-      contentRange = `bytes ${offset}-${totalSize - 1}/${totalSize}`;
-    } else {
-      chunk = file.slice(offset, offset + CHUNK_SIZE);
-      contentRange = `bytes ${offset}-${offset + chunk.size - 1}/${totalSize}`;
-    }
-
-    const res = await fetch(uploadUrl, {
-      method: "PUT",
-      headers: {
-        "Content-Range": contentRange,
-        "Content-Length": chunk.size.toString(),
-        "Content-Type": "video/mp4",
-      },
-      body: chunk,
-    });
-
-    if (!res.ok) {
-      console.error(`Chunk ${chunkIndex} failed, Response status: ${res.status}`);
-      return;
-    }
-    if (res.status === 206) {
-      setVideos((prev) => prev?.map((v, i) => i === 0 ? {
-        ...v,
-        uploadProgress: (v.uploadProgress || 0) + Math.floor((chunk.size / totalSize) * 100)
-      } : v));
-    }
-    if (res.status === 201) {
-      setVideos((prev) => prev?.filter((_, i) => i !== videoIndex));
-    }
-
-    offset += CHUNK_SIZE;
-    chunkIndex++;
-  }
 };
 
 export default function UploadTikTokPage({ references }: { references: Reference[] }) {
@@ -192,7 +143,15 @@ export default function UploadTikTokPage({ references }: { references: Reference
         return response.json();
       })
       .then(async ({ data }) => {
-        await uploadChunks({ file: video.file, uploadUrl: data.upload_url, setVideos, videoIndex: index });
+        await useUploadChunk({
+          offset: 0,
+          chunkIndex: 0,
+          setVideos,
+          file: video.file,
+          uploadUrl: data.upload_url,
+          totalSize: video.file.size,
+          videoIndex: index,
+        });
       })
       .catch((error) => {
         console.error("Error uploading video:", error);
@@ -203,7 +162,7 @@ export default function UploadTikTokPage({ references }: { references: Reference
       });
   };
 
-  const onSubmit = async (event: React.ChangeEvent<any>) => {
+  const onSubmit = async (event: ChangeEvent<any>) => {
     event.preventDefault();
     if (!tikTokAccessToken) {
       console.error("No access token found");
@@ -211,6 +170,7 @@ export default function UploadTikTokPage({ references }: { references: Reference
     }
     if (!!videos && videos.length > 0) {
       for (const [index, video] of videos.entries()) {
+        setVideos((prev) => prev?.map((v, i) => i === index ? { ...v, uploadProgress: 2 } : v));
         await uploadTikTokVideo({ video, draft: video.directPost, index });
       }
     }
@@ -230,8 +190,13 @@ export default function UploadTikTokPage({ references }: { references: Reference
               <p className="text-xs mt-auto">Upload video max: {minutes}m {remainingSeconds}s</p>
             </div>
             <div className="flex gap-2">
-              <img src={tiktokCreatorInfo?.creator_avatar_url} alt="YouTube User Thumbnail" width="35" height="35" className="rounded-full" />
-              <h2 className="text-2xl font-bold text-gray-700">{tiktokCreatorInfo?.creator_nickname}</h2>
+              {!tiktokCreatorInfo ? <Spinner size="medium" /> : (
+                <>
+                  <img src={tiktokCreatorInfo?.creator_avatar_url} alt="YouTube User Thumbnail" width="35" height="35" className="rounded-full" />
+                  <h2 className="text-2xl font-bold text-gray-700">{tiktokCreatorInfo?.creator_nickname}</h2>
+                </>
+              )}
+
             </div>
           </div>
           {videos && videos.length > 1 && (
@@ -264,10 +229,18 @@ export default function UploadTikTokPage({ references }: { references: Reference
               </div>
               <div className={cn("flex flex-col w-full", { "opacity-40": !videos || videos.length === 0 })}>
                 <div className="flex flex-col gap-4 h-fit w-full border border-gray-100 rounded-xl p-4 bg-white">
-                  {videos[index]?.uploadProgress || 0 > 0 && (
+                  {true && (
                     <div className="flex gap-2 w-full items-center">
                       <p className="text-sm font-medium w-1/4 shrink-0">Upload progress</p>
-                      <div className="px-2 w-full"><Progress value={videos?.[index].uploadProgress} /></div>
+                      <div className="px-2 w-full">
+                        <Progress value={videos?.[index].uploadProgress} />
+                        <div className="relative w-full overflow-hidden rounded-full bg-gray-300 h-2">
+                          <div
+                            className="h-full w-full flex-1 bg-gray-700 transition-all"
+                            style={{ transform: `translateX(-${100 - (videos?.[index].uploadProgress || 0)}%)` }}
+                          >&nbsp;</div>
+                        </div>
+                      </div>
                     </div>
                   )}
                   <div className="flex gap-2 items-center">

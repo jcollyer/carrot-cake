@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { ChangeEvent, useState } from "react";
 import { useRouter } from "next/router";
 import clsx from "clsx";
 
@@ -7,7 +7,7 @@ const SignupPage = () => {
   const [orignalPassword, setOrignalPassword] = useState("");
   const [passwordMatch, setPasswordMatch] = useState(false);
 
-  const signup = (event: React.ChangeEvent<any>) => {
+  const signup = (event: ChangeEvent<any>) => {
     event.preventDefault();
 
     const email = event.target[0].value;
