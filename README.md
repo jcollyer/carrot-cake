@@ -44,7 +44,6 @@ ngrok https --url=jointly-topical-leech.ngrok-free.app 3000
 bug list:
 - enable refresh token for tiktok apis
 
-
 feature list:
 - revke tiktok access on logout https://developers.tiktok.com/doc/oauth-user-access-token-management
 - UI handle multiple videos scheduled on the same day
