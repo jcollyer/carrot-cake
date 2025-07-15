@@ -5,6 +5,9 @@ const isDev = process.env.NODE_ENV === "development";
 const SERVER_ENDPOINT_REDIRECT = isDev
   ? process.env.REDIRECT_URIS_TIKTOK_LOCAL
   : process.env.REDIRECT_URIS_TIKTOK_PROD;
+const SECRET = isDev
+  ? process.env.TIKTOK_CLIENT_SECRET_LOCAL
+  : process.env.TIKTOK_CLIENT_SECRET_PROD;
 
 export default async function handler(
   req: NextApiRequest,
@@ -16,7 +19,7 @@ export default async function handler(
     const tokenEndpoint = "https://open.tiktokapis.com/v2/oauth/token/";
     const params = {
       client_key: process.env.TIKTOK_CLIENT_KEY,
-      client_secret: process.env.TIKTOK_CLIENT_SECRET,
+      client_secret: SECRET,
       code: decode,
       grant_type: "authorization_code",
       redirect_uri: SERVER_ENDPOINT_REDIRECT,
