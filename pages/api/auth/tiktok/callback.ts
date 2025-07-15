@@ -9,6 +9,10 @@ const SECRET = isDev
   ? process.env.TIKTOK_CLIENT_SECRET_LOCAL
   : process.env.TIKTOK_CLIENT_SECRET_PROD;
 
+const CLIENT_KEY = isDev
+  ? process.env.TIKTOK_CLIENT_KEY_LOCAL
+  : process.env.TIKTOK_CLIENT_KEY_PROD;
+
 export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse
@@ -18,7 +22,7 @@ export default async function handler(
     const decode = decodeURI(code as string);
     const tokenEndpoint = "https://open.tiktokapis.com/v2/oauth/token/";
     const params = {
-      client_key: process.env.TIKTOK_CLIENT_KEY,
+      client_key: CLIENT_KEY,
       client_secret: SECRET,
       code: decode,
       grant_type: "authorization_code",
