@@ -47,7 +47,9 @@ function LoggedOut() {
             <Image src="/youtube_logo.png" alt="Carrot Cake Logo" width="20" height="2" className="h-[15px]" />
             <h3 className="font-bold text-gray-600">Youtube </h3>
             <Image src="/tiktok.svg" alt="TikTok Logo" width="20" height="6" />
-            <h3 className="font-bold text-gray-600">TikTok Upload & Schedule App</h3>
+            <h3 className="font-bold text-gray-600">TikTok & {" "}</h3>
+            <Image src="/ig_logo.svg" alt="Instagram Logo" width="20" height="6" />
+            <h3 className="font-bold text-gray-600">Instagram Upload Schedule App</h3>
           </div>
           <h1 className="text-5xl text-transparent text-center leading-[1.2] bg-clip-text bg-gradient-to-r from-red-500 to-orange-500">upload once, schedule for weeks</h1>
           <h2 className="text-xl text-center px-32">Save time. Stay organized. Upload multiple videos at once and manage them effortlessly.</h2>

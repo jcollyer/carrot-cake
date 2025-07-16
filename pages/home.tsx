@@ -311,6 +311,17 @@ export default function Home() {
                   <Image src="/tiktok.svg" alt="TikTok Logo" width="40" height="16" />
                   Continue with TikTok
                 </Button>
+                <Button
+                  variant="white"
+                  size="xlarge"
+                  className="flex gap-4 justify-center items-center"
+                  onClick={() => {
+                    // Placeholder for future Instagram integration
+                  }}
+                >
+                  <Image src="/ig_logo.svg" alt="Instagram Logo" width="40" height="18"  />
+                  Connect to Instagram
+                </Button>
               </div>
             </div>
           )}
@@ -328,6 +339,12 @@ export default function Home() {
                 <div className="flex items-center gap-2">
                   <Image src="/tiktok.svg" alt="TikTok Logo" width="16" height="6" />
                   <p className="font-semibold">TikTok</p>
+                </div>
+              </TabsTrigger>
+              <TabsTrigger value="instagram">
+                <div className="flex items-center gap-2">
+                  <Image src="/ig_logo.svg" alt="Instagram Logo" width="16" height="6" />
+                  <p className="font-semibold">Instagram</p>
                 </div>
               </TabsTrigger>
             </TabsList>
@@ -408,6 +425,23 @@ export default function Home() {
                     Continue with TikTok
                   </Button>
                 )}
+              </div>
+            </TabsContent>
+
+            <TabsContent value="instagram">
+              <div className="flex flex-col items-center gap-6 mb-16 px-4">
+                <h3 className="text-gray-700 text-xl font-semibold">Instagram integration is coming soon!</h3>
+                <Button
+                  variant="white"
+                  size="xlarge"
+                  className="flex gap-4 mt-4"
+                  onClick={() => {
+                    // Placeholder for future Instagram integration
+                  }}
+                >
+                  <Image src="/ig_logo.svg" alt="Instagram Logo" width="50" height="20" className="w-12" />
+                  Connect Instagram
+                </Button>
               </div>
             </TabsContent>
           </Tabs>
