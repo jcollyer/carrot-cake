@@ -234,12 +234,12 @@ export default function UploadTikTokPage({ references }: { references: Reference
                       <p className="text-sm font-medium w-1/4 shrink-0">Upload progress</p>
                       <div className="px-2 w-full">
                         <Progress value={videos?.[index].uploadProgress} />
-                        <div className="relative w-full overflow-hidden rounded-full bg-gray-300 h-2">
+                        {/* <div className="relative w-full overflow-hidden rounded-full bg-gray-300 h-2">
                           <div
                             className="h-full w-full flex-1 bg-gray-700 transition-all"
                             style={{ transform: `translateX(-${100 - (videos?.[index].uploadProgress || 0)}%)` }}
                           >&nbsp;</div>
-                        </div>
+                        </div> */}
                       </div>
                     </div>
                   )}
