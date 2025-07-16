@@ -2,6 +2,7 @@ import { NextApiRequest, NextApiResponse } from "next";
 const querystring = require("querystring");
 
 const isDev = process.env.NODE_ENV === "development";
+
 const ENDPOINT_REDIRECT = isDev
   ? process.env.REDIRECT_URIS_TIKTOK_LOCAL
   : process.env.REDIRECT_URIS_TIKTOK_PROD;
