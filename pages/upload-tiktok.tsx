@@ -182,7 +182,7 @@ export default function UploadTikTokPage({ references }: { references: Reference
 
   return (
     <div className="flex flex-col items-center max-w-4xl mx-auto mt-6 p-6">
-      <form action="uploadVideo" method="post" encType="multipart/form-data" className="w-full">
+      <form encType="multipart/form-data" className="w-full">
         <div className="flex justify-between items-center mb-4">
           <div className="flex flex-col gap-2">
             <div className="flex gap-2">
@@ -229,7 +229,7 @@ export default function UploadTikTokPage({ references }: { references: Reference
               </div>
               <div className={cn("flex flex-col w-full", { "opacity-40": !videos || videos.length === 0 })}>
                 <div className="flex flex-col gap-4 h-fit w-full border border-gray-100 rounded-xl p-4 bg-white">
-                  {true && (
+                  {videos?.[index].uploadProgress || 0 > 0 && (
                     <div className="flex gap-2 w-full items-center">
                       <p className="text-sm font-medium w-1/4 shrink-0">Upload progress</p>
                       <div className="px-2 w-full">

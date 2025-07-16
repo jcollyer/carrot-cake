@@ -8,6 +8,7 @@ import KeyReferenceAddButton from "@/app/components/KeyReferenceAddButton";
 import KeyReferenceMenuButton from "@/app/components/KeyReferenceMenuButton";
 import TagsInput from "@/app/components/TagsInput";
 import { useGetYouTubeUserInfo } from "@/app/hooks/use-get-youtube-user-info";
+import { useUploadYoutubeVideo } from "@/app/hooks/use-upload-youtube-video";
 import prisma from "@/lib/prisma";
 import { Reference } from "@prisma/client";
 const transparentImage = require("@/public/transparent.png");
@@ -82,86 +83,9 @@ export default function UploadYouTubePage({ references }: { references: Referenc
 
   const { getRootProps, getInputProps } = useDropzone({ onDrop });
 
-  const tryToUpload = async (accessToken: string, urlparameters: string, video: SanitizedVideoProps, videoIndex: number) => {
-    try {
-      const location = await fetch(`https://www.googleapis.com/upload/youtube/v3/videos?${urlparameters}`, {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${String(accessToken)}`,
-        },
-        body: JSON.stringify({
-          snippet: {
-            categoryId: video.categoryId,
-            description: video.description,
-            title: video.title,
-            tags: video.tags
-          },
-          status: {
-            privacyStatus: "private",
-            publishAt: new Date(video.scheduleDate ?? new Date()).toISOString(),
-          },
-        }),
-      });
-
-      // Url to upload video file from the location header
-      const videoUrl = await location.headers.get("Location");
-      const res = await fetch(`${videoUrl}`, {
-        method: "PUT",
-        headers: {
-          "Content-Type": "video/mp4",
-        },
-        body: video.file,
-      });
-
-      if (!res.ok) {
-        console.error("Error uploading video:", res.statusText);
-        return;
-      }
-
-      if (res.status === 200) {
-        // remove uploaded video
-        setVideos(videos.filter((_, i) => i !== 0));
-      }
-
-    } catch {
-      // If the access token is expired, refresh it and try again
-      try {
-        const refreshToken = JSON.parse(tokens as string)?.refresh_token;
-        const refreshResponse = await fetch("/api/youtube/connect-yt", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({ refreshToken }),
-        });
-
-        if (!refreshResponse) {
-          console.error("No refresh response");
-          return;
-        }
-        const refreshData = await refreshResponse.json();
-        const config = refreshData?.res?.config;
-        const { url, body, headers } = config;
-
-        await fetch(url, {
-          method: "POST",
-          headers,
-          body,
-        }).then(async (res) => {
-          const { access_token } = await res.json();
-          // Try uploading the video again with the new access token
-          await tryToUpload(access_token, urlparameters, video, videoIndex);
-        });
-      } catch (error) {
-        console.error("Error refreshing token:", error);
-      }
-    }
-  }
-
   const onSubmit = async (event: ChangeEvent<any>) => {
     event.preventDefault();
     const accessToken = !!tokens && JSON.parse(tokens as string).access_token;
-    const urlparameters = "part=snippet%2Cstatus&uploadType=resumable";
 
     if (!accessToken) {
       console.error("No access token found");
@@ -170,7 +94,7 @@ export default function UploadYouTubePage({ references }: { references: Referenc
     if (!!videos.length) {
       setIsUploading(true);
       for (const [i, video] of videos.entries()) {
-        await tryToUpload(accessToken, urlparameters, video, i)
+        useUploadYoutubeVideo({ accessToken, video, videos, setVideos });
         if (i === videos.length - 1) {
           setIsUploading(false);
           setVideos([]);
@@ -191,7 +115,7 @@ export default function UploadYouTubePage({ references }: { references: Referenc
 
   return (
     <div className="flex flex-col max-w-4xl mx-auto mt-12 p-6">
-      <form action="uploadVideo" method="post" encType="multipart/form-data" className="w-full">
+      <form encType="multipart/form-data" className="w-full">
         <div className="flex justify-between items-center mb-4">
           <div className="flex flex-col gap-4">
             <div className="flex gap-2">

@@ -1,6 +1,9 @@
 import { MessageCircle, SwitchCamera, MessagesSquare } from "lucide-react";
 import { ComponentType } from "react";
 
+export const GET_TT_USER_INFO_URL = "https://open.tiktokapis.com/v2/user/info/?fields=open_id,union_id,avatar_url,display_name,bio_description,is_verified,follower_count,following_count,likes_count,video_count";
+export const YT_UPLOAD_URL = "https://www.googleapis.com/upload/youtube/v3/videos?part=snippet%2Cstatus&uploadType=resumable"
+
 type VideoAccessOption = {
   name: "comment" | "duet" | "stitch";
   icon: ComponentType<{ strokeWidth?: number; size?: number; className?: string }>;

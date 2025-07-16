@@ -1,5 +1,6 @@
 import { NextApiRequest, NextApiResponse } from "next";
 import { getTokensCookie } from "@/app/utils/getTokensCookie";
+import { GET_TT_USER_INFO_URL } from "@/app/constants";
 
 export default async function handler(
   req: NextApiRequest,
@@ -11,7 +12,7 @@ export default async function handler(
 
   try {
     const response = await fetch(
-      "https://open.tiktokapis.com/v2/user/info/?fields=open_id,union_id,avatar_url,display_name,bio_description,is_verified,follower_count,following_count,likes_count,video_count",
+      GET_TT_USER_INFO_URL,
       {
         method: "GET",
         headers: {
