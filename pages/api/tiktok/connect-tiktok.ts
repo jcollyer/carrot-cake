@@ -53,7 +53,7 @@ export default async function handler(
   let array = new Uint8Array(30);
   const csrfState = crypto.getRandomValues(array);
 
-  url += `?client_key=${process.env.TIKTOK_CLIENT_KEY}`;
+  url += `?client_key=${process.env.TIKTOK_CLIENT_KEY_SANDBOX}`;
   url += "&scope=user.info.basic,video.list,video.upload,video.publish,user.info.profile,user.info.stats";
   url += "&response_type=code";
   url += `&redirect_uri=${encodeURIComponent(SERVER_ENDPOINT_REDIRECT || "")}`;

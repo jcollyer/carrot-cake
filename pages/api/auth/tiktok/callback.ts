@@ -2,16 +2,9 @@ import { NextApiRequest, NextApiResponse } from "next";
 const querystring = require("querystring");
 
 const isDev = process.env.NODE_ENV === "development";
-const SERVER_ENDPOINT_REDIRECT = isDev
+const ENDPOINT_REDIRECT = isDev
   ? process.env.REDIRECT_URIS_TIKTOK_LOCAL
   : process.env.REDIRECT_URIS_TIKTOK_PROD;
-const SECRET = isDev
-  ? process.env.TIKTOK_CLIENT_SECRET_LOCAL
-  : process.env.TIKTOK_CLIENT_SECRET_PROD;
-
-const CLIENT_KEY = isDev
-  ? process.env.TIKTOK_CLIENT_KEY_LOCAL
-  : process.env.TIKTOK_CLIENT_KEY_PROD;
 
 export default async function handler(
   req: NextApiRequest,
@@ -22,11 +15,11 @@ export default async function handler(
     const decode = decodeURI(code as string);
     const tokenEndpoint = "https://open.tiktokapis.com/v2/oauth/token/";
     const params = {
-      client_key: CLIENT_KEY,
-      client_secret: SECRET,
+      client_key: process.env.TIKTOK_CLIENT_KEY_SANDBOX,
+      client_secret: process.env.TIKTOK_CLIENT_SECRET_SANDBOX,
       code: decode,
       grant_type: "authorization_code",
-      redirect_uri: SERVER_ENDPOINT_REDIRECT,
+      redirect_uri: ENDPOINT_REDIRECT,
     };
 
     const response = await fetch(tokenEndpoint, {
@@ -46,16 +39,20 @@ export default async function handler(
         .send("Failed to retrieve access token.");
     }
     const tokens = await response.json();
-    
-     // Set the tokens in a cookie
+
+    // Set the tokens in a cookie
     res.setHeader(
       "Set-Cookie",
-      `tiktok-tokens=${encodeURIComponent(JSON.stringify(tokens))}; Path=/; Max-Age=86400`
+      `tiktok-tokens=${encodeURIComponent(
+        JSON.stringify(tokens)
+      )}; Path=/; Max-Age=86400`
     );
 
     // Hack to close the window
-    res.send("<script>window.parent.location.reload(); window.close();</script>");
-  } catch (error:any) {
+    res.send(
+      "<script>window.parent.location.reload(); window.close();</script>"
+    );
+  } catch (error: any) {
     console.error("Error during callback:", error?.error_description || error);
     res.status(500).send("An error occurred during the login process.");
   }
