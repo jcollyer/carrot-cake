@@ -14,7 +14,7 @@ import {
 } from "@/app/components/primitives/Tabs";
 import Calendar from "@/app/components/Calendar";
 import { useGetYouTubeUserInfo } from "@/app/hooks/use-get-youtube-user-info";
-import { CATEGORIES } from "@/app/constants";
+import { CATEGORIES, IG_CONNECT_URL } from "@/app/constants";
 import { useRouter } from "next/router";
 import clsx from "clsx";
 import { SanitizedVideoProps, YouTubeVideo, YouTubeUserInfo, TikTokVideo, TikTokUserInfo } from "@/types"
@@ -127,6 +127,16 @@ export default function Home() {
     });
   }
 
+  const connectIg = () => {
+    listenCookieChange(({ oldValue, newValue }) => {
+      if (oldValue !== newValue) {
+        setTiktokTokens(newValue);
+      }
+    }, 1000, "ig-access-token");
+    const igConnect = IG_CONNECT_URL;
+    window.open(igConnect, "_blank", "location=yes,height=570,width=520,scrollbars=yes,status=yes");
+  }
+
   const getTikTokUserInfo = async () => {
     fetch("/api/tiktok/get-user-info", {
       method: "GET",
@@ -168,9 +178,9 @@ export default function Home() {
 
   useEffect(() => {
     const getUserInfo = async () => {
-      if(tokens){
+      if (tokens) {
         const data = await useGetYouTubeUserInfo({ tokens: tokens as string })
-        setYtUserInfo({...data})
+        setYtUserInfo({ ...data })
       }
     }
     getUserInfo()
@@ -192,9 +202,9 @@ export default function Home() {
   }
 
   const listenCookieChange = (callback: (values: { oldValue: string, newValue: string }) => void, interval = 1000, tokenType = "youtube-tokens") => {
-    let lastCookie = tokenType === "youtube-tokens" ? getCookie("youtube-tokens") as string : getCookie("tiktok-tokens") as string;
+    let lastCookie = getCookie(tokenType) as string;
     setInterval(() => {
-      const tokens = tokenType === "youtube-tokens" ? getCookie("youtube-tokens") as string : getCookie("tiktok-tokens") as string;
+      const tokens = getCookie(tokenType) as string;
       if (tokens !== lastCookie) {
         try {
           callback({ oldValue: lastCookie, newValue: tokens });
@@ -281,7 +291,7 @@ export default function Home() {
   useEffect(() => {
     if (playlistId)
       // getYTChannelInfo();
-    getVideos();
+      getVideos();
   }, [playlistId]);
 
   return (
@@ -315,11 +325,9 @@ export default function Home() {
                   variant="white"
                   size="xlarge"
                   className="flex gap-4 justify-center items-center"
-                  onClick={() => {
-                    // Placeholder for future Instagram integration
-                  }}
+                  onClick={() => connectIg()}
                 >
-                  <Image src="/ig_logo.svg" alt="Instagram Logo" width="40" height="18"  />
+                  <Image src="/ig_logo.svg" alt="Instagram Logo" width="40" height="18" />
                   Connect to Instagram
                 </Button>
               </div>
@@ -350,7 +358,7 @@ export default function Home() {
             </TabsList>
 
             <TabsContent value="youtube">
-              <div className="flex flex-col items-center gap-6 mb-16 px-4">
+              <div className="flex flex-col gap-6 mb-16 px-4">
                 {!!ytUserInfo ? (
                   <>
                     <SocialDisplay
@@ -380,7 +388,7 @@ export default function Home() {
                   <Button
                     variant="white"
                     size="xlarge"
-                    className="flex gap-4 mt-4"
+                    className="flex gap-4 mt-4 w-fit"
                     onClick={() => connectYt()}
                   >
                     <Image src="/youtube_logo.png" alt="Youtube Logo" width="50" height="20" className="w-12" />
@@ -429,15 +437,12 @@ export default function Home() {
             </TabsContent>
 
             <TabsContent value="instagram">
-              <div className="flex flex-col items-center gap-6 mb-16 px-4">
-                <h3 className="text-gray-700 text-xl font-semibold">Instagram integration is coming soon!</h3>
+              <div className="flex flex-col gap-6 mb-16 px-4">
                 <Button
                   variant="white"
                   size="xlarge"
-                  className="flex gap-4 mt-4"
-                  onClick={() => {
-                    // Placeholder for future Instagram integration
-                  }}
+                  className="flex gap-4 mt-4 w-fit"
+                  onClick={() => connectIg()}
                 >
                   <Image src="/ig_logo.svg" alt="Instagram Logo" width="50" height="20" className="w-12" />
                   Connect Instagram
