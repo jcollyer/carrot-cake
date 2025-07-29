@@ -33,6 +33,14 @@ export interface TikTokVideo {
   embed_link?: boolean;
 }
 
+export interface InstagramVideo {
+  id: string;
+  caption: string;
+  media_url: string;
+  media_type: "IMAGE" | "VIDEO" | "CAROUSEL_ALBUM";
+  timestamp: string;
+}
+
 export type SanitizedVideoProps = {
   description: string;
   categoryId?: string;
@@ -41,7 +49,8 @@ export type SanitizedVideoProps = {
   scheduleDate?: string;
   tags?: string;
   title: string;
-  thumbnail: string;
+  thumbnail?: string;
+  mediaType?: "IMAGE" | "VIDEO" | "CAROUSEL_ALBUM";
   //internal types
   uploadProgress?: number;
 };
@@ -94,4 +103,13 @@ export type TikTokUserCreatorInfo = {
   max_video_post_duration_sec: number;
   privacy_level_options: string[];
   stitch_disabled: boolean;
+};
+
+export type InstagramUserInfo = {
+  id: string;
+  username: string;
+  profile_picture_url: string;
+  followers_count: number;
+  follows_count: number;
+  media_count: number;
 };

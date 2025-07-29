@@ -1,10 +1,17 @@
-import { deleteCookie } from "cookies-next";
 import formatBigNumber from "@/app/utils/formatBigNumbers";
 import ButtonIcon from "@/app/components/primitives/ButtonIcon";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/app/components/primitives/Tooltip";
-import { Film, UserRoundPlus, Eye, Unplug, CloudUpload, HeartPlus } from "lucide-react";
+import {
+  Film,
+  UserRoundPlus,
+  Eye,
+  Unplug,
+  CloudUpload,
+  HeartPlus,
+  UserRoundCheck,
+  UserPlus
+} from "lucide-react";
 import { useRouter } from "next/router";
-import { YouTubeVideo } from "@/types";
 
 type props = {
   userName?: string;
@@ -13,11 +20,13 @@ type props = {
   subscriberCount?: string | number;
   viewCount?: string | number;
   likesCount?: string | number;
-  type: "youtube" | "tiktok";
+  followsCount?: string | number;
+  followersCount?: string | number;
+  type: "youtube" | "tiktok" | "instagram";
   onLogout?: () => void;
 };
 
-const SocialDisplay = ({ userName, thumbnail, videoCount, subscriberCount, viewCount, likesCount, type, onLogout }: props) => {
+const SocialDisplay = ({ userName, thumbnail, videoCount, subscriberCount, viewCount, likesCount, followsCount, followersCount, onLogout, type }: props) => {
   const router = useRouter();
 
   return (
@@ -30,7 +39,7 @@ const SocialDisplay = ({ userName, thumbnail, videoCount, subscriberCount, viewC
         <div className="flex gap-1 items-center">
           <TooltipProvider>
             <Tooltip>
-              <TooltipTrigger asChild className="cursor-pointer">
+              <TooltipTrigger asChild>
                 <div className="flex gap-1 items-center">
                   <Film className="text-gray-600" size="16" strokeWidth={2.5} />
                   <p className="text-gray-600 font-semibold">{formatBigNumber(Number(videoCount) || 0)}</p>
@@ -46,7 +55,7 @@ const SocialDisplay = ({ userName, thumbnail, videoCount, subscriberCount, viewC
           {type === "youtube" && (
             <TooltipProvider>
               <Tooltip>
-                <TooltipTrigger asChild className="cursor-pointer">
+                <TooltipTrigger asChild>
                   <div className="flex gap-1 items-center">
                     <UserRoundPlus className="text-gray-600" size="16" strokeWidth={2.5} />
                     <p className="text-gray-600 font-semibold">{formatBigNumber(Number(subscriberCount) || 0)}</p>
@@ -61,7 +70,7 @@ const SocialDisplay = ({ userName, thumbnail, videoCount, subscriberCount, viewC
           {type === "tiktok" && (
             <TooltipProvider>
               <Tooltip>
-                <TooltipTrigger asChild className="cursor-pointer">
+                <TooltipTrigger asChild>
                   <div className="flex gap-1 items-center">
                     <HeartPlus className="text-gray-600" size="16" strokeWidth={2.5} />
                     <p className="text-gray-600 font-semibold">{formatBigNumber(Number(likesCount) || 0)}</p>
@@ -73,21 +82,52 @@ const SocialDisplay = ({ userName, thumbnail, videoCount, subscriberCount, viewC
               </Tooltip>
             </TooltipProvider>
           )}
+          {type === "instagram" && (
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <div className="flex gap-1 items-center">
+                    <UserPlus className="text-gray-600" size="16" strokeWidth={2.5} />
+                    <p className="text-gray-600 font-semibold">{formatBigNumber(Number(followersCount) || 0)}</p>
+                  </div>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p className="text-gray-600 font-semibold">Followers Count</p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+          )}
         </div>
         <div className="flex gap-1 items-center border-l pl-4 border-gray-300">
-          <TooltipProvider>
-            <Tooltip>
-              <TooltipTrigger asChild className="cursor-pointer">
-                <div className="flex gap-1 items-center">
-                  <Eye className="text-gray-600" size="16" strokeWidth={2.5} />
-                  <p className="text-gray-600 font-semibold">{formatBigNumber(Number(viewCount) || 0)}</p>
-                </div>
-              </TooltipTrigger>
-              <TooltipContent>
-                <p className="text-gray-600 font-semibold">View Count</p>
-              </TooltipContent>
-            </Tooltip>
-          </TooltipProvider>
+          {type === "instagram" ? (
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <div className="flex gap-1 items-center">
+                    <UserRoundCheck className="text-gray-600" size="16" strokeWidth={2.5} />
+                    <p className="text-gray-600 font-semibold">{formatBigNumber(Number(followsCount) || 0)}</p>
+                  </div>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p className="text-gray-600 font-semibold">Follows Count</p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+          ) : (
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <div className="flex gap-1 items-center">
+                    <Eye className="text-gray-600" size="16" strokeWidth={2.5} />
+                    <p className="text-gray-600 font-semibold">{formatBigNumber(Number(viewCount) || 0)}</p>
+                  </div>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p className="text-gray-600 font-semibold">View Count</p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+          )}
         </div>
       </div>
 

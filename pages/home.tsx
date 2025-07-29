@@ -13,11 +13,24 @@ import {
   TabsTrigger,
 } from "@/app/components/primitives/Tabs";
 import Calendar from "@/app/components/Calendar";
+import {
+  sanitizeYTMetadata,
+  sanitizeTikTokMetadata,
+  sanitizeInstagramMetadata
+} from "@/app/utils/sanitizeApiData";
 import { useGetYouTubeUserInfo } from "@/app/hooks/use-get-youtube-user-info";
 import { CATEGORIES, IG_CONNECT_URL } from "@/app/constants";
 import { useRouter } from "next/router";
 import clsx from "clsx";
-import { SanitizedVideoProps, YouTubeVideo, YouTubeUserInfo, TikTokVideo, TikTokUserInfo } from "@/types"
+import {
+  SanitizedVideoProps,
+  InstagramVideo,
+  YouTubeVideo,
+  YouTubeUserInfo,
+  TikTokVideo,
+  TikTokUserInfo,
+  InstagramUserInfo,
+} from "@/types"
 import moment from "moment";
 
 export const getServerSideProps = async (context: any) => {
@@ -37,50 +50,18 @@ export const getServerSideProps = async (context: any) => {
   };
 };
 
-const sanitizeYTMetadata = (videos: YouTubeVideo[] | undefined) => {
-  return videos?.map(video => {
-    const { snippet, status } = video;
-    const { title, description, categoryId, tags, thumbnails } = snippet;
-    const { publishAt } = status || {};
-    const thumbnail = thumbnails?.high?.url || thumbnails?.medium?.url || thumbnails?.default?.url || "";
-    return {
-      id: video.id,
-      title,
-      description,
-      categoryId,
-      tags: tags,
-      thumbnail,
-      scheduleDate: moment((publishAt || snippet.publishedAt || "")).format("YYYY-MM-DD"),
-    };
-  });
-};
-
-const sanitizeTikTokMetadata = (videos: TikTokVideo[] | undefined) => {
-  function convertUnixTimestampToDate(timestamp: number) {
-    const milliseconds = timestamp * 1000;
-    const date = new Date(milliseconds);
-    return date;
-  }
-  return videos?.map(video => {
-    return {
-      id: video.id,
-      title: video.title,
-      description: video.video_description,
-      scheduleDate: moment(convertUnixTimestampToDate(video.create_time)).format("YYYY-MM-DD"),
-      thumbnail: video.cover_image_url,
-    };
-  });
-}
-
 export default function Home() {
   const router = useRouter();
-  const [tokens, setTokens] = useState(getCookie("youtube-tokens"));
+  const [youtubeTokens, setYouTubeTokens] = useState(getCookie("youtube-tokens"));
   const [tiktokTokens, setTiktokTokens] = useState(getCookie("tiktok-tokens"));
+  const [instagramToken, setInstagramToken] = useState(getCookie("ig-access-token"));
   const [playlistId, setPlaylistId] = useState(getCookie("userPlaylistId"));
-  const [videos, setVideos] = useState<YouTubeVideo[]>();
+  const [youTubeVideos, setYouTubeVideos] = useState<YouTubeVideo[]>();
   const [tiktokVideos, setTiktokVideos] = useState<TikTokVideo[]>([]);
+  const [instagramVideos, setInstagramVideos] = useState<InstagramVideo[]>([]);
   const [ytUserInfo, setYtUserInfo] = useState<YouTubeUserInfo>();
   const [tiktokUserInfo, setTiktokUserInfo] = useState<TikTokUserInfo>();
+  const [instagramUserData, setInstagramUserData] = useState<InstagramUserInfo>();
   const [editVideo, setEditVideo] = useState<SanitizedVideoProps>({
     categoryId: "",
     description: "",
@@ -113,7 +94,7 @@ export default function Home() {
   const connectYt = async () => {
     listenCookieChange(({ oldValue, newValue }) => {
       if (oldValue !== newValue) {
-        setTokens(newValue);
+        setYouTubeTokens(newValue);
       }
     }, 1000, "youtube-tokens");
     await fetch("/api/youtube/connect-yt", {
@@ -130,7 +111,7 @@ export default function Home() {
   const connectIg = () => {
     listenCookieChange(({ oldValue, newValue }) => {
       if (oldValue !== newValue) {
-        setTiktokTokens(newValue);
+        setInstagramToken(newValue);
       }
     }, 1000, "ig-access-token");
     const igConnect = IG_CONNECT_URL;
@@ -152,6 +133,19 @@ export default function Home() {
       });
   }
 
+  const getInstagramUserData = async () => {
+    fetch("/api/instagram/get-user-data", {
+      method: "GET",
+      headers: {
+        cookie: `${instagramToken}`,
+      },
+    }).then(async (data) => {
+      const user = await data.json();
+      setInstagramUserData(user);
+      setTabOpen("instagram");
+    });
+  }
+
   const getTikTokUserVideos = async () => {
     fetch("/api/tiktok/get-user-videos", {
       method: "POST",
@@ -163,11 +157,23 @@ export default function Home() {
       });
   }
 
+  const getInstagramUserVideos = async () => {
+    fetch("/api/instagram/get-user-videos", {
+      method: "GET",
+      headers: {
+        cookie: `${instagramToken}`,
+      },
+    }).then(async (data) => {
+      const videos = await data.json();
+      setInstagramVideos(videos.data);
+    });
+  }
+
   const getPlaylistId = async () => {
     await fetch("/api/youtube/get-playlist-id", {
       method: "GET",
       headers: {
-        cookie: `youtube-tokens=${tokens}`,
+        cookie: `youtube-tokens=${youtubeTokens}`,
       },
     }).then(async (res) => {
       const { playlistId } = await res.json();
@@ -178,25 +184,25 @@ export default function Home() {
 
   useEffect(() => {
     const getUserInfo = async () => {
-      if (tokens) {
-        const data = await useGetYouTubeUserInfo({ tokens: tokens as string })
+      if (youtubeTokens) {
+        const data = await useGetYouTubeUserInfo({ tokens: youtubeTokens as string })
         setYtUserInfo({ ...data })
       }
     }
     getUserInfo()
-  }, [tokens]);
+  }, [youtubeTokens]);
 
-  const getVideos = async () => {
+  const getYouTubeVideos = async () => {
     await fetch("/api/youtube/get-videos", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        cookie: `youtube-tokens=${tokens}`,
+        cookie: `youtube-tokens=${youtubeTokens}`,
       },
       body: JSON.stringify({ playlistId }),
     }).then(async (res) => {
       const videos = await res.json();
-      setVideos(videos);
+      setYouTubeVideos(videos);
       setTabOpen("youtube");
     });
   }
@@ -220,13 +226,13 @@ export default function Home() {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        cookie: `youtube-tokens=${tokens}`,
+        cookie: `youtube-tokens=${youtubeTokens}`,
       },
       body: JSON.stringify(editVideo),
     })
       .then(response => response.json())
       .then(() => {
-        const updatedScheduledVideos = videos?.map(video => {
+        const updatedScheduledVideos = youTubeVideos?.map(video => {
           if (video.id === editVideo.id) {
             return {
               ...video,
@@ -245,7 +251,7 @@ export default function Home() {
           return video;
         });
 
-        setVideos(updatedScheduledVideos);
+        setYouTubeVideos(updatedScheduledVideos);
         setEditVideo({
           description: "",
           categoryId: "",
@@ -276,10 +282,10 @@ export default function Home() {
   };
 
   useEffect(() => {
-    if (tokens && !playlistId) {
+    if (youtubeTokens && !playlistId) {
       getPlaylistId();
     }
-  }, [tokens]);
+  }, [youtubeTokens]);
 
   useEffect(() => {
     if (tiktokTokens) {
@@ -291,14 +297,22 @@ export default function Home() {
   useEffect(() => {
     if (playlistId)
       // getYTChannelInfo();
-      getVideos();
+      getYouTubeVideos();
   }, [playlistId]);
+
+  useEffect(() => {
+    if (instagramToken) {
+      setTabOpen("instagram");
+      getInstagramUserData();
+      getInstagramUserVideos();
+    }
+  }, [instagramToken]);
 
   return (
     <main className="flex mt-8">
       <div className="w-full">
         <div className="flex flex-col items-center">
-          {(!videos && !tiktokUserInfo) && (
+          {(!youTubeVideos && !tiktokUserInfo && !instagramUserData) && (
             <div className="max-w-96 flex flex-col gap-4 items-center mt-16">
               <h1 className="text-2xl text-transparent text-center leading-[1.2] bg-clip-text bg-gradient-to-r from-red-500 to-orange-500">CARROT-CAKE APP</h1>
               <h3 className="text-center">Connect your Social Media account now to start uploading, scheduling, and managing your videos effortlessly!</h3>
@@ -334,7 +348,7 @@ export default function Home() {
             </div>
           )}
         </div>
-        {(!!videos || !!tiktokUserInfo) && (
+        {(!!youTubeVideos || !!tiktokUserInfo || !!instagramUserData) && (
           <Tabs defaultValue={tabOpen} className="mt-[3px] max-w-screen-lg mx-auto">
             <TabsList aria-label="social media opitons" className="px-5">
               <TabsTrigger value="youtube">
@@ -371,14 +385,14 @@ export default function Home() {
                       onLogout={() => {
                         deleteCookie("userPlaylistId");
                         deleteCookie("youtube-tokens");
-                        setVideos([]);
+                        setYouTubeVideos([]);
                         setYtUserInfo(undefined);
                         setPlaylistId("");
                         router.push("/");
                       }}
                     />
                     <Calendar
-                      scheduledVideos={sanitizeYTMetadata(videos) || []}
+                      scheduledVideos={sanitizeYTMetadata(youTubeVideos) || []}
                       setEditVideo={setEditVideo}
                       title="Uploaded Videos"
                       canEdit
@@ -438,15 +452,39 @@ export default function Home() {
 
             <TabsContent value="instagram">
               <div className="flex flex-col gap-6 mb-16 px-4">
-                <Button
-                  variant="white"
-                  size="xlarge"
-                  className="flex gap-4 mt-4 w-fit"
-                  onClick={() => connectIg()}
-                >
-                  <Image src="/ig_logo.svg" alt="Instagram Logo" width="50" height="20" className="w-12" />
-                  Connect Instagram
-                </Button>
+                {!!instagramUserData && (
+                  <>
+                    <SocialDisplay
+                      userName={instagramUserData.username}
+                      thumbnail={instagramUserData.profile_picture_url}
+                      videoCount={instagramUserData.media_count}
+                      followsCount={instagramUserData.follows_count}
+                      followersCount={instagramUserData.followers_count}
+                      onLogout={() => {
+                        deleteCookie("ig-access-token");
+                        setInstagramUserData(undefined);
+                      }}
+                      type="instagram"
+                    />
+                    <Calendar
+                      scheduledVideos={sanitizeInstagramMetadata(instagramVideos) || []}
+                      setEditVideo={setEditVideo}
+                      title="Uploaded Videos"
+                      canEdit={false}
+                    />
+                  </>
+                )}
+                {!instagramUserData && (
+                  <Button
+                    variant="white"
+                    size="xlarge"
+                    className="flex gap-4 mt-4 w-fit"
+                    onClick={() => connectIg()}
+                  >
+                    <Image src="/ig_logo.svg" alt="Instagram Logo" width="50" height="20" className="w-12" />
+                    Connect Instagram
+                  </Button>
+                )}
               </div>
             </TabsContent>
           </Tabs>

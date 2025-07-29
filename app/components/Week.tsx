@@ -44,6 +44,7 @@ export function Week({
         videoScheduled={videoScheduled}
         editVideo={editVideo}
         canEdit={canEdit}
+        mediaType={videoScheduled?.mediaType}
       />,
     );
 

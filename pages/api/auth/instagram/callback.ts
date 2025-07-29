@@ -31,6 +31,7 @@ export default async function handler(
     // get the access token from the response to exchange for a long-lived token
     const data = await response.json();
     const accessToken = data.access_token;
+    const userId = data.user_id;
     try {
       const exchangeResponse = await fetch(
         `https://graph.instagram.com/access_token?grant_type=ig_exchange_token&client_secret=${process.env.IG_CLIENT_SECRET}&access_token=${accessToken}`
@@ -42,7 +43,7 @@ export default async function handler(
       // Set the long-lived access token in a cookie
       res.setHeader(
         "Set-Cookie",
-        `ig-access-token=${longLivedAccessToken}; Path=/; Max-Age=86400 Max-Age=${ttl};`
+        `ig-access-token={"access_token": "${longLivedAccessToken}", "user_id": "${userId}"}; Path=/; Max-Age=${ttl};`
       );
 
       // Hack to close the window
