@@ -133,6 +133,17 @@ export default function Home() {
       });
   }
 
+  const getTikTokUserVideos = async () => {
+    fetch("/api/tiktok/get-user-videos", {
+      method: "POST",
+    })
+      .then(response => response.json())
+      .then(data => setTiktokVideos(data.data.videos))
+      .catch(error => {
+        console.error("Fetch error:", error);
+      });
+  }
+
   const getInstagramUserData = async () => {
     fetch("/api/instagram/get-user-data", {
       method: "GET",
@@ -144,17 +155,6 @@ export default function Home() {
       setInstagramUserData(user);
       setTabOpen("instagram");
     });
-  }
-
-  const getTikTokUserVideos = async () => {
-    fetch("/api/tiktok/get-user-videos", {
-      method: "POST",
-    })
-      .then(response => response.json())
-      .then(data => setTiktokVideos(data.data.videos))
-      .catch(error => {
-        console.error("Fetch error:", error);
-      });
   }
 
   const getInstagramUserVideos = async () => {
@@ -181,16 +181,6 @@ export default function Home() {
       setPlaylistId(playlistId);
     });
   }
-
-  useEffect(() => {
-    const getUserInfo = async () => {
-      if (youtubeTokens) {
-        const data = await useGetYouTubeUserInfo({ tokens: youtubeTokens as string })
-        setYtUserInfo({ ...data })
-      }
-    }
-    getUserInfo()
-  }, [youtubeTokens]);
 
   const getYouTubeVideos = async () => {
     await fetch("/api/youtube/get-videos", {
@@ -280,6 +270,16 @@ export default function Home() {
       thumbnail: "",
     });
   };
+
+  useEffect(() => {
+    const getUserInfo = async () => {
+      if (youtubeTokens) {
+        const data = await useGetYouTubeUserInfo({ tokens: youtubeTokens as string })
+        setYtUserInfo({ ...data })
+      }
+    }
+    getUserInfo()
+  }, [youtubeTokens]);
 
   useEffect(() => {
     if (youtubeTokens && !playlistId) {

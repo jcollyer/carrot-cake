@@ -141,18 +141,18 @@ const SocialDisplay = ({ userName, thumbnail, videoCount, subscriberCount, viewC
           }}
           size={24}
           strokeWidth={2}
-          label={`Disconnect from  ${type === "youtube" ? "YouTube" : "TikTok"}`}
+          label={`Disconnect from  ${type.charAt(0).toUpperCase() + type.slice(1)}`}
           tooltip
         />
         <ButtonIcon
           icon={CloudUpload}
-          label={`Upload to ${type === "youtube" ? "YouTube" : "TikTok"}`}
+          label={`Upload to ${type.charAt(0).toUpperCase() + type.slice(1)}`}
           className="flex gap-2"
           variant="cta"
           size={24}
           strokeWidth={2}
           tooltip
-          onClick={() => router.push(`/upload-${type === "youtube" ? "youtube" : "tiktok"}`)}
+          onClick={() => router.push(`/upload-${type}`)}
         />
       </div>
     </div>

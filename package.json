@@ -14,6 +14,8 @@
   "dependencies": {
     "@ariakit/react": "^0.4.15",
     "@auth/prisma-adapter": "^2.8.0",
+    "@aws-sdk/client-s3": "^3.858.0",
+    "@aws-sdk/s3-request-presigner": "^3.858.0",
     "@neondatabase/serverless": "^0.10.4",
     "@prisma/client": "^6.4.1",
     "@radix-ui/react-progress": "^1.1.7",
@@ -33,7 +35,7 @@
     "querystring": "^0.2.1",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
-    "react-dropzone": "^14.3.5",
+    "react-dropzone": "^14.3.8",
     "sharp": "^0.33.5",
     "tailwind-variants": "^1.0.0",
     "uuid": "^11.0.5",

@@ -1,7 +1,7 @@
 import Button from "@/app/components/primitives/Button";
 import Link from "next/link";
 import Image from "next/image"
-import { Music2, Youtube } from "lucide-react";
+import { Instagram, Music2, Youtube } from "lucide-react";
 import { MenuProvider, Menu, MenuButton, MenuItem, MenuSeparator } from "@/app/components/primitives/Menu";
 import { useSession, signIn, signOut } from "next-auth/react"
 
@@ -24,7 +24,7 @@ export default function Navbar() {
               <Menu>
                 <MenuItem>
                   <Link href="/upload-youtube" className="flex items-center gap-2 hover:text-orange-600">
-                    <Youtube size="34" strokeWidth={1} />
+                    <Youtube size="24" strokeWidth={1} className="w-9" />
                     YouTube Upload
                   </Link>
                 </MenuItem>
@@ -32,6 +32,12 @@ export default function Navbar() {
                   <Link href="/upload-tiktok" className="flex items-center gap-2 hover:text-orange-600">
                     <Music2 size="18" strokeWidth={2} className="w-9" />
                     TikTok Upload
+                  </Link>
+                </MenuItem>
+                <MenuItem>
+                  <Link href="/upload-instagram" className="flex items-center gap-2 hover:text-orange-600">
+                    <Instagram size="18" strokeWidth={2} className="w-9" />
+                    Instagram Upload
                   </Link>
                 </MenuItem>
                 <MenuSeparator />

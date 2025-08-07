@@ -51,7 +51,7 @@ export type SanitizedVideoProps = {
   title: string;
   thumbnail?: string;
   mediaType?: "IMAGE" | "VIDEO" | "CAROUSEL_ALBUM";
-  //internal types
+  // Internal types
   uploadProgress?: number;
 };
 
@@ -66,7 +66,7 @@ export type TikTokVideoProps = {
     duet: boolean;
     stitch: boolean;
   };
-  //internal types
+  // Internal types
   directPost: boolean;
   disclose: boolean;
   yourBrand: boolean;
@@ -112,4 +112,17 @@ export type InstagramUserInfo = {
   followers_count: number;
   follows_count: number;
   media_count: number;
+};
+
+export type InstagramVideoProps = {
+  url?: string;
+  caption: string;
+  mediaType: "Stories" | "Videos" | "Reels";
+  tags?: string;
+  location?: string;
+  // Internal types
+  scheduleDate?: string;
+  file?: any;
+  thumbnail?: string;
+  uploadProgress?: number;
 };
