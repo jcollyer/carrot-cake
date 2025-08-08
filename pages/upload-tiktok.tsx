@@ -293,7 +293,9 @@ export default function UploadTikTokPage({ references }: { references: Reference
                             type="title"
                             localReferences={localReferences}
                             setLocalReferences={setLocalReferences}
-                            callback={(key, value) => !!videos && setVideos(videos.map((v, i) => i === index ? { ...v, [key]: value } : v))}
+                            callback={(key, value) => editAll ?
+                              setVideos(videos.map((video) => ({ ...video, [key]: value }))) :
+                              setVideos(videos.map((v, i) => i === index ? { ...v, [key]: value } : v))}
                           />
                         </div>
                       </div>

@@ -212,7 +212,10 @@ export default function UploadYouTubePage({ references }: { references: Referenc
                         type="title"
                         localReferences={localReferences}
                         setLocalReferences={setLocalReferences}
-                        callback={(key, value) => setVideos(videos.map((v, i) => i === index ? { ...v, [key]: value } : v))}
+                        callback={(key, value) => editAll ? 
+                          setVideos(videos.map((video) => ({ ...video, [key]: value }))) :
+                          setVideos(videos.map((v, i) => i === index ? { ...v, [key]: value } : v))
+                        }
                       />
                     </div>
                   </div>
@@ -241,7 +244,9 @@ export default function UploadYouTubePage({ references }: { references: Referenc
                         type="description"
                         localReferences={localReferences}
                         setLocalReferences={setLocalReferences}
-                        callback={(key, value) => setVideos(videos.map((v, i) => i === index ? { ...v, [key]: value } : v))}
+                        callback={(key, value) => editAll ?
+                          setVideos(videos.map((video) => ({ ...video, [key]: value }))) :
+                          setVideos(videos.map((v, i) => i === index ? { ...v, [key]: value } : v))}
                       />
                     </div>
                   </div>
