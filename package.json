@@ -9,7 +9,8 @@
     "lint": "next lint",
     "ngrok": "ngrok http --url=jointly-topical-leech.ngrok-free.app 3000",
     "postinstall": "prisma generate",
-    "prisma": "npx prisma generate && npx prisma migrate"
+    "prisma": "npx prisma generate && npx prisma migrate",
+    "db-push": "npx prisma db push"
   },
   "dependencies": {
     "@ariakit/react": "^0.4.15",

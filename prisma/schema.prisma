@@ -4,7 +4,7 @@ generator client {
 
 datasource db {
   provider = "postgresql"
-  url      = env("DATABASE_URL") // uses connection pooling
+  url      = env("DATABASE_URL")
 }
 
 model Reference {
@@ -13,8 +13,8 @@ model Reference {
   value          String
   type           String
   publish        Boolean @default(true)
-  referenceOwner User?  @relation(fields: [userId], references: [id])
   userId         String?
+  referenceOwner User?   @relation(fields: [userId], references: [id])
 }
 
 model Account {
@@ -45,16 +45,17 @@ model Session {
 }
 
 model User {
-  id            String    @id @default(cuid())
-  name          String?
-  email         String?   @unique
-  emailVerified DateTime?
-  image         String?
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
-  accounts      Account[]
-  sessions      Session[]
-  references    Reference[]
+  id                  String      @id @default(cuid())
+  name                String?
+  email               String?     @unique
+  emailVerified       DateTime?
+  image               String?
+  createdAt           DateTime    @default(now())
+  updatedAt           DateTime    @updatedAt
+  accounts            Account[]
+  references          Reference[]
+  sessions            Session[]
+  igScheduledVideos   InstagramVideos[]
 }
 
 model VerificationToken {
@@ -68,3 +69,14 @@ model VerificationToken {
   @@unique([identifier, token])
 }
 
+model InstagramVideos {
+  id              String   @id @default(cuid())
+  videoUrl        String
+  videoCaption    String?
+  videoType       String
+  scheduledDate   DateTime
+  accessToken     String
+  InstagramuserId String
+  userId          String?
+  referenceOwner  User?    @relation(fields: [userId], references: [id])
+}

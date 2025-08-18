@@ -106,67 +106,28 @@ export default function UploadInstagramPage({ references }: { references: Refere
   }, []);
 
   const { getRootProps, getInputProps } = useDropzone({ onDrop });
-
-  async function postVideoToInstagram(video: InstagramVideoProps) {
+  async function scheduleVideoToInstagram(video: InstagramVideoProps) {
     try {
-      // Step 1: Create a media container
-      const containerCreationUrl = `https://graph.instagram.com/v23.0/${igUserInfo?.id}/media?access_token=${accessToken}`;
-      const containerCreationResponse = await fetch(containerCreationUrl, {
+      fetch("/api/instagram/scheduled-videos/create", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          "Authorization": `Bearer ${accessToken}`,
         },
         body: JSON.stringify({
-          video_url: video.url,
-          caption: video.caption,
-          media_type: video.mediaType.toUpperCase(),
+          videoUrl: video.url,
+          videoType: video.mediaType,
+          videoCaption: video.caption,
+          scheduledDate: new Date(video.scheduleDate || new Date()),
+          accessToken,
+          InstagramuserId: igUserInfo?.id,
         }),
+      }).then(async (data) => {
+        console.log("Video scheduled successfully:--------", data);
       });
-      const containerCreationData = await containerCreationResponse.json();
-      const creation_id = containerCreationData.id;
 
-      if (!creation_id) {
-        throw new Error("Failed to create media container.");
-      }
 
-      // Step 2: Poll for container status
-      let status_code = "";
-      while (status_code !== "FINISHED") {
-        const statusCheckUrl = `https://graph.instagram.com/v23.0/${creation_id}?fields=status_code&access_token=${accessToken}`;
-        const statusCheckResponse = await fetch(statusCheckUrl);
-        const statusCheckData = await statusCheckResponse.json();
-        status_code = statusCheckData.status_code;
-
-        if (status_code === "ERROR") {
-          status_code = "FINISHED"; // Stop polling on error
-        }
-        if (status_code !== "FINISHED") {
-          await new Promise(resolve => setTimeout(resolve, 5000)); // Wait 5 seconds before re-checking
-        }
-      }
-
-      // Step 3: Publish the media container
-      const publishUrl = `https://graph.instagram.com/v23.0/${igUserInfo?.id}/media_publish?access_token=${accessToken}`;
-      const publishResponse = await fetch(publishUrl, {
-        method: "POST",
-        headers: {
-          "Authorization": `Bearer ${accessToken}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          creation_id: creation_id,
-        }),
-      });
-      const publishData = await publishResponse.json();
-
-      if (publishData.id) {
-        console.log("Video published successfully! Post ID:", publishData.id);
-      } else {
-        console.error("Failed to publish video:", publishData);
-      }
     } catch (error) {
-      console.error("Error posting video:", error);
+      console.error("Error scheduling video:", error);
     }
   }
 
@@ -179,7 +140,7 @@ export default function UploadInstagramPage({ references }: { references: Refere
     if (!!videos.length) {
       setIsUploading(true);
       for (const [i, video] of videos.entries()) {
-        postVideoToInstagram(video);
+        scheduleVideoToInstagram(video);
         if (i === videos.length - 1) {
           setIsUploading(false);
           setVideos([]);
@@ -348,7 +309,7 @@ export default function UploadInstagramPage({ references }: { references: Refere
                     <div className="w-[calc(100%-235px)] ml-2">
                       <input
                         onKeyDown={(e) => e.key === 'Enter' && e.preventDefault()}
-                        type="date"
+                        type="datetime-local"
                         className="w-full border border-gray-300 rounded h-10 px-2"
                         value={videos[index]?.scheduleDate ? videos[index]?.scheduleDate : new Date().toISOString().split("T")[0]}
                         onChange={(e) => editAll ?
