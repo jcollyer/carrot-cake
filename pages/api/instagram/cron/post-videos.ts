@@ -22,7 +22,10 @@ export default async function GET(req: Request) {
       videoCaption,
       scheduledDate,
     } = video;
-    if (new Date(scheduledDate) <= new Date()) {
+
+      throw new Error(`Scheduled date is in the future, skipping video post.------------${ new Date(String(scheduledDate)) <= new Date()}`);
+
+    if (new Date(String(scheduledDate)) <= new Date()) {
       fetch(`${baseUrl}/api/instagram/post-video`, {
         method: "POST",
         headers: {
