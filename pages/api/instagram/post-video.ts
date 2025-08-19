@@ -27,8 +27,6 @@ export default async function handler(
       throw new Error("Failed to create media container.");
     }
 
-    console.log("Media container created with ID:-------", creation_id);
-
     // Step 2: Poll for container status
     let status_code = "";
     while (status_code !== "FINISHED") {
@@ -36,9 +34,10 @@ export default async function handler(
       const statusCheckResponse = await fetch(statusCheckUrl);
       const statusCheckData = await statusCheckResponse.json();
       status_code = statusCheckData.status_code;
-      console.log("Current status code:-------", status_code);
+      console.log("Current status code:", status_code);
       if (status_code === "ERROR") {
         status_code = "FINISHED"; // Stop polling on error
+        throw new Error("Error in media container creation: " + statusCheckData.error.message);
       }
       if (status_code !== "FINISHED") {
         await new Promise((resolve) => setTimeout(resolve, 5000)); // Wait 5 seconds before re-checking
