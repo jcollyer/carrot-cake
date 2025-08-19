@@ -23,8 +23,6 @@ export default async function handler(
     const containerCreationData = await containerCreationResponse.json();
     const creation_id = containerCreationData.id;
 
-                  throw new Error(`---------------, ${creation_id}`);
-
     if (!creation_id) {
       throw new Error("Failed to create media container.");
     }
