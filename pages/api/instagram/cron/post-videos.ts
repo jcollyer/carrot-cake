@@ -28,7 +28,10 @@ export default async function GET(req: Request) {
     if (new Date(scheduledDate) <= new Date()) {
       try {
         const response = await fetch(`${baseUrl}/api/instagram/post-video`, {
-          
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
           body: JSON.stringify({
             accessToken,
             igUserId: InstagramuserId,
