@@ -25,6 +25,15 @@ export default async function GET(req: Request) {
       scheduledDate,
     } = video;
 
+              throw new Error(`Scheduled date is in the future, skipping video post.------------${
+            new Date(scheduledDate) <= new Date()
+          },  accessToken: ${accessToken}
+      InstagramuserId: ${InstagramuserId}
+      videoUrl: ${videoUrl}
+      videoType: ${videoType}
+      videoCaption: ${videoCaption}
+      scheduledDate: ${scheduledDate}`);
+
     if (new Date(String(scheduledDate)) <= new Date()) {
       fetch(`${baseUrl}/api/instagram/post-video`, {
         method: "POST",
@@ -43,14 +52,7 @@ export default async function GET(req: Request) {
           console.log("Video posted successfully:--------", data);
         })
         .catch((error) => {
-          throw new Error(`Scheduled date is in the future, skipping video post.------------${
-            new Date(scheduledDate) <= new Date()
-          },  accessToken: ${accessToken}
-      InstagramuserId: ${InstagramuserId}
-      videoUrl: ${videoUrl}
-      videoType: ${videoType}
-      videoCaption: ${videoCaption}
-      scheduledDate: ${scheduledDate}, error: ${error.message}`);
+          throw new Error(`error: ${error.message}`);
         });
     }
   }
