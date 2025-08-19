@@ -1,7 +1,7 @@
-export const runtime = 'edge';
+export const runtime = "edge";
 import { NextResponse } from "next/server";
 
-const baseUrl = process.env.NEXTAUTH_URL || 'http://localhost:3000';
+const baseUrl = process.env.NEXTAUTH_URL || "http://localhost:3000";
 
 export default async function GET(req: Request) {
   if (
@@ -10,7 +10,9 @@ export default async function GET(req: Request) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const instagramVideos = await fetch(`${baseUrl}/api/instagram/scheduled-videos/get-all`);
+  const instagramVideos = await fetch(
+    `${baseUrl}/api/instagram/scheduled-videos/get-all`
+  );
   const instagramVideosData = await instagramVideos.json();
 
   for (const video of instagramVideosData.videos) {
@@ -22,8 +24,6 @@ export default async function GET(req: Request) {
       videoCaption,
       scheduledDate,
     } = video;
-
-      throw new Error(`Scheduled date is in the future, skipping video post.------------${ new Date(String(scheduledDate)) <= new Date()}`);
 
     if (new Date(String(scheduledDate)) <= new Date()) {
       fetch(`${baseUrl}/api/instagram/post-video`, {
@@ -43,7 +43,14 @@ export default async function GET(req: Request) {
           console.log("Video posted successfully:--------", data);
         })
         .catch((error) => {
-          console.error("Error posting video:", error);
+          throw new Error(`Scheduled date is in the future, skipping video post.------------${
+            new Date(scheduledDate) <= new Date()
+          },  accessToken: ${accessToken}
+      InstagramuserId: ${InstagramuserId}
+      videoUrl: ${videoUrl}
+      videoType: ${videoType}
+      videoCaption: ${videoCaption}
+      scheduledDate: ${scheduledDate}, error: ${error.message}`);
         });
     }
   }
