@@ -41,7 +41,11 @@ export default async function GET(req: Request) {
           }),
         });
         const data = await response.json();
-        console.log("Video posted successfully:--------", data);
+        if (response.ok) {
+          console.log("Video posted successfully:", data);
+        } else {
+          console.error("Error posting video:", data);
+        }
       } catch (error) {
         throw new Error(`error posting to api/instagram/post-video: ${error}`);
       }

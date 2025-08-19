@@ -57,7 +57,6 @@ export default async function handler(
       }),
     });
     const publishData = await publishResponse.json();
-    console.log("Publish response:-------", publishData);
 
     if (publishData.id) {
       console.log("Video published successfully! Post ID:", publishData.id);
