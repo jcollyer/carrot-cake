@@ -1,5 +1,7 @@
+export const runtime = 'edge';
 import { NextResponse } from "next/server";
-import prisma from "@/lib/prisma";
+
+const baseUrl = process.env.NEXTAUTH_URL || 'http://localhost:3000';
 
 export default async function GET(req: Request) {
   if (
@@ -8,16 +10,10 @@ export default async function GET(req: Request) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const instagramVideos: Array<any> = await prisma.instagramVideos.findMany({
-    where: {
-      scheduledDate: {
-        lte: new Date(),
-      },
-    },
-  });
-  console.log("---------", instagramVideos);
+  const instagramVideos = await fetch(`${baseUrl}/api/instagram/scheduled-videos/get-all`);
+  const instagramVideosData = await instagramVideos.json();
 
-  for (const video of instagramVideos) {
+  for (const video of instagramVideosData.videos) {
     const {
       accessToken,
       InstagramuserId,
@@ -26,8 +22,8 @@ export default async function GET(req: Request) {
       videoCaption,
       scheduledDate,
     } = video;
-    if (scheduledDate <= new Date()) {
-      fetch("/api/instagram/post-video", {
+    if (new Date(scheduledDate) <= new Date()) {
+      fetch(`${baseUrl}/api/instagram/post-video`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -49,5 +45,5 @@ export default async function GET(req: Request) {
     }
   }
 
-  return NextResponse.json({ ok: true });
+  return Response.json({ message: "Cron job executed successfully" });
 }
