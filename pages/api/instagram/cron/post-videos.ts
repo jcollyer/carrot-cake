@@ -25,9 +25,9 @@ export default async function GET(req: Request) {
       scheduledDate,
     } = video;
 
-    if (new Date(String(scheduledDate)) <= new Date()) {
+    if (new Date(scheduledDate) <= new Date()) {
       try {
-        fetch(`${baseUrl}/api/instagram/post-video`, {
+        await fetch(`${baseUrl}/api/instagram/post-video`, {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
