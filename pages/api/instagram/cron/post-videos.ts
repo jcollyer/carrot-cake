@@ -27,7 +27,7 @@ export default async function GET(req: Request) {
 
     if (new Date(scheduledDate) <= new Date()) {
       try {
-        await fetch(`${baseUrl}/api/instagram/post-video`, {
+        const response = await fetch(`${baseUrl}/api/instagram/post-video`, {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
@@ -39,13 +39,9 @@ export default async function GET(req: Request) {
             videoType: videoType,
             videoCaption: videoCaption,
           }),
-        })
-          .then(async (data) => {
-            console.log("Video posted successfully:--------", data);
-          })
-          .catch((error) => {
-            throw new Error(`error: ${error.message}`);
-          });
+        });
+        const data = await response.json();
+        console.log("Video posted successfully:--------", data);
       } catch (error) {
         throw new Error(`error posting to api/instagram/post-video: ${error}`);
       }
