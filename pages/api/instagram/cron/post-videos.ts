@@ -25,35 +25,30 @@ export default async function GET(req: Request) {
       scheduledDate,
     } = video;
 
-              throw new Error(`Scheduled date is in the future, skipping video post.------------${
-            new Date(scheduledDate) <= new Date()
-          },  accessToken: ${accessToken}
-      InstagramuserId: ${InstagramuserId}
-      videoUrl: ${videoUrl}
-      videoType: ${videoType}
-      videoCaption: ${videoCaption}
-      scheduledDate: ${scheduledDate}`);
-
     if (new Date(String(scheduledDate)) <= new Date()) {
-      fetch(`${baseUrl}/api/instagram/post-video`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          accessToken,
-          igUserId: InstagramuserId,
-          videoUrl: videoUrl,
-          videoType: videoType,
-          videoCaption: videoCaption,
-        }),
-      })
-        .then(async (data) => {
-          console.log("Video posted successfully:--------", data);
+      try {
+        fetch(`${baseUrl}/api/instagram/post-video`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            accessToken,
+            igUserId: InstagramuserId,
+            videoUrl: videoUrl,
+            videoType: videoType,
+            videoCaption: videoCaption,
+          }),
         })
-        .catch((error) => {
-          throw new Error(`error: ${error.message}`);
-        });
+          .then(async (data) => {
+            console.log("Video posted successfully:--------", data);
+          })
+          .catch((error) => {
+            throw new Error(`error: ${error.message}`);
+          });
+      } catch (error) {
+        throw new Error(`error posting to api/instagram/post-video: ${error}`);
+      }
     }
   }
 

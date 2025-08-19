@@ -5,7 +5,6 @@ export default async function handler(
   res: NextApiResponse
 ) {
   const { accessToken, igUserId, videoUrl, videoType, videoCaption } = req.body;
-  console.log('---------', accessToken, igUserId, videoUrl, videoType, videoCaption)
   try {
     // Step 1: Create a media container
     const containerCreationUrl = `https://graph.instagram.com/v23.0/${igUserId}/media?access_token=${accessToken}`;
@@ -23,6 +22,8 @@ export default async function handler(
     });
     const containerCreationData = await containerCreationResponse.json();
     const creation_id = containerCreationData.id;
+
+                  throw new Error(`---------------, ${creation_id}`);
 
     if (!creation_id) {
       throw new Error("Failed to create media container.");
