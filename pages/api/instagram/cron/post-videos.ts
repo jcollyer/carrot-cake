@@ -16,39 +16,56 @@ export default async function GET(req: Request) {
   const instagramVideosData = await instagramVideos.json();
 
   for (const video of instagramVideosData.videos) {
-    const {
-      accessToken,
-      InstagramuserId,
-      videoUrl,
-      videoType,
-      videoCaption,
-      scheduledDate,
-    } = video;
+    const { accessToken, InstagramuserId, videoUrl, videoType, videoCaption } =
+      video;
 
-    if (new Date(scheduledDate) <= new Date()) {
-      try {
-        const response = await fetch(`${baseUrl}/api/instagram/post-video`, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            accessToken,
-            igUserId: InstagramuserId,
-            videoUrl: videoUrl,
-            videoType: videoType,
-            videoCaption: videoCaption,
-          }),
-        });
-        const data = await response.json();
-        if (response.ok) {
-          console.log("Video posted successfully:", data);
-        } else {
-          console.error("Error posting video:", data);
-        }
-      } catch (error) {
-        throw new Error(`error posting to api/instagram/post-video: ${error}`);
+    // Post the video to Instagram
+    try {
+      const response = await fetch(`${baseUrl}/api/instagram/post-video`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          accessToken,
+          igUserId: InstagramuserId,
+          videoUrl: videoUrl,
+          videoType: videoType,
+          videoCaption: videoCaption,
+        }),
+      });
+      const data = await response.json();
+      if (response.ok) {
+        console.log("Video posted successfully:", data);
+      } else {
+        console.error("Error posting video:", data);
       }
+    } catch (error) {
+      throw new Error(`error posting to api/instagram/post-video: ${error}`);
+    }
+
+    // Remove the video from S3 bucket
+    try {
+      const response = await fetch(
+        `${baseUrl}/api/s3/delete?fileName=${videoUrl}`
+      );
+      const data = await response.json();
+      console.log("File removed from S3:", data);
+    } catch (error) {
+      throw new Error(`error deleting from api/s3/delete: ${error}`);
+    }
+
+    // Remove the video from the Neon database
+    try {
+      const response = await fetch(
+        `${baseUrl}/api/instagram/scheduled-videos/delete`
+      );
+      const data = await response.json();
+      console.log("Video deleted successfully:", data);
+    } catch (error) {
+      throw new Error(
+        `error deleting from api/instagram/scheduled-videos/delete: ${error}`
+      );
     }
   }
 
