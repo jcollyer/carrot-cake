@@ -68,27 +68,49 @@ export default function UploadTikTokPage({ references }: { references: Reference
 
   const onDrop = useCallback((acceptedFiles: any) => {
     if (acceptedFiles.length) {
-      acceptedFiles.forEach(async (file: any) => {
-        const thumb = await generateVideoThumb(file);
-        setVideos((prev) => [
-          ...prev || [], {
-            file,
-            title: "",
-            privacyStatus: "",
-            commercialUseContent: false,
-            commercialUseOrganic: false,
-            interactionType: {
-              comment: false,
-              duet: false,
-              stitch: false,
-            },
-            directPost: true,
-            disclose: false,
-            yourBrand: false,
-            brandedContent: false,
-            uploadProgress: 0,
-            thumbnail: thumb as string,
-          }]);
+      acceptedFiles.forEach(async (file: any, index: number) => {
+        const reader = new FileReader();
+        reader.onload = async (event) => {
+          console.log("File dropped:", event);
+          const fileData = event.target?.result;
+          if (!fileData) return;
+          const thumb = await generateVideoThumb(file);
+          setVideos((prev) => [
+            ...prev || [], {
+              file,
+              title: "",
+              privacyStatus: "",
+              commercialUseContent: false,
+              commercialUseOrganic: false,
+              interactionType: {
+                comment: false,
+                duet: false,
+                stitch: false,
+              },
+              directPost: true,
+              disclose: false,
+              yourBrand: false,
+              brandedContent: false,
+              uploadProgress: 0,
+              thumbnail: thumb as string,
+            }]);
+
+          // Upload the file to S3
+          fetch(`/api/s3/presigned?fileName=${file.name}&contentType=${file.type}`)
+            .then((res) => res.json())
+            .then((res) => {
+              const body = new Blob([fileData], { type: file.type });
+
+              fetch(res.signedUrl, {
+                body,
+                method: 'PUT',
+              }).then(async (data) => {
+                const url = data?.url?.split('?')[0];
+                setVideos((prev) => prev?.map((v, i) => i === index ? { ...v, url } : v));
+              });
+            });
+        }
+        reader.readAsArrayBuffer(file);
       });
     }
   }, []);
@@ -299,6 +321,25 @@ export default function UploadTikTokPage({ references }: { references: Reference
                           />
                         </div>
                       </div>
+
+                      <div className="flex gap-2">
+                        <div className="w-1/4 shrink-0">
+                          <p className="text-sm font-medium">Scheduled Date</p>
+                          <p className="text-xs text-gray-500">Video release</p>
+                        </div>
+                        <div className="w-[calc(100%-235px)] ml-2">
+                          <input
+                            onKeyDown={(e) => e.key === 'Enter' && e.preventDefault()}
+                            type="datetime-local"
+                            className="w-full border border-gray-300 rounded h-10 px-2"
+                            value={videos[index]?.scheduleDate ? videos[index]?.scheduleDate : new Date().toISOString().split("T")[0]}
+                            onChange={(e) => editAll ?
+                              !!videos && setVideos(videos.map((video) => ({ ...video, scheduleDate: e.target.value }))) :
+                              !!videos && setVideos(videos.map((v, i) => i === index ? { ...v, scheduleDate: e.target.value } : v))}
+                          />
+                        </div>
+                      </div>
+
                       <div className="flex gap-2">
                         <div className="w-1/4 shrink-0">
                           <p className="text-sm font-medium">Video view access</p>
@@ -525,6 +566,20 @@ export default function UploadTikTokPage({ references }: { references: Reference
                         localReferences={localReferences}
                         setLocalReferences={setLocalReferences}
                         callback={(key, value) => setVideos(videos?.map((video) => ({ ...video, [key]: value })))}
+                      />
+                    </div>
+                  </div>
+                  <div className="flex gap-2">
+                    <div className="w-1/4 shrink-0">
+                      <p className="text-sm font-medium">Scheduled Date</p>
+                      <p className="text-xs text-gray-500">Video release</p>
+                    </div>
+                    <div className="w-[calc(100%-235px)] ml-2">
+                      <input
+                        onKeyDown={(e) => e.key === 'Enter' && e.preventDefault()}
+                        type="datetime-local"
+                        className="w-full border border-gray-300 rounded h-10 px-2"
+                        value={new Date().toISOString().split("T")[0]}
                       />
                     </div>
                   </div>

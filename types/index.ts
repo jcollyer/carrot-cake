@@ -73,6 +73,7 @@ export type TikTokVideoProps = {
   brandedContent: boolean;
   uploadProgress?: number;
   thumbnail?: string;
+  scheduleDate?: string;
 };
 
 export type YouTubeUserInfo = {

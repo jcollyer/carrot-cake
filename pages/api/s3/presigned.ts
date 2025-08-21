@@ -23,7 +23,7 @@ export default async function handler(
   const fileKey = `${Date.now().toString()}-${fileName}`; // for uniqueness of the url
 
   const uploadParams = {
-    Bucket: process.env.NEXT_AWS_S3_BUCKET_NAME!,
+    Bucket: process.env.AWS_S3_IG_BUCKET_NAME!,
     Key: fileKey,
     ContentType: contentType,
   };
