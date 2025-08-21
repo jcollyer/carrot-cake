@@ -85,7 +85,7 @@ export default function UploadInstagramPage({ references }: { references: Refere
               },
             ]);
             // Upload the file to S3
-            fetch(`/api/s3/presigned?fileName=${file.name}&contentType=${file.type}`)
+            fetch(`/api/s3/presigned?fileName=${file.name}&contentType=${file.type}&platform=ig`)
               .then((res) => res.json())
               .then((res) => {
                 const body = new Blob([fileData], { type: file.type });
