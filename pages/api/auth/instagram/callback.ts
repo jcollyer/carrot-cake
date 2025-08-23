@@ -30,6 +30,7 @@ export default async function handler(
 
     // get the access token from the response to exchange for a long-lived token
     const data = await response.json();
+    console.log("Instagram token exchange response:-------", data);
     const accessToken = data.access_token;
     const userId = data.user_id;
     try {
@@ -37,6 +38,7 @@ export default async function handler(
         `https://graph.instagram.com/access_token?grant_type=ig_exchange_token&client_secret=${process.env.IG_CLIENT_SECRET}&access_token=${accessToken}`
       );
       const exchangeData = await exchangeResponse.json();
+      console.log("Long-lived token exchange response:-------", exchangeData);
       const longLivedAccessToken = exchangeData.access_token;
       const ttl = exchangeData.expires_in;
 
