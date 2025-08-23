@@ -166,7 +166,7 @@ export default function UploadInstagramPage({ references }: { references: Refere
         <div className="flex justify-between items-center mb-4">
           <div className="flex flex-col gap-4">
             <div className="flex gap-2">
-              <Image src="/ig_logo.png" alt="Instagram Logo" width="50" height="20" className="w-12" />
+              <Image src="/ig_logo.svg" alt="Instagram Logo" width="50" height="20" className="w-12" />
               <p className="text-xs mt-auto">Upload video max: 2GB</p>
             </div>
             <div className="flex gap-2">
