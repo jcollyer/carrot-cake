@@ -19,7 +19,7 @@ import {
   sanitizeInstagramMetadata
 } from "@/app/utils/sanitizeApiData";
 import { useGetYouTubeUserInfo } from "@/app/hooks/use-get-youtube-user-info";
-import { CATEGORIES, IG_CONNECT_URL } from "@/app/constants";
+import { CATEGORIES } from "@/app/constants";
 import { useRouter } from "next/router";
 import clsx from "clsx";
 import {
@@ -114,7 +114,7 @@ export default function Home() {
         setInstagramToken(newValue);
       }
     }, 1000, "ig-access-token");
-    const igConnect = IG_CONNECT_URL;
+    const igConnect = process.env.IG_CONNECT_URL;
     window.open(igConnect, "_blank", "location=yes,height=570,width=520,scrollbars=yes,status=yes");
   }
 
