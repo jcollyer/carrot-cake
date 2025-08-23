@@ -3,16 +3,11 @@ import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import { PutObjectCommand } from "@aws-sdk/client-s3";
 import { s3Client } from "@/app/utils/s3-client";
 
-const isDev = process.env.NODE_ENV === "development";
-const BASE_URL = isDev
-  ? process.env.BASE_URL_LOCAL
-  : process.env.BASE_URL;
-
 export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse
 ) {
-  const searchParams = new URL(`${BASE_URL}${req.url}`).searchParams;
+  const searchParams = new URL(`${process.env.BASE_URL}${req.url}`).searchParams;
   const fileName = searchParams.get("fileName");
   const contentType = searchParams.get("contentType");
   const platform = searchParams.get("platform");
