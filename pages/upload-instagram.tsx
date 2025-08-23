@@ -152,12 +152,8 @@ export default function UploadInstagramPage({ references }: { references: Refere
   useEffect(() => {
     const getUserInfo = async () => {
       if (tokens) {
-        const data = await fetch("/api/instagram/get-user-data", {
-          method: "GET",
-          headers: {
-            cookie: `${tokens}`,
-          },
-        }).then((data) => data.json());
+        const data = await fetch("/api/instagram/get-user-data")
+          .then((data) => data.json());
         setIgUserInfo({ ...data });
       }
     }

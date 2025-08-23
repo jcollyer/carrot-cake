@@ -120,9 +120,7 @@ export default function Home() {
   }
 
   const getTikTokUserInfo = async () => {
-    fetch("/api/tiktok/get-user-info", {
-      method: "GET",
-    })
+    fetch("/api/tiktok/get-user-info")
       .then(response => response.json())
       .then(({ data }) => {
         const { user } = data;
@@ -146,16 +144,12 @@ export default function Home() {
   }
 
   const getInstagramUserData = async () => {
-    fetch(`/api/instagram/get-user-data?accessTokens=${instagramToken}`, {
-      method: "GET",
-      headers: {
-        cookie: `${instagramToken}`,
-      },
-    }).then(async (data) => {
-      const user = await data.json();
-      setInstagramUserData(user);
-      setTabOpen("instagram");
-    });
+    fetch("/api/instagram/get-user-data")
+      .then(async (data) => {
+        const user = await data.json();
+        setInstagramUserData(user);
+        setTabOpen("instagram");
+      });
   }
 
   const getInstagramUserVideos = async () => {
