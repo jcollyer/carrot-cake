@@ -11,6 +11,7 @@ export default async function handler(
   if (!fileName) {
     return res.status(500).json(null);
   }
+  console.log("Attempting to delete file:-------",  String(fileName).split("/").pop(), process.env.AWS_S3_IG_BUCKET_NAME);
   const params = {
     Bucket: process.env.AWS_S3_IG_BUCKET_NAME,
     Key: String(fileName).split("/").pop(),
