@@ -1,7 +1,7 @@
 export const runtime = "edge";
 import { NextResponse } from "next/server";
 
-const baseUrl = process.env.NEXTAUTH_URL || "http://localhost:3000";
+const baseUrl = process.env.BASE_URL || "http://localhost:3000";
 
 export default async function GET(req: Request) {
   if (
