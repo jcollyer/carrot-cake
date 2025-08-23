@@ -118,6 +118,7 @@ export default function UploadInstagramPage({ references }: { references: Refere
           videoType: video.mediaType,
           videoCaption: video.caption,
           scheduledDate: new Date(video.scheduleDate || new Date()),
+          thumbnail: video.thumbnail,
           accessToken,
           InstagramuserId: igUserInfo?.id,
         }),

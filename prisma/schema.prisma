@@ -55,7 +55,7 @@ model User {
   accounts            Account[]
   references          Reference[]
   sessions            Session[]
-  igScheduledVideos   InstagramVideos[]
+  InstagramVideos     InstagramVideos[]
 }
 
 model VerificationToken {
@@ -78,5 +78,6 @@ model InstagramVideos {
   accessToken     String
   InstagramuserId String
   userId          String?
+  thumbnail       String
   referenceOwner  User?    @relation(fields: [userId], references: [id])
 }

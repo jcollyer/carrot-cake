@@ -7,7 +7,7 @@ export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse
 ) {
-  const { userId, videoUrl, videoType, videoCaption, scheduledDate, accessToken, InstagramuserId } = req.body;
+  const { userId, videoUrl, videoType, videoCaption, scheduledDate, thumbnail, accessToken, InstagramuserId } = req.body;
   const session = await getServerSession(req, res, authOptions);
   if (!session) {
     return res.status(401).json({ error: "Unauthorized" });
@@ -20,6 +20,7 @@ export default async function handler(
       scheduledDate,
       accessToken,
       InstagramuserId,
+      thumbnail,
       userId,
       referenceOwner: {
         connectOrCreate: {
