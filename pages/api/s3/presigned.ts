@@ -23,7 +23,12 @@ export default async function handler(
     Key: fileKey,
     ContentType: contentType,
   };
-  const command = new PutObjectCommand(uploadParams);
+  let command;
+  try {
+    command = new PutObjectCommand(uploadParams);
+  } catch (err) {
+    throw new Error(`Error creating signed URL: ${err}`);
+  }
   const signedUrl = await getSignedUrl(s3Client, command, { expiresIn: 3600 });
 
   if (signedUrl){
