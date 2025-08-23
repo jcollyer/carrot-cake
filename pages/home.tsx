@@ -146,8 +146,12 @@ export default function Home() {
   }
 
   const getInstagramUserData = async () => {
-    fetch(`/api/instagram/get-user-data?accessTokens=${instagramToken}`)
-    .then(async (data) => {
+    fetch(`/api/instagram/get-user-data?accessTokens=${instagramToken}`, {
+      method: "GET",
+      headers: {
+        cookie: `${instagramToken}`,
+      },
+    }).then(async (data) => {
       const user = await data.json();
       setInstagramUserData(user);
       setTabOpen("instagram");

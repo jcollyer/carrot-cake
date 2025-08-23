@@ -1,20 +1,21 @@
 import { NextApiRequest, NextApiResponse } from "next";
 import { GET_IG_USER_INFO_URL } from "@/app/constants";
+import { getTokensCookie } from "@/app/utils/getTokensCookie";
 
 export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse
 ) {
-  const searchParams = new URL(`${process.env.BASE_URL}${req.url}`).searchParams;
-  const accessTokens = searchParams.get("accessTokens");
-  const {access_token, user_id} = JSON.parse(accessTokens || "");
+  const { cookie } = req.headers;
+  const accessToken = getTokensCookie(cookie, "ig-access-token").access_token;
+  const userId = getTokensCookie(cookie, "ig-access-token").user_id;
 
-  const profileUrl = `https://graph.instagram.com/${user_id}${GET_IG_USER_INFO_URL}${access_token}`;
+  const profileUrl = `https://graph.instagram.com/${userId}${GET_IG_USER_INFO_URL}${accessToken}`;
   try {
     const response = await fetch(profileUrl, {
       method: "GET",
       headers: {
-        Authorization: `Bearer ${access_token}`,
+        Authorization: `Bearer ${accessToken}`,
         "Content-Type": "application/json",
       },
     });
