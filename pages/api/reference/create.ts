@@ -19,7 +19,6 @@ export default async function handler(
       referenceOwner: {
         connectOrCreate: {
           where: {
-            // @ts-ignore
             email: session?.user?.email,
           },
           create: {

@@ -152,15 +152,10 @@ export default function Home() {
       });
   }
 
-  const getInstagramUserVideos = async () => {
-    fetch("/api/instagram/get-user-videos", {
-      method: "GET",
-      headers: {
-        cookie: `${instagramToken}`,
-      },
-    }).then(async (data) => {
-      const videos = await data.json();
-      setInstagramVideos(videos.data);
+  const getUserIgVideos = async () => {
+    fetch("/api/instagram/get-user-ig-videos").then(async (data) => {
+      const { videos } = await data.json();
+      setInstagramVideos(prevVideos => [...(prevVideos || []), ...videos]);
     });
   }
 
@@ -299,7 +294,7 @@ export default function Home() {
     if (instagramToken) {
       setTabOpen("instagram");
       getInstagramUserData();
-      getInstagramUserVideos();
+      getUserIgVideos();
     }
   }, [instagramToken]);
 
@@ -389,7 +384,7 @@ export default function Home() {
                     <Calendar
                       scheduledVideos={sanitizeYTMetadata(youTubeVideos) || []}
                       setEditVideo={setEditVideo}
-                      title="Uploaded Videos"
+                      title="Uploaded YouTube Videos"
                       canEdit
                     />
                   </>
@@ -426,7 +421,7 @@ export default function Home() {
                     <Calendar
                       scheduledVideos={sanitizeTikTokMetadata(tiktokVideos) || []}
                       setEditVideo={setEditVideo}
-                      title="Uploaded Videos"
+                      title="Uploaded TikTok Videos"
                       canEdit={false}
                     />
                   </>
@@ -464,7 +459,7 @@ export default function Home() {
                     <Calendar
                       scheduledVideos={sanitizeInstagramMetadata(instagramVideos) || []}
                       setEditVideo={setEditVideo}
-                      title="Uploaded Videos"
+                      title="Uploaded Instagram Videos"
                       canEdit={false}
                     />
                   </>

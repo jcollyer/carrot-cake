@@ -57,14 +57,14 @@ export const sanitizeInstagramMetadata = (
   videos: InstagramVideo[] | undefined
 ): SanitizedVideoProps[] | undefined => {
   return videos?.map((video) => {
-    const { id, caption, media_url, media_type, timestamp } = video;
+    const { id, thumbnail, scheduledDate, videoCaption } = video;
     return {
-      id,
-      title: caption || "",
-      description: caption || "",
-      scheduleDate: moment(timestamp).format("YYYY-MM-DD"),
-      thumbnail: media_url,
-      mediaType: media_type,
+      id, 
+      title: videoCaption || "",
+      description: "",
+      scheduleDate: moment(scheduledDate).format("YYYY-MM-DD"),
+      thumbnail,
+      mediaType: "VIDEO",
     };
   });
 };

@@ -34,11 +34,15 @@ export interface TikTokVideo {
 }
 
 export interface InstagramVideo {
+  InstagrammuserId: string;
+  accessToken: string;
   id: string;
-  caption: string;
-  media_url: string;
-  media_type: "IMAGE" | "VIDEO" | "CAROUSEL_ALBUM";
-  timestamp: string;
+  scheduledDate: string;
+  thumbnail: string;
+  userId: string;
+  videoCaption: string;
+  videoType: "Stories" | "Videos" | "Reels";
+  videoUrl: string;
 }
 
 export type SanitizedVideoProps = {
@@ -93,7 +97,7 @@ export type TikTokUserInfo = {
   following_count?: number;
   likes_count?: number;
   video_count?: number;
-}
+};
 
 export type TikTokUserCreatorInfo = {
   comment_disabled: boolean;
