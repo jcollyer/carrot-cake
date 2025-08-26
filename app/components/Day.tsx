@@ -11,19 +11,19 @@ type Props = {
   select: (day: any) => void,
   selected: any,
   videoScheduled: SanitizedVideoProps | undefined,
-  editVideo: (video: SanitizedVideoProps) => void,
+  setEditVideo: (video: SanitizedVideoProps) => void,
   canEdit: boolean,
   mediaType?: "IMAGE" | "VIDEO" | "CAROUSEL_ALBUM",
 };
 
-export function Day({ day, select, selected, videoScheduled, editVideo, canEdit, mediaType }: Props) {
+export function Day({ day, select, selected, videoScheduled, setEditVideo, canEdit, mediaType }: Props) {
   const { date, isCurrentMonth, isToday, number } = day;
   if (!!videoScheduled) {
     return (
       <div
         className="relative flex flex-col flex-1 text-left rounded-sm bg-cover bg-center max-w-[128px] bg-gray-800"
         style={{
-          backgroundImage: mediaType !== "VIDEO" ? `url(${videoScheduled.thumbnail})` : undefined,
+          backgroundImage: `url(${videoScheduled.thumbnail})`,
         }}
       >
         <div className="z-10">
@@ -36,7 +36,7 @@ export function Day({ day, select, selected, videoScheduled, editVideo, canEdit,
             <button
               className="ml-auto mr-2 mb-2"
               onClick={() =>
-                editVideo({
+                setEditVideo({
                   id: videoScheduled.id,
                   title: videoScheduled.title,
                   description: videoScheduled.description,
@@ -50,12 +50,6 @@ export function Day({ day, select, selected, videoScheduled, editVideo, canEdit,
             </button>
           )}
         </div>
-        {mediaType === "VIDEO" && (
-          <video
-            className="w-full h-full object-cover absolute top-0 left-0 rounded-tl-sm z-0"
-            src={videoScheduled.thumbnail}
-          />
-        )}
       </div>
     );
   }

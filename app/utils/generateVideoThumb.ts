@@ -9,8 +9,8 @@ const generateVideoThumbnail = (file: any) =>
 
     video.onloadeddata = () => {
       const ctx = canvas.getContext("2d");
-      const height = 300
-      const width = 200
+      const height = 1200
+      const width = 800
 
       canvas.width = width;
       canvas.height = height;

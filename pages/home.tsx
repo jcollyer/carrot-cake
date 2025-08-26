@@ -460,7 +460,7 @@ export default function Home() {
                       scheduledVideos={sanitizeInstagramMetadata(instagramVideos) || []}
                       setEditVideo={setEditVideo}
                       title="Uploaded Instagram Videos"
-                      canEdit={false}
+                      canEdit
                     />
                   </>
                 )}
@@ -480,7 +480,7 @@ export default function Home() {
           </Tabs>
         )}
       </div>
-      <div className={clsx({ "w-[400px]": !!editVideo?.description }, "fixed right-0 top-0 z-10 w-0 transition-[width] h-screen border-l drop-shadow bg-gray-100 border-gray-50")}>
+      <div className={clsx({ "w-[400px]": !!editVideo?.id }, "fixed right-0 top-0 z-10 w-0 transition-[width] h-screen border-l drop-shadow bg-gray-100 border-gray-50")}>
         <div className="flex flex-col w-[400px] gap-2 pt-6 px-8 h-full overflow-auto pb-10">
           <div className="flex items-center mb-2">
             <h3 className="text-gray-700 text-xl font-bold">Edit Video</h3>

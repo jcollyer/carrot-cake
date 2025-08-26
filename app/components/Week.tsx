@@ -8,7 +8,7 @@ type Props = {
   select: (date:moment.Moment) => void,
   selected: any,
   scheduledVideos: SanitizedVideoProps[],
-  editVideo: (video:SanitizedVideoProps) => void,
+  setEditVideo: (video:SanitizedVideoProps) => void,
   canEdit: boolean,
 };
 
@@ -18,7 +18,7 @@ export function Week({
   select,
   selected,
   scheduledVideos,
-  editVideo,
+  setEditVideo,
   canEdit,
 }:Props) {
   const days = [];
@@ -42,7 +42,7 @@ export function Week({
         select={select}
         key={i}
         videoScheduled={videoScheduled}
-        editVideo={editVideo}
+        setEditVideo={setEditVideo}
         canEdit={canEdit}
         mediaType={videoScheduled?.mediaType}
       />,

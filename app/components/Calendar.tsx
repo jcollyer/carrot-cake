@@ -52,7 +52,7 @@ export function Calendar({ scheduledVideos, setEditVideo, canEdit, title }: Prop
           select={day => select(day)}
           selected={selected}
           scheduledVideos={scheduledVideos}
-          editVideo={setEditVideo}
+          setEditVideo={setEditVideo}
           canEdit={canEdit}
         />,
       );

@@ -96,7 +96,7 @@ export default function UploadTikTokPage({ references }: { references: Reference
             }]);
 
           // Upload the file to S3
-          fetch(`/api/s3/presigned?fileName=${file.name}&contentType=${file.type}&platform=tt`)
+          fetch(`/api/s3/presigned?fileName=${file.name}&contentType=${file.type}&s3Bucket=AWS_S3_TT_BUCKET_NAME`)
             .then((res) => res.json())
             .then((res) => {
               const body = new Blob([fileData], { type: file.type });
