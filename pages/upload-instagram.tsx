@@ -88,7 +88,7 @@ export default function UploadInstagramPage({ references }: { references: Refere
             ]);
 
             // Upload the thumbnail to S3
-            fetch(`/api/s3/presigned?fileName=${file.name.split(".mp4")[0]}-thumb.png&contentType=image/png&s3Bucket=AWS_S3_IG_THUMBS_BUCKET_NAME`)
+            fetch(`/api/s3/presigned?fileName=${file.name.split(".mp4")[0]}-thumb.png&contentType=image/png&s3Bucket=AWS_S3_IG_THUMBS_BUCKET_NAME&region=us-east-2`)
               .then((res) => res.json())
               .then((res) => {
                 const body = new Blob([thumbArrayBuffer], { type: "image/png" });
@@ -103,7 +103,7 @@ export default function UploadInstagramPage({ references }: { references: Refere
               });
 
             // Upload the video to S3
-            fetch(`/api/s3/presigned?fileName=${file.name}&contentType=${file.type}&s3Bucket=AWS_S3_IG_BUCKET_NAME`)
+            fetch(`/api/s3/presigned?fileName=${file.name}&contentType=${file.type}&s3Bucket=AWS_S3_IG_BUCKET_NAME&region=us-east-2`)
               .then((res) => res.json())
               .then((res) => {
                 const body = new Blob([fileData], { type: file.type });

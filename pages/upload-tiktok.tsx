@@ -28,6 +28,7 @@ import { cn } from "@/app/utils/cn";
 import secondsToMinutesAndSeconds from "@/app/utils/secondsToMinutes";
 import { CHUNK_SIZE, ALL_PRIVACY_STATUS_OPTIONS, VIDEO_ACCESS_OPTIONS } from "@/app/constants";
 import { useUploadChunk } from "@/app/hooks/use-upload-chunk";
+import { base64ToArrayBuffer } from "@/app/utils/base64ToArrayBuffer";
 
 export const getServerSideProps = async (context: any) => {
   const session = await getServerSession(context.req, context.res, authOptions);
@@ -75,10 +76,13 @@ export default function UploadTikTokPage({ references }: { references: Reference
           const fileData = event.target?.result;
           if (!fileData) return;
           const thumb = await generateVideoThumb(file);
+          const thumbArrayBuffer = base64ToArrayBuffer((thumb as string).split(",")[1]);
+
           setVideos((prev) => [
             ...prev || [], {
               file,
               title: "",
+              thumbnail: "",
               privacyStatus: "",
               commercialUseContent: false,
               commercialUseOrganic: false,
@@ -92,11 +96,27 @@ export default function UploadTikTokPage({ references }: { references: Reference
               yourBrand: false,
               brandedContent: false,
               uploadProgress: 0,
-              thumbnail: thumb as string,
             }]);
 
-          // Upload the file to S3
-          fetch(`/api/s3/presigned?fileName=${file.name}&contentType=${file.type}&s3Bucket=AWS_S3_TT_BUCKET_NAME`)
+          // Upload the thumbnail to S3
+          fetch(`/api/s3/presigned?fileName=${file.name.split(".mp4")[0]}-thumb.png&contentType=image/png&s3Bucket=AWS_S3_TT_THUMBS_BUCKET_NAME&region=us-east-1`)
+            .then((res) => res.json())
+            .then((res) => {
+              const body = new Blob([thumbArrayBuffer], { type: "image/png" });
+
+              fetch(res.signedUrl, {
+                body,
+                method: 'PUT',
+              }).then(async (data) => {
+                const thumbnail = data?.url?.split('?')[0];
+                setVideos((prev) => prev?.map((v, i) => i === index ? { ...v, thumbnail } : v));
+              });
+            });
+
+
+
+          // Upload the video to S3
+          fetch(`/api/s3/presigned?fileName=${file.name}&contentType=${file.type}&s3Bucket=AWS_S3_TT_BUCKET_NAME&region=us-east-2`)
             .then((res) => res.json())
             .then((res) => {
               const body = new Blob([fileData], { type: file.type });
@@ -151,36 +171,19 @@ export default function UploadTikTokPage({ references }: { references: Reference
           brand_organic_toggle: video.yourBrand,
         },
         source_info: {
-          source: "FILE_UPLOAD",
-          video_size: video.file?.size || 0,
-          chunk_size: CHUNK_SIZE,
-          total_chunk_count: Math.floor((video.file?.size || 0) / CHUNK_SIZE)
+          video_url: "https://carrot-cake-tiktok-videos.s3.us-east-2.amazonaws.com/1756735571369-Drone+Video+Templete_45.mp4",
+          source: "PULL_FROM_URL",
         }
       }),
     })
-      .then((response) => {
+      .then(async (response) => {
         if (!response.ok) {
           throw new Error(`HTTP error! status: ${response.status}`);
         }
-        return response.json();
-      })
-      .then(async ({ data }) => {
-        await useUploadChunk({
-          offset: 0,
-          chunkIndex: 0,
-          setVideos,
-          file: video.file,
-          uploadUrl: data.upload_url,
-          totalSize: video.file.size,
-          videoIndex: index,
-        });
-      })
-      .catch((error) => {
-        console.error("Error uploading video:", error);
-        videos && setVideos(videos.map((v, i) => i === index ? {
-          ...v,
-          uploadProgress: 0
-        } : v));
+        console.log("Initiated upload for video:-------", await response.json());
+        // return response.json();
+      }).catch((error) => {
+        console.error("Error initiating video upload:", error);
       });
   };
 
@@ -194,6 +197,7 @@ export default function UploadTikTokPage({ references }: { references: Reference
       for (const [index, video] of videos.entries()) {
         setVideos((prev) => prev?.map((v, i) => i === index ? { ...v, uploadProgress: 2 } : v));
         await uploadTikTokVideo({ video, draft: video.directPost, index });
+        // await scheduleTikTokVideo({ video, draft: video.directPost, index });
       }
     }
   };
@@ -513,6 +517,37 @@ export default function UploadTikTokPage({ references }: { references: Reference
               </div>
             </div>
           ))}
+          {videos && videos.length > 0 && (
+            <>
+              <div className="flex gap-2 mt-5">
+                <Button
+                  variant="secondary"
+                  type="button"
+                  onClick={() => {
+                    setVideos(undefined)
+                  }}
+                  className="flex flex-1 gap-2"
+                >
+                  <RotateCcw strokeWidth={2} />
+                  Reset Video{videos && videos?.length > 1 ? "s" : ""}
+                </Button>
+                <Button
+                  variant="secondary"
+                  type="submit"
+                  disabled={!videos?.every(v => v.privacyStatus !== "" || !v.directPost)}
+                  onClick={onSubmit}
+                  className="flex flex-1 items-center gap-2"
+                >
+                  <CloudUpload />
+                  Upload {videos && videos.length} Video{videos && videos.length > 1 ? "s" : ""} to TikTok
+                </Button>
+              </div>
+              <div className="bg-amber-100 text-amber-900 text-sm p-3 mt-4 rounded">
+                By posting, you agree to TikTok"s <a href="https://www.tiktok.com/legal/page/global/music-usage-confirmation/en" className="text-amber-600 underline">Music Usage Confirmation</a>.
+              </div>
+            </>
+          )}
+
           <div className="flex gap-6 mt-8">
             <div className="flex flex-col shrink-0 w-1/4">
               <div
@@ -640,32 +675,6 @@ export default function UploadTikTokPage({ references }: { references: Reference
                 </>
               </div>
             </div>
-          </div>
-          <div className="flex gap-2 mt-5">
-            <Button
-              variant="secondary"
-              type="button"
-              onClick={() => {
-                setVideos(undefined)
-              }}
-              className="flex flex-1 gap-2"
-            >
-              <RotateCcw strokeWidth={2} />
-              Reset Video{videos && videos?.length > 1 ? "s" : ""}
-            </Button>
-            <Button
-              variant="secondary"
-              type="submit"
-              disabled={!videos?.every(v => v.privacyStatus !== "" || !v.directPost)}
-              onClick={onSubmit}
-              className="flex flex-1 items-center gap-2"
-            >
-              <CloudUpload />
-              Upload {videos && videos.length} Video{videos && videos.length > 1 ? "s" : ""} to TikTok
-            </Button>
-          </div>
-          <div className="bg-amber-100 text-amber-900 text-sm p-3 mt-4 rounded">
-            By posting, you agree to TikTok"s <a href="https://www.tiktok.com/legal/page/global/music-usage-confirmation/en" className="text-amber-600 underline">Music Usage Confirmation</a>.
           </div>
         </div>
       </form>

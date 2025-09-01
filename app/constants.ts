@@ -7,7 +7,6 @@ export const IG_CONNECT_URL = "https://www.instagram.com/oauth/authorize?force_r
 export const IG_CONNECT_URL_PROD = "https://www.instagram.com/oauth/authorize?force_reauth=true&client_id=1023066706404594&redirect_uri=https://carrot-cake.app/api/auth/instagram/callback&response_type=code&scope=instagram_business_basic%2Cinstagram_business_manage_messages%2Cinstagram_business_manage_comments%2Cinstagram_business_content_publish%2Cinstagram_business_manage_insights";
 export const GET_IG_USER_INFO_URL = "?fields=id,username,profile_picture_url,followers_count,follows_count,media_count&access_token=";
 export const GET_IG_USER_MEDIA_URL = "https://graph.instagram.com/me/media?fields=id,caption,media_url,media_type,timestamp,children{media_url}&limit=100&access_token=";
-export const S3_IG_THUMBS_BUCKET_URL = "https://carrot-cake-instagram-thumbs.s3.us-east-2.amazonaws.com/";
 
 type VideoAccessOption = {
   name: "comment" | "duet" | "stitch";
