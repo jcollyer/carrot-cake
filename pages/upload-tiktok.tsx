@@ -29,6 +29,7 @@ import secondsToMinutesAndSeconds from "@/app/utils/secondsToMinutes";
 import { CHUNK_SIZE, ALL_PRIVACY_STATUS_OPTIONS, VIDEO_ACCESS_OPTIONS } from "@/app/constants";
 import { useUploadChunk } from "@/app/hooks/use-upload-chunk";
 import { base64ToArrayBuffer } from "@/app/utils/base64ToArrayBuffer";
+import { url } from "inspector/promises";
 
 export const getServerSideProps = async (context: any) => {
   const session = await getServerSession(context.req, context.res, authOptions);
@@ -58,7 +59,7 @@ export const getServerSideProps = async (context: any) => {
 };
 
 export default function UploadTikTokPage({ references }: { references: Reference[] }) {
-  const tikTokAccessToken = getCookie("tiktok-tokens");
+  const tikTokAccessTokens = getCookie("tiktok-tokens") as string;
 
   const [videos, setVideos] = useState<TikTokVideoProps[] | undefined>(undefined);
   const [localReferences, setLocalReferences] = useState<Reference[]>(references || []);
@@ -81,6 +82,8 @@ export default function UploadTikTokPage({ references }: { references: Reference
           setVideos((prev) => [
             ...prev || [], {
               file,
+              id: "",
+              url: "",
               title: "",
               thumbnail: "",
               privacyStatus: "",
@@ -91,44 +94,46 @@ export default function UploadTikTokPage({ references }: { references: Reference
                 duet: false,
                 stitch: false,
               },
+              scheduledDate: "",
               directPost: true,
               disclose: false,
               yourBrand: false,
               brandedContent: false,
               uploadProgress: 0,
+              draft: true,
             }]);
 
-          // Upload the thumbnail to S3
-          fetch(`/api/s3/presigned?fileName=${file.name.split(".mp4")[0]}-thumb.png&contentType=image/png&s3Bucket=AWS_S3_TT_THUMBS_BUCKET_NAME&region=us-east-1`)
-            .then((res) => res.json())
-            .then((res) => {
-              const body = new Blob([thumbArrayBuffer], { type: "image/png" });
+          // // Upload the thumbnail to S3
+          // fetch(`/api/s3/presigned?fileName=${file.name.split(".mp4")[0]}-thumb.png&contentType=image/png&s3Bucket=AWS_S3_TT_THUMBS_BUCKET_NAME&region=us-east-1`)
+          //   .then((res) => res.json())
+          //   .then((res) => {
+          //     const body = new Blob([thumbArrayBuffer], { type: "image/png" });
 
-              fetch(res.signedUrl, {
-                body,
-                method: 'PUT',
-              }).then(async (data) => {
-                const thumbnail = data?.url?.split('?')[0];
-                setVideos((prev) => prev?.map((v, i) => i === index ? { ...v, thumbnail } : v));
-              });
-            });
+          //     fetch(res.signedUrl, {
+          //       body,
+          //       method: 'PUT',
+          //     }).then(async (data) => {
+          //       const thumbnail = data?.url?.split('?')[0];
+          //       setVideos((prev) => prev?.map((v, i) => i === index ? { ...v, thumbnail } : v));
+          //     });
+          //   });
 
 
 
-          // Upload the video to S3
-          fetch(`/api/s3/presigned?fileName=${file.name}&contentType=${file.type}&s3Bucket=AWS_S3_TT_BUCKET_NAME&region=us-east-2`)
-            .then((res) => res.json())
-            .then((res) => {
-              const body = new Blob([fileData], { type: file.type });
+          // // Upload the video to S3
+          // fetch(`/api/s3/presigned?fileName=${file.name}&contentType=${file.type}&s3Bucket=AWS_S3_TT_BUCKET_NAME&region=us-east-2`)
+          //   .then((res) => res.json())
+          //   .then((res) => {
+          //     const body = new Blob([fileData], { type: file.type });
 
-              fetch(res.signedUrl, {
-                body,
-                method: 'PUT',
-              }).then(async (data) => {
-                const url = data?.url?.split('?')[0];
-                setVideos((prev) => prev?.map((v, i) => i === index ? { ...v, url } : v));
-              });
-            });
+          //     fetch(res.signedUrl, {
+          //       body,
+          //       method: 'PUT',
+          //     }).then(async (data) => {
+          //       const url = data?.url?.split('?')[0];
+          //       setVideos((prev) => prev?.map((v, i) => i === index ? { ...v, url } : v));
+          //     });
+          //   });
         }
         reader.readAsArrayBuffer(file);
       });
@@ -136,6 +141,39 @@ export default function UploadTikTokPage({ references }: { references: Reference
   }, []);
 
   const { getRootProps, getInputProps } = useDropzone({ onDrop });
+
+  async function scheduleVideoToTikTok(video: TikTokVideoProps) {
+    try {
+      fetch("/api/tiktok/schedule-videos/create", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          videoUrl: video.url,
+          scheduledDate: new Date(video.scheduleDate || new Date()),
+          thumbnail: video.thumbnail,
+          accessToken: JSON.parse(tikTokAccessTokens)?.access_token,
+          title: video.title,
+          yourBrand: video.yourBrand,
+          brandedContent: video.brandedContent,
+          privacyStatus: video.privacyStatus,
+          commercialUseContent: video.commercialUseContent,
+          commercialUseOrganic: video.commercialUseOrganic,
+          disableDuet: video.interactionType.duet,
+          disableComment: video.interactionType.comment,
+          disableStitch: video.interactionType.stitch,
+          draft: video.draft,
+        }),
+      }).then(async (data) => {
+        console.log("Video scheduled successfully:--------", data);
+      });
+
+
+    } catch (error) {
+      console.error("Error scheduling video:", error);
+    }
+  }
 
   const getTikTokCreatorInfo = async () => {
     fetch("/api/tiktok/get-creator-info", {
@@ -150,54 +188,54 @@ export default function UploadTikTokPage({ references }: { references: Reference
       });
   }
 
-  const uploadTikTokVideo = async ({ video, draft, index }: { video: TikTokVideoProps; draft: boolean, index: number }) => {
-    if (!video.file) return;
-    await fetch("/api/tiktok/direct-post-init", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        cookie: `tokens=${JSON.parse(tikTokAccessToken as string || "{}").access_token}`,
-      },
-      body: JSON.stringify({
-        draft,
-        post_info: {
-          title: video.title,
-          privacy_level: video.privacyStatus || "SELF_ONLY",
-          disable_duet: !video.interactionType.duet,
-          disable_comment: !video.interactionType.comment,
-          disable_stitch: !video.interactionType.stitch,
-          video_cover_timestamp_ms: 1000,
-          brand_content_toggle: video.brandedContent,
-          brand_organic_toggle: video.yourBrand,
-        },
-        source_info: {
-          video_url: "https://carrot-cake-tiktok-videos.s3.us-east-2.amazonaws.com/1756735571369-Drone+Video+Templete_45.mp4",
-          source: "PULL_FROM_URL",
-        }
-      }),
-    })
-      .then(async (response) => {
-        if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
-        }
-        console.log("Initiated upload for video:-------", await response.json());
-        // return response.json();
-      }).catch((error) => {
-        console.error("Error initiating video upload:", error);
-      });
-  };
+  // const uploadTikTokVideo = async ({ video, draft, index }: { video: TikTokVideoProps; draft: boolean, index: number }) => {
+  //   if (!video.file) return;
+  //   await fetch("/api/tiktok/direct-post-init", {
+  //     method: "POST",
+  //     headers: {
+  //       "Content-Type": "application/json",
+  //       cookie: `tokens=${JSON.parse(tikTokAccessTokens as string || "{}").access_token}`,
+  //     },
+  //     body: JSON.stringify({
+  //       draft,
+  //       post_info: {
+  //         title: video.title,
+  //         privacy_level: video.privacyStatus || "SELF_ONLY",
+  //         disable_duet: !video.interactionType.duet,
+  //         disable_comment: !video.interactionType.comment,
+  //         disable_stitch: !video.interactionType.stitch,
+  //         video_cover_timestamp_ms: 1000,
+  //         brand_content_toggle: video.brandedContent,
+  //         brand_organic_toggle: video.yourBrand,
+  //       },
+  //       source_info: {
+  //         video_url: "https://carrot-cake-tiktok-videos.s3.us-east-2.amazonaws.com/1756735571369-Drone+Video+Templete_45.mp4",
+  //         source: "PULL_FROM_URL",
+  //       }
+  //     }),
+  //   })
+  //     .then(async (response) => {
+  //       if (!response.ok) {
+  //         throw new Error(`HTTP error! status: ${response.status}`);
+  //       }
+  //       console.log("Initiated upload for video:-------", await response.json());
+  //       // return response.json();
+  //     }).catch((error) => {
+  //       console.error("Error initiating video upload:", error);
+  //     });
+  // };
 
   const onSubmit = async (event: ChangeEvent<any>) => {
     event.preventDefault();
-    if (!tikTokAccessToken) {
+    if (!tikTokAccessTokens) {
       console.error("No access token found");
       return;
     }
     if (!!videos && videos.length > 0) {
       for (const [index, video] of videos.entries()) {
         setVideos((prev) => prev?.map((v, i) => i === index ? { ...v, uploadProgress: 2 } : v));
-        await uploadTikTokVideo({ video, draft: video.directPost, index });
-        // await scheduleTikTokVideo({ video, draft: video.directPost, index });
+        // await uploadTikTokVideo({ video, draft: video.directPost, index });
+        await scheduleVideoToTikTok(video);
       }
     }
   };
@@ -205,7 +243,7 @@ export default function UploadTikTokPage({ references }: { references: Reference
   useEffect(() => {
     getTikTokCreatorInfo();
   }, []);
-
+console.log('----------render------', videos)
   return (
     <div className="flex flex-col items-center max-w-4xl mx-auto mt-6 p-6">
       <form encType="multipart/form-data" className="w-full">

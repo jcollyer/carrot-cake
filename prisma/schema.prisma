@@ -56,6 +56,7 @@ model User {
   references          Reference[]
   sessions            Session[]
   InstagramVideos     InstagramVideos[]
+  tiktokVideos        TiktokVideos[]
 }
 
 model VerificationToken {
@@ -80,4 +81,24 @@ model InstagramVideos {
   InstagramuserId     String
   thumbnail           String
   referenceOwner      User     @relation(fields: [userId], references: [id])
+}
+
+model TiktokVideos {
+  id                      String   @id @default(cuid())
+  userId                  String
+  videoUrl                String
+  title                   String
+  yourBrand               Boolean
+  brandedContent          Boolean
+  privacyStatus           String
+  commercialUseContent    Boolean
+  commercialUseOrganic    Boolean
+  disableDuet             Boolean
+  disableComment          Boolean
+  disableStitch           Boolean
+  scheduledDate           DateTime
+  accessToken             String
+  thumbnail               String
+  draft                   Boolean
+  user                    User     @relation(fields: [userId], references: [id])
 }

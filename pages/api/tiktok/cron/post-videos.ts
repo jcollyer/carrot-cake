@@ -10,28 +10,39 @@ export default async function GET(req: Request) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const instagramVideos = await fetch(
-    `${baseUrl}/api/instagram/schedule-videos/get-all`
+  const tiktokVideos = await fetch(
+    `${baseUrl}/api/tiktok/schedule-videos/get-all`
   );
-  const instagramVideosData = await instagramVideos.json();
+  const tiktokVideosData = await tiktokVideos.json();
 
-  for (const video of instagramVideosData.videos) {
+  for (const video of tiktokVideosData.videos) {
     const { accessToken, InstagramuserId, videoUrl, videoType, videoCaption } =
       video;
 
-    // Post the video to Instagram
+    // Post the video to TikTok
     try {
-      const response = await fetch(`${baseUrl}/api/instagram/post-video`, {
+      const response = await fetch(`${baseUrl}/api/tiktok/direct-post-init`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          accessToken,
-          igUserId: InstagramuserId,
-          videoUrl: videoUrl,
-          videoType: videoType,
-          videoCaption: videoCaption,
+          draft: video.draft,
+          post_info: {
+            title: video.title,
+            privacy_level: video.privacyStatus || "SELF_ONLY",
+            disable_duet: !video.interactionType.duet,
+            disable_comment: !video.interactionType.comment,
+            disable_stitch: !video.interactionType.stitch,
+            video_cover_timestamp_ms: 1000,
+            brand_content_toggle: video.brandedContent,
+            brand_organic_toggle: video.yourBrand,
+          },
+          source_info: {
+            video_url:
+              "https://carrot-cake-tiktok-videos.s3.us-east-2.amazonaws.com/1756735571369-Drone+Video+Templete_45.mp4",
+            source: "PULL_FROM_URL",
+          },
         }),
       });
       const data = await response.json();
@@ -41,13 +52,13 @@ export default async function GET(req: Request) {
         console.error("Error posting video:", data);
       }
     } catch (error) {
-      throw new Error(`error posting to api/instagram/post-video: ${error}`);
+      throw new Error(`error posting to api/tiktok/direct-post-init: ${error}`);
     }
 
     // Remove the video from S3 bucket
     try {
       const response = await fetch(
-        `${baseUrl}/api/s3/delete?fileName=${videoUrl}&s3Bucket=AWS_S3_IG_BUCKET_NAME&region=us-east-2`
+        `${baseUrl}/api/s3/delete?fileName=${videoUrl}&s3Bucket=AWS_S3_TIKTOK_BUCKET_NAME&region=us-east-2`
       );
       const data = await response.json();
       console.log("File removed from S3:", data);

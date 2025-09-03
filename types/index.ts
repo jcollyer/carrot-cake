@@ -22,28 +22,6 @@ export interface YouTubeVideo {
     publishAt?: string;
   };
 }
-export interface TikTokVideo {
-  id: string;
-  title: string;
-  video_description: string;
-  duration?: string;
-  create_time: number;
-  cover_image_url: string;
-  share_url: string;
-  embed_link?: boolean;
-}
-
-export interface InstagramVideo {
-  InstagrammuserId: string;
-  accessToken: string;
-  id: string;
-  scheduledDate: string;
-  thumbnail: string;
-  userId: string;
-  videoCaption: string;
-  videoType: "Stories" | "Videos" | "Reels";
-  videoUrl: string;
-}
 
 export type SanitizedVideoProps = {
   description: string;
@@ -59,9 +37,23 @@ export type SanitizedVideoProps = {
   uploadProgress?: number;
 };
 
-export type TikTokVideoProps = {
-  file: any;
+export interface TikTokVideo {
+  id: string;
+  userId: string;
+  accessToken: string;
+  scheduledDate: string;
+  thumbnail: string;
   title: string;
+  video_description: string;
+  duration?: string;
+  share_url: string;
+  embed_link?: boolean;
+}
+
+export type TikTokVideoProps = {
+  url: string;
+  title: string;
+  file?: any;
   privacyStatus?: string;
   commercialUseContent: boolean;
   commercialUseOrganic: boolean;
@@ -70,7 +62,6 @@ export type TikTokVideoProps = {
     duet: boolean;
     stitch: boolean;
   };
-  // Internal types
   directPost: boolean;
   disclose: boolean;
   yourBrand: boolean;
@@ -78,6 +69,31 @@ export type TikTokVideoProps = {
   uploadProgress?: number;
   thumbnail?: string;
   scheduleDate?: string;
+  draft: boolean;
+};
+
+export interface InstagramVideo {
+  id: string;
+  userId: string;
+  accessToken: string;
+  scheduledDate: string;
+  thumbnail: string;
+  InstagrammuserId: string;
+  videoCaption: string;
+  videoType: "Stories" | "Videos" | "Reels";
+  videoUrl: string;
+}
+
+export type InstagramVideoProps = {
+  url?: string;
+  caption: string;
+  mediaType: "Stories" | "Videos" | "Reels";
+  tags?: string;
+  location?: string;
+  scheduleDate?: string;
+  file?: any;
+  thumbnail?: string;
+  uploadProgress?: number;
 };
 
 export type YouTubeUserInfo = {
@@ -117,17 +133,4 @@ export type InstagramUserInfo = {
   followers_count: number;
   follows_count: number;
   media_count: number;
-};
-
-export type InstagramVideoProps = {
-  url?: string;
-  caption: string;
-  mediaType: "Stories" | "Videos" | "Reels";
-  tags?: string;
-  location?: string;
-  // Internal types
-  scheduleDate?: string;
-  file?: any;
-  thumbnail?: string;
-  uploadProgress?: number;
 };

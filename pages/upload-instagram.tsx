@@ -124,9 +124,10 @@ export default function UploadInstagramPage({ references }: { references: Refere
   }, []);
 
   const { getRootProps, getInputProps } = useDropzone({ onDrop });
+  
   async function scheduleVideoToInstagram(video: InstagramVideoProps) {
     try {
-      fetch("/api/instagram/scheduled-videos/create", {
+      fetch("/api/instagram/schedule-videos/create", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
