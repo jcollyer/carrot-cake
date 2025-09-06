@@ -1,15 +1,17 @@
-import { signOut } from "firebase/auth";
+import prisma from "@/lib/prisma" 
 import NextAuth from "next-auth";
+import { PrismaAdapter } from "@next-auth/prisma-adapter";
 import GithubProvider from "next-auth/providers/github";
 import GoogleProvider from "next-auth/providers/google";
 
 type SessionProps = {
   session: any;
   token: any;
+  user: any;
 };
 
 export const authOptions = {
-  // adapter: PrismaAdapter(prisma),
+  adapter: PrismaAdapter(prisma),
   secret: process.env.NEXTAUTH_SECRET,
   providers: [
     GithubProvider({
@@ -21,14 +23,17 @@ export const authOptions = {
       clientSecret: process.env.GOOGLE_CLIENT_SECRET || "",
     }),
   ],
+  session: {
+    strategy: "database" as const,
+  },
   callbacks: {
-    session: ({ session, token }: SessionProps) => ({
-      ...session,
-      user: {
-        ...session.user,
-        id: token.sub,
-      },
-    }),
+    async session({ session, user }: SessionProps) {
+      // Include the user ID in the session object
+      if (session.user) {
+        session.user.id = user.id
+      }
+      return session
+    },
   },
 };
 
