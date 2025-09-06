@@ -26,10 +26,8 @@ import { TikTokUserCreatorInfo, TikTokVideoProps } from "@/types"
 import generateVideoThumb from "@/app/utils/generateVideoThumb";
 import { cn } from "@/app/utils/cn";
 import secondsToMinutesAndSeconds from "@/app/utils/secondsToMinutes";
-import { CHUNK_SIZE, ALL_PRIVACY_STATUS_OPTIONS, VIDEO_ACCESS_OPTIONS } from "@/app/constants";
-import { useUploadChunk } from "@/app/hooks/use-upload-chunk";
+import { ALL_PRIVACY_STATUS_OPTIONS, VIDEO_ACCESS_OPTIONS } from "@/app/constants";
 import { base64ToArrayBuffer } from "@/app/utils/base64ToArrayBuffer";
-import { url } from "inspector/promises";
 
 export const getServerSideProps = async (context: any) => {
   const session = await getServerSession(context.req, context.res, authOptions);
@@ -118,8 +116,6 @@ export default function UploadTikTokPage({ references }: { references: Reference
               });
             });
 
-
-
           // Upload the video to S3
           fetch(`/api/s3/presigned?fileName=${file.name}&contentType=${file.type}&s3Bucket=AWS_S3_TT_BUCKET_NAME&region=us-east-2`)
             .then((res) => res.json())
@@ -168,8 +164,6 @@ export default function UploadTikTokPage({ references }: { references: Reference
       }).then(async (data) => {
         console.log("Video scheduled successfully:--------", data);
       });
-
-
     } catch (error) {
       console.error("Error scheduling video:", error);
     }
@@ -187,43 +181,6 @@ export default function UploadTikTokPage({ references }: { references: Reference
         console.error("Fetch error:", error);
       });
   }
-
-  // const uploadTikTokVideo = async ({ video, draft, index }: { video: TikTokVideoProps; draft: boolean, index: number }) => {
-  //   if (!video.file) return;
-  //   await fetch("/api/tiktok/direct-post-init", {
-  //     method: "POST",
-  //     headers: {
-  //       "Content-Type": "application/json",
-  //       cookie: `tokens=${JSON.parse(tikTokAccessTokens as string || "{}").access_token}`,
-  //     },
-  //     body: JSON.stringify({
-  //       draft,
-  //       post_info: {
-  //         title: video.title,
-  //         privacy_level: video.privacyStatus || "SELF_ONLY",
-  //         disable_duet: !video.interactionType.duet,
-  //         disable_comment: !video.interactionType.comment,
-  //         disable_stitch: !video.interactionType.stitch,
-  //         video_cover_timestamp_ms: 1000,
-  //         brand_content_toggle: video.brandedContent,
-  //         brand_organic_toggle: video.yourBrand,
-  //       },
-  //       source_info: {
-  //         video_url: "https://carrot-cake-tiktok-videos.s3.us-east-2.amazonaws.com/1756735571369-Drone+Video+Templete_45.mp4",
-  //         source: "PULL_FROM_URL",
-  //       }
-  //     }),
-  //   })
-  //     .then(async (response) => {
-  //       if (!response.ok) {
-  //         throw new Error(`HTTP error! status: ${response.status}`);
-  //       }
-  //       console.log("Initiated upload for video:-------", await response.json());
-  //       // return response.json();
-  //     }).catch((error) => {
-  //       console.error("Error initiating video upload:", error);
-  //     });
-  // };
 
   const onSubmit = async (event: ChangeEvent<any>) => {
     event.preventDefault();
@@ -243,7 +200,7 @@ export default function UploadTikTokPage({ references }: { references: Reference
   useEffect(() => {
     getTikTokCreatorInfo();
   }, []);
-console.log('----------render------', videos)
+
   return (
     <div className="flex flex-col items-center max-w-4xl mx-auto mt-6 p-6">
       <form encType="multipart/form-data" className="w-full">
@@ -537,13 +494,13 @@ console.log('----------render------', videos)
 
                                 {videos?.[index].brandedContent && (
                                   <>
-                                    <a href="https://www.tiktok.com/legal/page/global/music-usage-confirmation/en" className="text-blue-600 underline">
+                                    <a href="https://www.tiktok.com/legal/page/global/music-usage-confirmation/en" target="_blank" className="text-blue-600 underline">
                                       Branded Content Policy{" "}
                                     </a>
                                     and{" "}
                                   </>
                                 )}
-                                <a href="https://www.tiktok.com/legal/page/global/bc-policy/en" className="text-blue-600 underline">Music Usage Confirmation</a>.
+                                <a href="https://www.tiktok.com/legal/page/global/bc-policy/en" target="_blank" className="text-blue-600 underline">Music Usage Confirmation</a>.
                               </p>
                             )}
                           </div>
@@ -581,7 +538,7 @@ console.log('----------render------', videos)
                 </Button>
               </div>
               <div className="bg-amber-100 text-amber-900 text-sm p-3 mt-4 rounded">
-                By posting, you agree to TikTok"s <a href="https://www.tiktok.com/legal/page/global/music-usage-confirmation/en" className="text-amber-600 underline">Music Usage Confirmation</a>.
+                By posting, you agree to TikTok"s <a href="https://www.tiktok.com/legal/page/global/music-usage-confirmation/en" target="_blank" className="text-amber-600 underline">Music Usage Confirmation</a>.
               </div>
             </>
           )}

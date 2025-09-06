@@ -31,6 +31,7 @@ import {
   TikTokVideo,
   TikTokUserInfo,
   InstagramUserInfo,
+  NeonTikTokVideo,
 } from "@/types"
 import moment from "moment";
 
@@ -58,7 +59,7 @@ export default function Home() {
   const [instagramToken, setInstagramToken] = useState(getCookie("ig-access-token"));
   const [playlistId, setPlaylistId] = useState(getCookie("userPlaylistId"));
   const [youTubeVideos, setYouTubeVideos] = useState<YouTubeVideo[]>();
-  const [tiktokVideos, setTiktokVideos] = useState<TikTokVideo[]>([]);
+  const [tiktokVideos, setTiktokVideos] = useState<NeonTikTokVideo[]>([]);
   const [instagramVideos, setInstagramVideos] = useState<InstagramVideo[]>([]);
   const [ytUserInfo, setYtUserInfo] = useState<YouTubeUserInfo>();
   const [tiktokUserInfo, setTiktokUserInfo] = useState<TikTokUserInfo>();
@@ -141,6 +142,13 @@ export default function Home() {
       .catch(error => {
         console.error("Fetch error:", error);
       });
+  }
+
+  const getUserTikTokVideosFromNeon = async () => {
+    fetch("/api/tiktok/get-neon-user-tiktok-videos").then(async (data) => {
+      const { videos } = await data.json();
+      setTiktokVideos(prevVideos => [...(prevVideos || []), ...videos]);
+    });
   }
 
   const getInstagramUserData = async () => {
@@ -280,7 +288,8 @@ export default function Home() {
   useEffect(() => {
     if (tiktokTokens) {
       getTikTokUserInfo();
-      getTikTokUserVideos();
+      // getTikTokUserVideos();
+      getUserTikTokVideosFromNeon();
     }
   }, [tiktokTokens])
 

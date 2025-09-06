@@ -52,6 +52,25 @@ export interface TikTokVideo {
   create_time?: string;
 }
 
+export type NeonTikTokVideo = {
+  accessToken: string;
+  brandedContent: boolean;
+  commercialUseContent: boolean;
+  commercialUseOrganic: boolean;
+  disableComment: boolean;
+  disableDuet: boolean;
+  disableStitch: boolean;
+  draft: boolean;
+  id: string;
+  privacyStatus: string;
+  scheduledDate: string;
+  thumbnail: string;
+  title: string;
+  userId: string;
+  videoUrl: string;
+  yourBrand: boolean;
+};
+
 export type TikTokVideoProps = {
   url: string;
   title: string;
