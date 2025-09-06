@@ -1,7 +1,7 @@
 import { MessageCircle, SwitchCamera, MessagesSquare } from "lucide-react";
 import { ComponentType } from "react";
 
-export const GET_TT_USER_INFO_URL = "https://open.tiktokapis.com/v2/user/info/?fields=open_id,union_id,avatar_url,display_name,bio_description,is_verified,follower_count,following_count,likes_count,video_count";
+export const GET_TT_USER_INFO_URL = "https://open.tiktokapis.com/v2/user/info/?fields=open_id,union_id,avatar_url,display_name,follower_count,following_count,likes_count,video_count";
 export const YT_UPLOAD_URL = "https://www.googleapis.com/upload/youtube/v3/videos?part=snippet%2Cstatus&uploadType=resumable"
 export const IG_CONNECT_URL = "https://www.instagram.com/oauth/authorize?force_reauth=true&client_id=1023066706404594&redirect_uri=https://jointly-topical-leech.ngrok-free.app/api/auth/instagram/callback&response_type=code&scope=instagram_business_basic%2Cinstagram_business_manage_messages%2Cinstagram_business_manage_comments%2Cinstagram_business_content_publish%2Cinstagram_business_manage_insights";
 export const IG_CONNECT_URL_PROD = "https://www.instagram.com/oauth/authorize?force_reauth=true&client_id=1023066706404594&redirect_uri=https://carrot-cake.app/api/auth/instagram/callback&response_type=code&scope=instagram_business_basic%2Cinstagram_business_manage_messages%2Cinstagram_business_manage_comments%2Cinstagram_business_content_publish%2Cinstagram_business_manage_insights";
