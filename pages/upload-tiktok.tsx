@@ -191,8 +191,9 @@ export default function UploadTikTokPage({ references }: { references: Reference
     if (!!videos && videos.length > 0) {
       for (const [index, video] of videos.entries()) {
         setVideos((prev) => prev?.map((v, i) => i === index ? { ...v, uploadProgress: 2 } : v));
-        // await uploadTikTokVideo({ video, draft: video.directPost, index });
         await scheduleVideoToTikTok(video);
+        setVideos((prev) => prev?.map((v, i) => i === index ? { ...v, uploadProgress: 100 } : v));
+        setVideos([]);
       }
     }
   };
