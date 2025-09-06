@@ -15,7 +15,7 @@ import {
 import Calendar from "@/app/components/Calendar";
 import {
   sanitizeYTMetadata,
-  sanitizeTikTokMetadata,
+  // sanitizeTikTokMetadata,
   sanitizeInstagramMetadata
 } from "@/app/utils/sanitizeApiData";
 import isDev from "@/app/utils/isDev";
@@ -418,12 +418,12 @@ export default function Home() {
                       }}
                       type="tiktok"
                     />
-                    <Calendar
+                    {/* <Calendar
                       scheduledVideos={sanitizeTikTokMetadata(tiktokVideos) || []}
                       setEditVideo={setEditVideo}
                       title="Uploaded TikTok Videos"
                       canEdit={false}
-                    />
+                    /> */}
                   </>
                 )}
                 {!tiktokUserInfo && (

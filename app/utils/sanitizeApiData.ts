@@ -32,26 +32,26 @@ export const sanitizeYTMetadata = (
   });
 };
 
-export const sanitizeTikTokMetadata = (
-  videos: TikTokVideo[] | undefined
-): SanitizedVideoProps[] | undefined => {
-  function convertUnixTimestampToDate(timestamp: number) {
-    const milliseconds = timestamp * 1000;
-    const date = new Date(milliseconds);
-    return date;
-  }
-  return videos?.map((video) => {
-    return {
-      id: video.id,
-      title: video.title,
-      description: video.video_description,
-      scheduleDate: moment(
-        convertUnixTimestampToDate(video.create_time)
-      ).format("YYYY-MM-DD"),
-      thumbnail: video.cover_image_url,
-    };
-  });
-};
+// export const sanitizeTikTokMetadata = (
+//   videos: TikTokVideo[] | undefined
+// ): SanitizedVideoProps[] | undefined => {
+//   function convertUnixTimestampToDate(timestamp: number) {
+//     const milliseconds = timestamp * 1000;
+//     const date = new Date(milliseconds);
+//     return date;
+//   }
+//   return videos?.map((video) => {
+//     return {
+//       id: video.id,
+//       title: video.title,
+//       description: video.video_description,
+//       scheduleDate: moment(
+//         convertUnixTimestampToDate(video.create_time)
+//       ).format("YYYY-MM-DD"),
+//       thumbnail: video.cover_image_url,
+//     };
+//   });
+// };
 
 export const sanitizeInstagramMetadata = (
   videos: InstagramVideo[] | undefined
