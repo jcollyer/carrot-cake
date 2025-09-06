@@ -4,6 +4,10 @@
     {
       "path": "/api/instagram/cron/post-videos",
       "schedule": "0 17 * * *"
+    },
+    {
+      "path": "/api/tiktok/cron/post-videos",
+      "schedule": "0 17 * * *"
     }
   ]
 }

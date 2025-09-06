@@ -22,6 +22,7 @@ export default async function handler(
     disableDuet,
     disableComment,
     disableStitch,
+    draft,
   } = req.body;
   const session = await getServerSession(req, res, authOptions);
   if (!session) {

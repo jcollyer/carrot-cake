@@ -16,31 +16,34 @@ export default async function GET(req: Request) {
   const tiktokVideosData = await tiktokVideos.json();
 
   for (const video of tiktokVideosData.videos) {
-    const { accessToken, InstagramuserId, videoUrl, videoType, videoCaption } =
+    const { accessToken, videoUrl, draft, title, privacyStatus, disableDuet, disableComment, disableStitch, brandedContent, yourBrand } =
       video;
 
     // Post the video to TikTok
+    const url = draft
+      ? "https://open.tiktokapis.com/v2/post/publish/inbox/video/init/"
+      : "https://open.tiktokapis.com/v2/post/publish/video/init/";
     try {
-      const response = await fetch(`${baseUrl}/api/tiktok/direct-post-init`, {
+      const response = await fetch(url, {
         method: "POST",
         headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          draft: video.draft,
-          post_info: {
-            title: video.title,
-            privacy_level: video.privacyStatus || "SELF_ONLY",
-            disable_duet: !video.interactionType.duet,
-            disable_comment: !video.interactionType.comment,
-            disable_stitch: !video.interactionType.stitch,
+        Authorization: `Bearer ${accessToken}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        draft: draft,
+        post_info: {
+            title: title,
+            privacy_level: privacyStatus || "SELF_ONLY",
+            disable_duet: disableDuet,
+            disable_comment: disableComment,
+            disable_stitch: disableStitch,
             video_cover_timestamp_ms: 1000,
-            brand_content_toggle: video.brandedContent,
-            brand_organic_toggle: video.yourBrand,
+            brand_content_toggle: brandedContent,
+            brand_organic_toggle: yourBrand,
           },
           source_info: {
-            video_url:
-              "https://carrot-cake-tiktok-videos.s3.us-east-2.amazonaws.com/1756735571369-Drone+Video+Templete_45.mp4",
+            video_url: videoUrl,
             source: "PULL_FROM_URL",
           },
         }),
@@ -55,16 +58,16 @@ export default async function GET(req: Request) {
       throw new Error(`error posting to api/tiktok/direct-post-init: ${error}`);
     }
 
-    // Remove the video from S3 bucket
-    try {
-      const response = await fetch(
-        `${baseUrl}/api/s3/delete?fileName=${videoUrl}&s3Bucket=AWS_S3_TIKTOK_BUCKET_NAME&region=us-east-2`
-      );
-      const data = await response.json();
-      console.log("File removed from S3:", data);
-    } catch (error) {
-      throw new Error(`error deleting from api/s3/delete: ${error}`);
-    }
+    // // Remove the video from S3 bucket
+    // try {
+    //   const response = await fetch(
+    //     `${baseUrl}/api/s3/delete?fileName=${videoUrl}&s3Bucket=AWS_S3_TIKTOK_BUCKET_NAME&region=us-east-2`
+    //   );
+    //   const data = await response.json();
+    //   console.log("File removed from S3:", data);
+    // } catch (error) {
+    //   throw new Error(`error deleting from api/s3/delete: ${error}`);
+    // }
   }
 
   return Response.json({ message: "Cron job executed successfully" });
