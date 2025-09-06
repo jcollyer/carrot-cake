@@ -16,8 +16,8 @@ export default async function handler(
     const decode = decodeURI(code as string);
     const tokenEndpoint = "https://open.tiktokapis.com/v2/oauth/token/";
     const params = {
-      client_key: process.env.TIKTOK_CLIENT_KEY_SANDBOX,
-      client_secret: process.env.TIKTOK_CLIENT_SECRET_SANDBOX,
+      client_key: process.env.TIKTOK_CLIENT_KEY_PROD,
+      client_secret: process.env.TIKTOK_CLIENT_SECRET_PROD,
       code: decode,
       grant_type: "authorization_code",
       redirect_uri: ENDPOINT_REDIRECT,

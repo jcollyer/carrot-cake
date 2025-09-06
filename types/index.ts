@@ -48,6 +48,8 @@ export interface TikTokVideo {
   duration?: string;
   share_url: string;
   embed_link?: boolean;
+  cover_image_url?: string;
+  create_time?: string;
 }
 
 export type TikTokVideoProps = {
