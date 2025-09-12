@@ -5,11 +5,9 @@ export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse
 ) {
-  const result = await await prisma.tiktokVideos.findMany({
+  const result = await prisma.tiktokVideos.findMany({
     where: {
-      scheduledDate: {
-        lte: new Date(),
-      },
+      publishedToPlatform: false,
     },
   });
 

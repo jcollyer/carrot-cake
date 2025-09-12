@@ -10,7 +10,10 @@
     "ngrok": "ngrok http --url=jointly-topical-leech.ngrok-free.app 3000",
     "postinstall": "prisma generate",
     "prisma": "npx prisma generate && npx prisma migrate",
-    "db-push": "npx prisma db push"
+    "db-push": "npx prisma db push",
+    "migrate": "npx prisma migrate dev && prisma migrate deploy",
+    "cron-tiktok": "curl http://localhost:3000/api/tiktok/cron/post-videos -H \"Authorization: Bearer 4@3Lng<W2=zz\"",
+    "cron-instagram": "curl http://localhost:3000/api/instagram/cron/post-videos -H \"Authorization: Bearer 4@3Lng<W2=zz\""
   },
   "dependencies": {
     "@ariakit/react": "^0.4.15",

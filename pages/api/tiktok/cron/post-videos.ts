@@ -15,10 +15,32 @@ export default async function GET(req: Request) {
   );
   const tiktokVideosData = await tiktokVideos.json();
 
-  for (const video of tiktokVideosData.videos) {
-    const { accessToken, videoUrl, draft, title, privacyStatus, disableDuet, disableComment, disableStitch, brandedContent, yourBrand } =
-      video;
+  if (!tiktokVideosData.videos.length) {
+    return Response.json({ message: "No videos to post" });
+  }
 
+  for (const video of tiktokVideosData.videos) {
+    const {
+      accessToken,
+      videoUrl,
+      draft,
+      title,
+      privacyStatus,
+      disableDuet,
+      disableComment,
+      disableStitch,
+      brandedContent,
+      yourBrand,
+      publishedToPlatform,
+      scheduledDate,
+    } = video;
+
+    if (publishedToPlatform && scheduledDate > new Date()) {
+      return Response.json({
+        message:
+          "video publishedToPlatform is true or scheduledDate is in the future",
+      });
+    }
     // Post the video to TikTok
     const url = draft
       ? "https://open.tiktokapis.com/v2/post/publish/inbox/video/init/"
@@ -27,12 +49,12 @@ export default async function GET(req: Request) {
       const response = await fetch(url, {
         method: "POST",
         headers: {
-        Authorization: `Bearer ${accessToken}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        draft: draft,
-        post_info: {
+          Authorization: `Bearer ${accessToken}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          draft: draft,
+          post_info: {
             title: title,
             privacy_level: privacyStatus || "SELF_ONLY",
             disable_duet: disableDuet,
@@ -56,6 +78,32 @@ export default async function GET(req: Request) {
       }
     } catch (error) {
       throw new Error(`error posting to api/tiktok/direct-post-init: ${error}`);
+    }
+
+    // Updata the Neon database to set publishedToPlatform to true
+    try {
+      const response = await fetch(
+        `${baseUrl}/api/tiktok/schedule-videos/mark-as-published`,
+        {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            videoUrl,
+          }),
+        }
+      );
+      const data = await response.json();
+      if (response.ok) {
+        console.log("Database updated successfully:", data);
+      } else {
+        console.error("Error updating database:", data);
+      }
+    } catch (error) {
+      throw new Error(
+        `error putting to api/tiktok/schedule-videos/mark-as-published: ${error}`
+      );
     }
 
     // // Remove the video from S3 bucket

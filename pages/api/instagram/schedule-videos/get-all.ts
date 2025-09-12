@@ -5,11 +5,9 @@ export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse
 ) {
-  const result = await await prisma.instagramVideos.findMany({
+  const result = await prisma.instagramVideos.findMany({
     where: {
-      scheduledDate: {
-        lte: new Date(),
-      },
+      publishedToPlatform: false,
     },
   });
 
