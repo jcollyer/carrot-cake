@@ -31,7 +31,7 @@ const SocialDisplay = ({ userName, thumbnail, videoCount, subscriberCount, viewC
 
   return (
     <div className="flex gap-6 items-center w-full">
-      <div className="flex gap-2 shrink-0 items-center">
+      <div className="flex gap-2 shrink-0 items-center h-12">
         <img src={thumbnail} alt={`${type} user thumbnail`} width="35" height="35" className="rounded-full" />
         <h2 className="text-2xl font-bold text-gray-800">{userName}</h2>
       </div>

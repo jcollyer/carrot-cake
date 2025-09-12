@@ -34,16 +34,34 @@ export const sanitizeYTMetadata = (
 };
 
 export const sanitizeTikTokMetadata = (
-  videos: NeonTikTokVideo[] | undefined
+  videos: NeonTikTokVideo[] | TikTokVideo[] | undefined
 ): SanitizedVideoProps[] | undefined => {
-
   return videos?.map((video) => {
+    const videoFromTikTokPlatform =
+      (video as TikTokVideo).cover_image_url !== undefined;
+    if (videoFromTikTokPlatform) {
+      const { id, cover_image_url, create_time, title, video_description } =
+        video as TikTokVideo;
+      if (typeof create_time === "number") {
+        return {
+          id,
+          title,
+          description: video_description || title,
+          scheduleDate: new Date(create_time * 1000)
+            .toISOString()
+            .split("T")[0],
+          thumbnail: cover_image_url,
+        };
+      }
+    }
+    // Otherwise it's from Neon
+    const { id, thumbnail, scheduledDate, title } = video as NeonTikTokVideo;
     return {
-      id: video.id,
-      title: video.title,
-      description: video.title,
-      scheduleDate: moment(video.scheduledDate).format("YYYY-MM-DD"),
-      thumbnail: video.thumbnail,
+      id,
+      title,
+      description: title,
+      scheduleDate: moment(scheduledDate).format("YYYY-MM-DD"),
+      thumbnail,
     };
   });
 };
@@ -54,7 +72,7 @@ export const sanitizeInstagramMetadata = (
   return videos?.map((video) => {
     const { id, thumbnail, scheduledDate, videoCaption } = video;
     return {
-      id, 
+      id,
       title: videoCaption || "",
       description: "",
       scheduleDate: moment(scheduledDate).format("YYYY-MM-DD"),

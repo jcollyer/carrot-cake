@@ -138,7 +138,11 @@ export default function Home() {
       method: "POST",
     })
       .then(response => response.json())
-      .then(data => setTiktokVideos(data.data.videos))
+      .then(data => {
+        const { videos } = data.data;
+        const videosWithAddedFromPlatformField = videos.map((video: TikTokVideo) => ({ ...video, fromPlatform: 'tiktok' }));
+        setTiktokVideos(prevVideos => [...(prevVideos || []), ...videosWithAddedFromPlatformField]);
+      })
       .catch(error => {
         console.error("Fetch error:", error);
       });
@@ -288,7 +292,7 @@ export default function Home() {
   useEffect(() => {
     if (tiktokTokens) {
       getTikTokUserInfo();
-      // getTikTokUserVideos();
+      getTikTokUserVideos();
       getUserTikTokVideosFromNeon();
     }
   }, [tiktokTokens])

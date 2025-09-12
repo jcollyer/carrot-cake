@@ -49,7 +49,7 @@ export interface TikTokVideo {
   share_url: string;
   embed_link?: boolean;
   cover_image_url?: string;
-  create_time?: string;
+  create_time?: Date | number;
 }
 
 export type NeonTikTokVideo = {
