@@ -105,6 +105,14 @@ export interface InstagramVideo {
   videoUrl: string;
 }
 
+export interface InstagramVideoFromPlatform {
+  id: string;
+  caption: string;
+  media_url: string;
+  media_type: string;
+  timestamp: string;
+}
+
 export type InstagramVideoProps = {
   url?: string;
   caption: string;

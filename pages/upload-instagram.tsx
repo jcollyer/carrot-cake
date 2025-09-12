@@ -402,7 +402,7 @@ export default function UploadInstagramPage({ references }: { references: Refere
               className="flex gap-2 items-center flex-1"
             >
               <CloudUpload />
-              {`Upload ${videos.length} Video${videos.length > 1 ? "s" : ""} to YouTube`}
+              {`Upload ${videos.length} Video${videos.length > 1 ? "s" : ""} to Instagram`}
             </Button>
           </div>
         )}
@@ -498,7 +498,7 @@ export default function UploadInstagramPage({ references }: { references: Refere
               <TagsInput
                 onAddTags={() => ""}
                 onRemoveTags={() => ""}
-                tags={["Youtube"]}
+                tags={["#carrot-cake"]}
               />
               <div className="flex items-start pr-1">
                 <KeyReferenceAddButton

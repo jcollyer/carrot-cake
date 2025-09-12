@@ -21,11 +21,14 @@ export function Day({ day, select, selected, videoScheduled, setEditVideo, canEd
   if (!!videoScheduled) {
     return (
       <div
-        className="relative flex flex-col flex-1 text-left rounded-sm bg-cover bg-center max-w-[128px] bg-gray-800"
+        className="relative flex flex-col flex-1 overflow-hidden text-left rounded-sm bg-cover bg-center max-w-[128px] bg-gray-800"
         style={{
           backgroundImage: `url(${videoScheduled.thumbnail})`,
         }}
       >
+        <video className="absolute -top-6 left-0 w-[200%]" style={{ display: mediaType === "VIDEO" ? 'block' : 'none' }} muted>
+          <source className="w-full" src={videoScheduled.thumbnail} type="video/mp4" />
+        </video>
         <div className="z-10">
           <div className="flex-grow">
             <div className="flex justify-center items-center w-6 h-6 border text-gray-50 border-gray-50 rounded-full mt-2 ml-1">{number}</div>

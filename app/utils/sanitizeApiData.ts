@@ -5,6 +5,7 @@ import {
   YouTubeVideo,
   TikTokVideo,
   NeonTikTokVideo,
+  InstagramVideoFromPlatform,
 } from "@/types";
 
 export const sanitizeYTMetadata = (
@@ -67,10 +68,25 @@ export const sanitizeTikTokMetadata = (
 };
 
 export const sanitizeInstagramMetadata = (
-  videos: InstagramVideo[] | undefined
+  videos: InstagramVideo[] | InstagramVideoFromPlatform[] | undefined
 ): SanitizedVideoProps[] | undefined => {
   return videos?.map((video) => {
-    const { id, thumbnail, scheduledDate, videoCaption } = video;
+    const videoFromInstagramPlatform =
+      (video as InstagramVideoFromPlatform).media_url !== undefined;
+    if (videoFromInstagramPlatform) {
+      const { id, caption, media_url, timestamp } =
+        video as InstagramVideoFromPlatform;
+      return {
+        id,
+        title: caption || "",
+        description: "",
+        scheduleDate: moment(timestamp).format("YYYY-MM-DD"),
+        thumbnail: media_url,
+        mediaType: "VIDEO"
+      };
+    }
+    const { id, thumbnail, scheduledDate, videoCaption } =
+      video as InstagramVideo;
     return {
       id,
       title: videoCaption || "",

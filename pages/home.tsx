@@ -91,7 +91,7 @@ export default function Home() {
       const oAuthCallback = await res.json();
       window.open(oAuthCallback.url, "_blank", "location=yes,height=570,width=520,scrollbars=yes,status=yes");
     });
-  }
+  };
 
   const connectYt = async () => {
     listenCookieChange(({ oldValue, newValue }) => {
@@ -108,7 +108,7 @@ export default function Home() {
       const oAuthCallback = await res.json();
       window.open(oAuthCallback.url, "_blank", "location=yes,height=570,width=520,scrollbars=yes,status=yes");
     });
-  }
+  };
 
   const connectIg = () => {
     listenCookieChange(({ oldValue, newValue }) => {
@@ -118,7 +118,7 @@ export default function Home() {
     }, 1000, "ig-access-token");
     const igConnect = isDev ? IG_CONNECT_URL : IG_CONNECT_URL_PROD;
     window.open(igConnect, "_blank", "location=yes,height=570,width=520,scrollbars=yes,status=yes");
-  }
+  };
 
   const getTikTokUserInfo = async () => {
     fetch("/api/tiktok/get-user-info")
@@ -131,7 +131,7 @@ export default function Home() {
       .catch(error => {
         console.error("Fetch error:", error);
       });
-  }
+  };
 
   const getTikTokUserVideos = async () => {
     fetch("/api/tiktok/get-user-videos", {
@@ -140,20 +140,19 @@ export default function Home() {
       .then(response => response.json())
       .then(data => {
         const { videos } = data.data;
-        const videosWithAddedFromPlatformField = videos.map((video: TikTokVideo) => ({ ...video, fromPlatform: 'tiktok' }));
-        setTiktokVideos(prevVideos => [...(prevVideos || []), ...videosWithAddedFromPlatformField]);
+        setTiktokVideos(prevVideos => [...(prevVideos || []), ...videos]);
       })
       .catch(error => {
         console.error("Fetch error:", error);
       });
-  }
+  };
 
   const getUserTikTokVideosFromNeon = async () => {
     fetch("/api/tiktok/get-neon-user-tiktok-videos").then(async (data) => {
       const { videos } = await data.json();
       setTiktokVideos(prevVideos => [...(prevVideos || []), ...videos]);
     });
-  }
+  };
 
   const getInstagramUserData = async () => {
     fetch("/api/instagram/get-user-data")
@@ -162,14 +161,28 @@ export default function Home() {
         setInstagramUserData(user);
         setTabOpen("instagram");
       });
-  }
+  };
 
   const getUserIgVideos = async () => {
-    fetch("/api/instagram/get-user-ig-videos").then(async (data) => {
+    fetch("/api/instagram/get-user-videos", {
+      method: "POST",
+    })
+      .then(response => response.json())
+      .then(async ({ data }) => {
+        setInstagramVideos(prevVideos => [...(prevVideos || []), ...data]);
+      })
+      .catch(error => {
+        console.error("Fetch error:", error);
+      });
+  };
+
+
+  const getUserIgVideosFromNeon = async () => {
+    fetch("/api/instagram/get-neon-user-ig-videos").then(async (data) => {
       const { videos } = await data.json();
       setInstagramVideos(prevVideos => [...(prevVideos || []), ...videos]);
     });
-  }
+  };
 
   const getPlaylistId = async () => {
     await fetch("/api/youtube/get-playlist-id", {
@@ -182,7 +195,7 @@ export default function Home() {
       setCookie("userPlaylistId", playlistId, { maxAge: 31536000 });
       setPlaylistId(playlistId);
     });
-  }
+  };
 
   const getYouTubeVideos = async () => {
     await fetch("/api/youtube/get-videos", {
@@ -197,7 +210,7 @@ export default function Home() {
       setYouTubeVideos(videos);
       setTabOpen("youtube");
     });
-  }
+  };
 
   const listenCookieChange = (callback: (values: { oldValue: string, newValue: string }) => void, interval = 1000, tokenType = "youtube-tokens") => {
     let lastCookie = getCookie(tokenType) as string;
@@ -295,7 +308,7 @@ export default function Home() {
       getTikTokUserVideos();
       getUserTikTokVideosFromNeon();
     }
-  }, [tiktokTokens])
+  }, [tiktokTokens]);
 
   useEffect(() => {
     if (playlistId)
@@ -308,6 +321,7 @@ export default function Home() {
       setTabOpen("instagram");
       getInstagramUserData();
       getUserIgVideos();
+      getUserIgVideosFromNeon();
     }
   }, [instagramToken]);
 
