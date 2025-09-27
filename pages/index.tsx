@@ -50,31 +50,29 @@ function LoggedOut() {
   return (
     <main className="w-full bg-gray-500">
       <div className="flex justify-center w-full bg-white">
-        <div className="flex flex-col gap-4 items-center py-24 px-64">
-          <h1 className="text-2xl text-transparent text-center leading-[1.2] bg-clip-text bg-gradient-to-r from-red-500 to-orange-500">CARROT CAKE APP</h1>
-          <div className="flex gap-1 items-center">
-            <h3 className="font-bold tracking-wide text-gray-600">Schedule all or your</h3>
+        <div className="flex flex-col gap-4 items-center justify-center max-w-4xl m-auto py-10 md:py-20 px-4 md:px-12">
+          <h1 className="text-lg md:text-2xl text-transparent text-center leading-[1.2] bg-clip-text bg-gradient-to-r from-red-500 to-orange-500">CARROT CAKE APP</h1>
+          <div className="flex flex-col md:flex-row gap-1 items-center">
+            <h3 className="font-bold [word-spacing:3px] text-gray-600">Schedule all of your</h3>
             <VerticalCarousel slides={slides} />
-            <h3 className="font-bold tracking-wide text-gray-600">in one app</h3>
+            <h3 className="font-bold [word-spacing:3px] text-gray-600">content in one app!</h3>
           </div>
-          <h1 className="text-5xl text-transparent text-center leading-[1.2] bg-clip-text bg-gradient-to-r from-red-500 to-orange-500">upload once, schedule for weeks</h1>
-          <h2 className="text-xl text-center px-32">Save time. Stay organized. Upload multiple videos at once and manage them effortlessly.</h2>
+          <h1 className="text-3xl md:text-5xl text-transparent text-center leading-[1.2] bg-clip-text bg-gradient-to-r from-red-500 to-orange-500">upload once, schedule for weeks</h1>
+          <h2 className="text-md md:text-xl text-center px-2 md:px-32">Save time. Stay organized. Upload multiple videos at once and manage them effortlessly.</h2>
         </div>
       </div>
-      <div className="w-full pb-36 bg-gray-100">
-        <div className="max-w-4xl flex flex-col gap-8 m-auto">
-          <h3 className="text-2xl text-center font-semibold mt-28 mb-4 text-gray-600">Key Features Include:</h3>
-          <div className="flex gap-4 px-8">
+      <div className="w-full pb-16 md:pb-36 bg-gray-100">
+        <div className="max-w-4xl flex flex-col gap-2 md:gap-8 m-auto">
+          <h3 className="text-2xl text-center font-semibold mt-14 md:mt-28 mb-4 text-gray-600">Key Features Include:</h3>
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 px-8">
             <FeatureCard icon="Rocket" title="Bulk Uploads Made Simple" description="Say goodbye to one-by-one uploads. Schedule multiple videos in a single go!" />
             <FeatureCard icon="Goal" title="One-Click YouTube & TikTok Integration" description="Connect your YouTube channel in seconds and manage your content like a pro." />
             <FeatureCard icon="Calendar" title="Interactive Scheduling Calendar" description="See all your past and upcoming videos in one place. Drag, drop, and edit with ease!" />
-          </div>
-          <div className="flex gap-4 px-8">
             <FeatureCard icon="PencilRuler" title="Quick & Easy Video Edits" description="Need to make changes? Click on a scheduled video and tweak details on the fly." />
             <FeatureCard icon="Bell" title="Never Miss a Post Again" description="Stay on top of your content strategy with automatic scheduling and reminders." />
             <FeatureCard icon="ChartColumnBig" title="Track & Manage with Ease" description="View all your uploaded and scheduled videos in a simple, interactive dashboard." />
           </div>
-          <div className="max-w-md flex flex-col gap-1 m-auto mt-12">
+          <div className="max-w-md flex flex-col gap-1 m-auto mt:-6 md:mt-12">
             <h3 className="text-2xl text-center font-semibold mt-10 text-gray-600">Start Scheduling Smarter Today!</h3>
             <p className="text-center px-16 leading-[2] mb-8">Sign up now and take control of your YouTube content like never before.</p>
             <Button
