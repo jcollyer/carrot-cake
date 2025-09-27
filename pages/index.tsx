@@ -48,7 +48,7 @@ function LoggedOut() {
   }, [session]);
 
   return (
-    <main className="w-full bg-gray-500">
+    <main className="relative w-full overflow-hidden bg-gray-500">
       <div className="flex justify-center w-full bg-white">
         <div className="flex flex-col gap-4 items-center justify-center max-w-4xl m-auto py-10 md:py-20 px-4 md:px-12">
           <h1 className="text-lg md:text-2xl text-transparent text-center leading-[1.2] bg-clip-text bg-gradient-to-r from-red-500 to-orange-500">CARROT CAKE APP</h1>
@@ -85,6 +85,15 @@ function LoggedOut() {
           </div>
         </div>
       </div>
+      <div className=" absolute -bottom-8 md:-bottom-16 right-[-200px] md:right-[-410px] w-[580px] h-[320px] md:w-[1160px] md:h-[640px]">
+      <Image
+        src="/icon-imprint.png"
+        alt="Carrot Cake Hero Image"
+        width="1920"
+        height="1080"
+        className="opacity-5 object-cover"
+      />
+        </div>
     </main>
   );
 }
