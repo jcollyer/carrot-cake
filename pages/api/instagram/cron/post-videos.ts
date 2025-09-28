@@ -14,9 +14,9 @@ export default async function GET(req: Request) {
     `${baseUrl}/api/instagram/schedule-videos/get-all`
   );
   const instagramVideosData = await instagramVideos.json();
-  if(!instagramVideosData.videos.length) {
+  if (!instagramVideosData.videos.length) {
     return Response.json({ message: "No videos to post" });
-  };
+  }
 
   for (const video of instagramVideosData.videos) {
     const {
@@ -30,7 +30,36 @@ export default async function GET(req: Request) {
     } = video;
 
     if (publishedToPlatform && scheduledDate > new Date()) {
-      return Response.json({ message: "video publishedToPlatform is true or scheduledDate is in the future" });
+      return Response.json({
+        message:
+          "video publishedToPlatform is true or scheduledDate is in the future",
+      });
+    }
+
+    // Update the Neon database to set publishedToPlatform to true
+    try {
+      const response = await fetch(
+        `${baseUrl}/api/instagram/schedule-videos/mark-as-published`,
+        {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            videoUrl,
+          }),
+        }
+      );
+      const data = await response.json();
+      if (response.ok) {
+        console.log("Database updated successfully:", data);
+      } else {
+        console.error("Error updating database:", data);
+      }
+    } catch (error) {
+      throw new Error(
+        `error putting to api/instagram/schedule-videos/mark-as-published: ${error}`
+      );
     }
 
     // Post the video to Instagram
@@ -56,32 +85,6 @@ export default async function GET(req: Request) {
       }
     } catch (error) {
       throw new Error(`error posting to api/instagram/post-video: ${error}`);
-    }
-
-    // Updata the Neon database to set publishedToPlatform to true
-    try {
-      const response = await fetch(
-        `${baseUrl}/api/instagram/schedule-videos/mark-as-published`,
-        {
-          method: "PUT",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            videoUrl,
-          }),
-        }
-      );
-      const data = await response.json();
-      if (response.ok) {
-        console.log("Database updated successfully:", data);
-      } else {
-        console.error("Error updating database:", data);
-      }
-    } catch (error) {
-      throw new Error(
-        `error putting to api/instagram/schedule-videos/mark-as-published: ${error}`
-      );
     }
 
     // Remove the video from S3 bucket
