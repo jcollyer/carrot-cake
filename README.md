@@ -4,7 +4,7 @@
 
 ## Social Media Scheduling App
 
-- Upload and Schedule your socal media posts to Instagram, Tiktok and Youtube.
+- Upload and Schedule your socal media posts to Instagram, Tiktok and Youtube
 - See all of your uploads in one place
 - One-click multi uploads to all your accounts
 
