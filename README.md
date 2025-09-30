@@ -1,13 +1,6 @@
-<style>
-r { color: Red }
-o { color: Orange }
-g { color: Green }
-</style>
-
-
 <img src="./public/logo-small.png"  width="220px" />
 
-# <o>Carrot Cake</o>
+# Carrot Cake
 
 ## Social Media Scheduling App
 
