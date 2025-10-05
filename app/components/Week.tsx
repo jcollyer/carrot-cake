@@ -35,6 +35,10 @@ export function Week({
       video => video.scheduleDate === date.format("YYYY-MM-DD"),
     );
 
+      const videosScheduled = scheduledVideos.filter(
+      video => video.scheduleDate === date.format("YYYY-MM-DD"),
+    );
+
     days.push(
       <Day
         day={day}
@@ -42,6 +46,7 @@ export function Week({
         select={select}
         key={i}
         videoScheduled={videoScheduled}
+        videosScheduled={videosScheduled}
         setEditVideo={setEditVideo}
         canEdit={canEdit}
         mediaType={videoScheduled?.mediaType}
@@ -53,7 +58,7 @@ export function Week({
   }
 
   return (
-    <div className="flex w-full border-t border-gray-100">
+    <div className="flex w-full h-[150px] border-t border-gray-100">
       {days}
     </div>
   );
