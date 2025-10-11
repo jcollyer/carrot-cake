@@ -6,6 +6,7 @@ import { Switch } from "@/app/components/primitives/Switch";
 import Spinner from "@/app/components/primitives/Spinner";
 import KeyReferenceAddButton from "@/app/components/KeyReferenceAddButton";
 import KeyReferenceMenuButton from "@/app/components/KeyReferenceMenuButton";
+import SequentialScheduleSwitch from "@/app/components/SequentialScheduleSwitch";
 import TagsInput from "@/app/components/TagsInput";
 import { useGetYouTubeUserInfo } from "@/app/hooks/use-get-youtube-user-info";
 import { useUploadYoutubeVideo } from "@/app/hooks/use-upload-youtube-video";
@@ -58,6 +59,7 @@ export default function UploadYouTubePage({ references }: { references: Referenc
   const [localReferences, setLocalReferences] = useState<Reference[]>(references || []);
   const [ytUserInfo, setYtUserInfo] = useState<YouTubeUserInfo | null>(null);
   const [isUploading, setIsUploading] = useState<boolean>(false);
+  const [sequentialDate, setSequentialDate] = useState<{ date: string, interval: number }>();
 
   const onDrop = useCallback((acceptedFiles: any) => {
     if (acceptedFiles.length) {
@@ -132,22 +134,25 @@ export default function UploadYouTubePage({ references }: { references: Referenc
             </div>
           </div>
           {videos && videos.length > 1 && (
-            <div className="flex gap-2 mb-4 items-center ml-auto mt-auto">
-              <p className="text-sm font-medium">Set All Videos</p>
-              <Switch
-                checked={editAll}
-                onClick={() => setEditAll(!editAll)}
-                className="cursor-pointer"
-              />
+            <div className="flex flex-col gap-1">
+              <div className="flex gap-2 mb-4 items-center ml-auto mt-auto">
+                <p className="text-sm font-medium">Set All Videos</p>
+                <Switch
+                  checked={editAll}
+                  onClick={() => setEditAll(!editAll)}
+                  className="cursor-pointer"
+                />
+              </div>
+              <SequentialScheduleSwitch sequentialDate={sequentialDate} setSequentialDate={setSequentialDate} />
             </div>
           )}
         </div>
         <div className="mt-2 mb-5">
           {isUploading && videos.length !== 0 && <div className="flex justify-end mb-4">
             <div role="status">
-            <Spinner size="large" />
-            <span className="sr-only">Loading...</span>
-          </div></div>}
+              <Spinner size="large" />
+              <span className="sr-only">Loading...</span>
+            </div></div>}
           {videos && videos.length > 0 && videos.map((video, index) => (
             <div className="flex gap-6 mb-6" key={video.file.name}>
               <div className="flex flex-col shrink-0 w-1/4 h-fit relative">
@@ -212,7 +217,7 @@ export default function UploadYouTubePage({ references }: { references: Referenc
                         type="title"
                         localReferences={localReferences}
                         setLocalReferences={setLocalReferences}
-                        callback={(key, value) => editAll ? 
+                        callback={(key, value) => editAll ?
                           setVideos(videos.map((video) => ({ ...video, [key]: value }))) :
                           setVideos(videos.map((v, i) => i === index ? { ...v, [key]: value } : v))
                         }
@@ -287,7 +292,8 @@ export default function UploadYouTubePage({ references }: { references: Referenc
                         onKeyDown={(e) => e.key === 'Enter' && e.preventDefault()}
                         type="date"
                         className="w-full border border-gray-300 rounded h-10 px-2"
-                        value={videos[index]?.scheduleDate ? videos[index]?.scheduleDate : new Date().toISOString().split("T")[0]}
+                        value={sequentialDate !== undefined ? moment(sequentialDate.date).add((index * sequentialDate.interval), 'days').format('YYYY-MM-DD') :
+                          videos[index]?.scheduleDate ? videos[index]?.scheduleDate : new Date().toISOString().split("T")[0]}
                         onChange={(e) => editAll ?
                           !!videos && setVideos(videos.map((video) => ({ ...video, scheduleDate: e.target.value }))) :
                           !!videos && setVideos(videos.map((v, i) => i === index ? { ...v, scheduleDate: e.target.value } : v))}

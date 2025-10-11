@@ -12,6 +12,7 @@ import { Progress } from "@/app/components/primitives/Progress";
 import Spinner from "@/app/components/primitives/Spinner";
 import KeyReferenceAddButton from "@/app/components/KeyReferenceAddButton";
 import KeyReferenceMenuButton from "@/app/components/KeyReferenceMenuButton";
+import SequentialScheduleSwitch from "@/app/components/SequentialScheduleSwitch";
 import prisma from "@/lib/prisma";
 import { Reference } from "@prisma/client";
 const transparentImage = require("@/public/transparent.png");
@@ -28,6 +29,7 @@ import { cn } from "@/app/utils/cn";
 import secondsToMinutesAndSeconds from "@/app/utils/secondsToMinutes";
 import { ALL_PRIVACY_STATUS_OPTIONS, VIDEO_ACCESS_OPTIONS } from "@/app/constants";
 import { base64ToArrayBuffer } from "@/app/utils/base64ToArrayBuffer";
+import moment from "moment";
 
 export const getServerSideProps = async (context: any) => {
   const session = await getServerSession(context.req, context.res, authOptions);
@@ -63,6 +65,7 @@ export default function UploadTikTokPage({ references }: { references: Reference
   const [localReferences, setLocalReferences] = useState<Reference[]>(references || []);
   const [tiktokCreatorInfo, setTiktokCreatorInfo] = useState<TikTokUserCreatorInfo>();
   const [editAll, setEditAll] = useState<boolean>(false);
+  const [sequentialDate, setSequentialDate] = useState<{ date: string, interval: number }>();
 
   const { minutes, remainingSeconds } = secondsToMinutesAndSeconds(tiktokCreatorInfo?.max_video_post_duration_sec || 0)
 
@@ -92,7 +95,7 @@ export default function UploadTikTokPage({ references }: { references: Reference
                 duet: false,
                 stitch: false,
               },
-              scheduledDate: "",
+              scheduleDate: moment().format("YYYY-MM-DDTHH:MM"),
               directPost: true,
               disclose: false,
               yourBrand: false,
@@ -222,13 +225,16 @@ export default function UploadTikTokPage({ references }: { references: Reference
             </div>
           </div>
           {videos && videos.length > 1 && (
-            <div className="flex gap-2 mb-4 items-center ml-auto mt-auto">
-              <p className="text-sm font-medium">Set All Videos</p>
-              <Switch
-                checked={editAll}
-                onClick={() => setEditAll(!editAll)}
-                className="cursor-pointer"
-              />
+            <div className="flex flex-col gap-1">
+              <div className="flex gap-2 mb-4 items-center ml-auto mt-auto">
+                <p className="text-sm font-medium">Set All Videos</p>
+                <Switch
+                  checked={editAll}
+                  onClick={() => setEditAll(!editAll)}
+                  className="cursor-pointer"
+                />
+              </div>
+              <SequentialScheduleSwitch sequentialDate={sequentialDate} setSequentialDate={setSequentialDate} />
             </div>
           )}
         </div>
@@ -332,7 +338,8 @@ export default function UploadTikTokPage({ references }: { references: Reference
                             onKeyDown={(e) => e.key === 'Enter' && e.preventDefault()}
                             type="datetime-local"
                             className="w-full border border-gray-300 rounded h-10 px-2"
-                            value={videos[index]?.scheduleDate ? videos[index]?.scheduleDate : new Date().toISOString().split("T")[0]}
+                            value={sequentialDate !== undefined ? moment(sequentialDate.date).add((index * sequentialDate.interval), 'days').format('YYYY-MM-DDTHH:mm') :
+                              videos[index]?.scheduleDate ? videos[index]?.scheduleDate : new Date().toISOString().split("T")[0]}
                             onChange={(e) => editAll ?
                               !!videos && setVideos(videos.map((video) => ({ ...video, scheduleDate: e.target.value }))) :
                               !!videos && setVideos(videos.map((v, i) => i === index ? { ...v, scheduleDate: e.target.value } : v))}

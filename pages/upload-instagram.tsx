@@ -5,6 +5,7 @@ import { Switch } from "@/app/components/primitives/Switch";
 import Spinner from "@/app/components/primitives/Spinner";
 import KeyReferenceAddButton from "@/app/components/KeyReferenceAddButton";
 import KeyReferenceMenuButton from "@/app/components/KeyReferenceMenuButton";
+import SequentialScheduleSwitch from "@/app/components/SequentialScheduleSwitch";
 import TagsInput from "@/app/components/TagsInput";
 import prisma from "@/lib/prisma";
 import { Reference } from "@prisma/client";
@@ -58,6 +59,7 @@ export default function UploadInstagramPage({ references }: { references: Refere
   const [localReferences, setLocalReferences] = useState<Reference[]>(references || []);
   const [igUserInfo, setIgUserInfo] = useState<InstagramUserInfo | null>(null);
   const [isUploading, setIsUploading] = useState<boolean>(false);
+  const [sequentialDate, setSequentialDate] = useState<{ date: string, interval: number }>();
 
   const accessToken = !!tokens && JSON.parse(tokens as string).access_token;
 
@@ -77,7 +79,7 @@ export default function UploadInstagramPage({ references }: { references: Refere
               {
                 caption: "",
                 url: "",
-                scheduleDate: moment().format("YYYY-MM-DD"),
+                scheduleDate: moment().format("YYYY-MM-DDTHH:mm"),
                 tags: undefined,
                 mediaType: "Stories",
                 uploadProgress: 0,
@@ -124,7 +126,7 @@ export default function UploadInstagramPage({ references }: { references: Refere
   }, []);
 
   const { getRootProps, getInputProps } = useDropzone({ onDrop });
-  
+
   async function scheduleVideoToInstagram(video: InstagramVideoProps) {
     try {
       fetch("/api/instagram/schedule-videos/create", {
@@ -199,13 +201,16 @@ export default function UploadInstagramPage({ references }: { references: Refere
             </div>
           </div>
           {videos && videos.length > 1 && (
-            <div className="flex gap-2 mb-4 items-center ml-auto mt-auto">
-              <p className="text-sm font-medium">Set All Videos</p>
-              <Switch
-                checked={editAll}
-                onClick={() => setEditAll(!editAll)}
-                className="cursor-pointer"
-              />
+            <div className="flex flex-col gap-1">
+              <div className="flex gap-2 mb-4 items-center ml-auto mt-auto">
+                <p className="text-sm font-medium">Set All Videos</p>
+                <Switch
+                  checked={editAll}
+                  onClick={() => setEditAll(!editAll)}
+                  className="cursor-pointer"
+                />
+              </div>
+              <SequentialScheduleSwitch sequentialDate={sequentialDate} setSequentialDate={setSequentialDate} />
             </div>
           )}
         </div>
@@ -327,7 +332,8 @@ export default function UploadInstagramPage({ references }: { references: Refere
                         onKeyDown={(e) => e.key === 'Enter' && e.preventDefault()}
                         type="datetime-local"
                         className="w-full border border-gray-300 rounded h-10 px-2"
-                        value={videos[index]?.scheduleDate ? videos[index]?.scheduleDate : new Date().toISOString().split("T")[0]}
+                        value={sequentialDate !== undefined ? moment(sequentialDate.date).add((index * sequentialDate.interval), 'days').format('YYYY-MM-DDTHH:mm') :
+                          videos[index]?.scheduleDate ? videos[index]?.scheduleDate : new Date().toISOString().split("T")[0]}
                         onChange={(e) => editAll ?
                           !!videos && setVideos(videos.map((video) => ({ ...video, scheduleDate: e.target.value }))) :
                           !!videos && setVideos(videos.map((v, i) => i === index ? { ...v, scheduleDate: e.target.value } : v))}
