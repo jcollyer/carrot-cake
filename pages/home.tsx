@@ -169,7 +169,6 @@ export default function Home() {
     })
       .then(response => response.json())
       .then(async ({ data }) => {
-        console.log("Instagram videos from API:", data);
         setInstagramVideos(prevVideos => [...(prevVideos || []), ...data]);
       })
       .catch(error => {
