@@ -61,7 +61,7 @@ export const getServerSideProps = async (context: any) => {
 export default function UploadTikTokPage({ references }: { references: Reference[] }) {
   const tikTokAccessTokens = getCookie("tiktok-tokens") as string;
 
-  const [videos, setVideos] = useState<TikTokVideoProps[] | undefined>(undefined);
+  const [videos, setVideos] = useState<TikTokVideoProps[]>([]);
   const [localReferences, setLocalReferences] = useState<Reference[]>(references || []);
   const [tiktokCreatorInfo, setTiktokCreatorInfo] = useState<TikTokUserCreatorInfo>();
   const [editAll, setEditAll] = useState<boolean>(false);
@@ -234,7 +234,7 @@ export default function UploadTikTokPage({ references }: { references: Reference
                   className="cursor-pointer"
                 />
               </div>
-              <SequentialScheduleSwitch sequentialDate={sequentialDate} setSequentialDate={setSequentialDate} />
+              <SequentialScheduleSwitch sequentialDate={sequentialDate} setSequentialDate={setSequentialDate} setVideos={setVideos} />
             </div>
           )}
         </div>
@@ -527,7 +527,7 @@ export default function UploadTikTokPage({ references }: { references: Reference
                   variant="secondary"
                   type="button"
                   onClick={() => {
-                    setVideos(undefined)
+                    setVideos([])
                   }}
                   className="flex flex-1 gap-2"
                 >

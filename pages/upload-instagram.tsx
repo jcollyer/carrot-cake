@@ -210,7 +210,7 @@ export default function UploadInstagramPage({ references }: { references: Refere
                   className="cursor-pointer"
                 />
               </div>
-              <SequentialScheduleSwitch sequentialDate={sequentialDate} setSequentialDate={setSequentialDate} />
+              <SequentialScheduleSwitch sequentialDate={sequentialDate} setSequentialDate={setSequentialDate} setVideos={setVideos}/>
             </div>
           )}
         </div>

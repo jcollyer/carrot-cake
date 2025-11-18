@@ -143,7 +143,7 @@ export default function UploadYouTubePage({ references }: { references: Referenc
                   className="cursor-pointer"
                 />
               </div>
-              <SequentialScheduleSwitch sequentialDate={sequentialDate} setSequentialDate={setSequentialDate} />
+              <SequentialScheduleSwitch sequentialDate={sequentialDate} setSequentialDate={setSequentialDate} setVideos={setVideos} />
             </div>
           )}
         </div>
@@ -427,7 +427,6 @@ export default function UploadYouTubePage({ references }: { references: Referenc
               <textarea
                 className="border border-gray-300 rounded w-full h-20 px-2 py-1 outline-0 bg-transparent ml-2"
                 name="description"
-                value={""}
               />
               <div className="flex items-start pr-1">
                 <KeyReferenceAddButton
@@ -474,7 +473,6 @@ export default function UploadYouTubePage({ references }: { references: Referenc
                   onKeyDown={(e) => e.key === 'Enter' && e.preventDefault()}
                   type="date"
                   className="w-full border border-gray-300 rounded h-10 px-2"
-                  value={new Date().toISOString().split("T")[0]}
                 />
               </div>
             </div>
