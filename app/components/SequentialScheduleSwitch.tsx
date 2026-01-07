@@ -1,7 +1,4 @@
 import { Switch } from "@/app/components/primitives/Switch";
-import { InstagramVideoProps, SanitizedVideoProps, TikTokVideoProps } from "@/types";
-
-type VideoArrayType = SanitizedVideoProps[] | TikTokVideoProps[] | InstagramVideoProps[];
 
 type SequentialScheduleSwitchProps = {
   sequentialDate: { date: string; interval: number } | undefined;
