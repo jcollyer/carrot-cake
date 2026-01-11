@@ -217,7 +217,7 @@ export default function UploadTikTokPage({ references }: { references: Reference
             <div className="flex gap-2">
               {!tiktokCreatorInfo ? <Spinner size="medium" /> : (
                 <>
-                  <img src={tiktokCreatorInfo?.creator_avatar_url} alt="YouTube User Thumbnail" width="35" height="35" className="rounded-full" />
+                  <img src={tiktokCreatorInfo?.creator_avatar_url} alt="TikTok User Thumbnail" width="35" height="35" className="rounded-full" />
                   <h2 className="text-2xl font-bold text-gray-700">{tiktokCreatorInfo?.creator_nickname}</h2>
                 </>
               )}
@@ -242,11 +242,17 @@ export default function UploadTikTokPage({ references }: { references: Reference
           {videos && videos.length > 0 && videos.map((video, index) => (
             <div className="flex gap-6 mb-6" key={video.file.name}>
               <div className="flex flex-col shrink-0 w-1/4 relative">
-                <img
-                  src={videos?.[index].thumbnail || transparentImage}
-                  alt="thumbnail"
-                  className="rounded-xl object-cover h-[362px]"
-                />
+                {!videos?.[index].thumbnail ? (
+                  <div className="rounded-xl bg-gray-200 h-[362px] flex items-center justify-center">
+                    <p className="text-gray-600 font-medium"><Spinner size="medium" /></p>
+                  </div>
+                ) : (
+                  <img
+                    src={videos?.[index].thumbnail}
+                    alt="thumbnail"
+                    className="rounded-xl object-cover h-[362px]"
+                  />
+                )}
 
                 {!!videos && videos.length > 0 && (
                   <div className="flex gap-2 absolute bottom-1 left-0 right-0 items-center text-white">
