@@ -22,6 +22,7 @@ import { InstagramUserInfo, InstagramVideoProps } from "@/types"
 import generateVideoThumb from "@/app/utils/generateVideoThumb";
 import { base64ToArrayBuffer } from "@/app/utils/base64ToArrayBuffer";
 import { cn } from "@/app/utils/cn";
+import UploadPreview from "@/app/components/UploadPreview";
 
 export const getServerSideProps = async (context: any) => {
   const session = await getServerSession(context.req, context.res, authOptions);
@@ -186,20 +187,6 @@ export default function UploadInstagramPage({ references }: { references: Refere
     <div className="flex flex-col max-w-4xl mx-auto mt-12 p-6">
       <form encType="multipart/form-data" className="w-full">
         <div className="flex justify-between items-center mb-4">
-          <div className="flex flex-col gap-4">
-            <div className="flex gap-2">
-              <Image src="/ig_logo.svg" alt="Instagram Logo" width="50" height="20" className="w-12" />
-              <p className="text-xs mt-auto">Upload video max: 2GB</p>
-            </div>
-            <div className="flex gap-2">
-              {!igUserInfo ? <Spinner size="medium" /> : (
-                <>
-                  <img src={igUserInfo?.profile_picture_url} alt="Instagram User Thumbnail" width="35" height="35" className="rounded-full" />
-                  <h2 className="text-2xl font-bold text-gray-700">{igUserInfo?.username}</h2>
-                </>
-              )}
-            </div>
-          </div>
           {videos && videos.length > 1 && (
             <div className="flex flex-col gap-1">
               <div className="flex gap-2 mb-4 items-center ml-auto mt-auto">
@@ -210,7 +197,7 @@ export default function UploadInstagramPage({ references }: { references: Refere
                   className="cursor-pointer"
                 />
               </div>
-              <SequentialScheduleSwitch sequentialDate={sequentialDate} setSequentialDate={setSequentialDate} setVideos={setVideos}/>
+              <SequentialScheduleSwitch sequentialDate={sequentialDate} setSequentialDate={setSequentialDate} setVideos={setVideos} />
             </div>
           )}
         </div>
@@ -221,31 +208,25 @@ export default function UploadInstagramPage({ references }: { references: Refere
               <span className="sr-only">Loading...</span>
             </div></div>}
           {videos && videos.length > 0 && videos.map((video, index) => (
-            <div className="flex gap-6 mb-6" key={video.file.name}>
-              <div className="flex flex-col shrink-0 w-1/4 h-fit relative">
-                {!videos?.[index].thumbnail ? (
-                  <div className="rounded-xl bg-gray-200 h-[362px] flex items-center justify-center">
-                    <p className="text-gray-600 font-medium"><Spinner size="medium" /></p>
-                  </div>
-                ) : (
-                  <img
-                    src={videos?.[index].thumbnail}
-                    alt="thumbnail"
-                    className="rounded-xl object-cover h-[362px]"
-                  />
-                )}
-
-
-                {!!videos && videos.length > 0 && (
-                  <div className="flex gap-2 absolute bottom-1 left-0 right-0 items-center text-white">
-                    <div className="font-semibold text-xs truncate ml-2">{videos[index]?.file.name}</div>
-                    <div className="font-semibold text-xs ml-auto mr-2">{`${Math.round(videos[index]?.file.size / 100000) / 10}MB`}</div>
-                  </div>
-                )}
-              </div>
-
+            <UploadPreview
+              key={video.file.name}
+              service="Instagram"
+              video={video}
+              videos={videos}
+              removeVideo={
+                (index) => {
+                  if (videos && videos.length >= 1) {
+                    setVideos(videos.filter((_, i) => i !== index));
+                  }
+                }
+              }
+              index={index}
+              avatarUrl={igUserInfo?.profile_picture_url || ""}
+              nickname={igUserInfo?.username || ""}
+              onSubmit={onSubmit}
+              disabled={isUploading}
+            >
               <div className="flex flex-col w-full">
-                <div className="flex flex-col gap-4 h-fit w-full border border-gray-100 rounded-xl p-4 bg-white">
                   {videos[index]?.uploadProgress || 0 > 0 && (
                     <div className="flex gap-2 w-full items-center">
                       <p className="text-sm font-medium w-1/4 shrink-0">Upload progress</p>
@@ -387,9 +368,8 @@ export default function UploadInstagramPage({ references }: { references: Refere
                       />
                     </div>
                   </div>
-                </div>
               </div>
-            </div>
+            </UploadPreview>
           ))}
         </div>
 

@@ -8,7 +8,7 @@ import { useSession, signIn } from "next-auth/react"
 
 const slides = [
   <div className="flex gap-3 items-center">
-    <Image src="/youtube_logo.png" alt="Carrot Cake Logo" width="20" height="2" className="h-[15px]" />
+    <Image src="/yt_logo.png" alt="Carrot Cake Logo" width="20" height="2" className="h-[15px]" />
     <h3 className="font-bold text-gray-600">Youtube </h3>
   </div>,
   <div className="flex gap-3 items-center">
@@ -16,11 +16,11 @@ const slides = [
     <h3 className="font-bold text-gray-600">TikTok</h3>
   </div>,
   <div className="flex gap-2 items-center">
-    <Image src="/ig_logo.svg" alt="Instagram Logo" width="20" height="6" />
+    <Image src="/instagram_logo.png" alt="Instagram Logo" width="20" height="6" />
     <h3 className="font-bold text-gray-600">Instagram</h3>
   </div>,
   <div className="flex gap-3 items-center">
-    <Image src="/youtube_logo.png" alt="Carrot Cake Logo" width="20" height="2" className="h-[15px]" />
+    <Image src="/yt_logo.png" alt="Carrot Cake Logo" width="20" height="2" className="h-[15px]" />
     <h3 className="font-bold text-gray-600">Youtube </h3>
   </div>,
   <div className="flex gap-3 items-center">
@@ -28,11 +28,11 @@ const slides = [
     <h3 className="font-bold text-gray-600">TikTok</h3>
   </div>,
   <div className="flex gap-2 items-center">
-    <Image src="/ig_logo.svg" alt="Instagram Logo" width="20" height="6" />
+    <Image src="/instagram_logo.png" alt="Instagram Logo" width="20" height="6" />
     <h3 className="font-bold text-gray-600">Instagram</h3>
   </div>,
   <div className="flex gap-3 items-center">
-    <Image src="/youtube_logo.png" alt="Carrot Cake Logo" width="20" height="2" className="h-[15px]" />
+    <Image src="/yt_logo.png" alt="Carrot Cake Logo" width="20" height="2" className="h-[15px]" />
     <h3 className="font-bold text-gray-600">Youtube </h3>
   </div>,
 ];

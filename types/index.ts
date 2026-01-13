@@ -27,6 +27,8 @@ export type SanitizedVideoProps = {
   description: string;
   categoryId?: string;
   file?: any;
+  url?: string;
+  resolution?: string;
   id?: string;
   scheduleDate?: string;
   tags?: string;
@@ -75,6 +77,7 @@ export type TikTokVideoProps = {
   url: string;
   title: string;
   file?: any;
+  resolution?: string;
   privacyStatus?: string;
   commercialUseContent: boolean;
   commercialUseOrganic: boolean;
@@ -121,6 +124,7 @@ export type InstagramVideoProps = {
   location?: string;
   scheduleDate?: string;
   file?: any;
+  resolution?: string;
   thumbnail?: string;
   uploadProgress?: number;
 };

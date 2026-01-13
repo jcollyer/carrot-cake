@@ -340,7 +340,7 @@ export default function Home() {
                   className="flex gap-4 items-center"
                   onClick={() => connectYt()}
                 >
-                  <Image src="/youtube_logo.png" alt="Youtube Logo" width="50" height="20" className="w-12" />
+                  <Image src="/yt_logo.png" alt="Youtube Logo" width="50" height="20" className="w-12" />
                   Continue with Youtube
                 </Button>
                 <Button
@@ -370,7 +370,7 @@ export default function Home() {
             <TabsList aria-label="social media opitons" className="px-5">
               <TabsTrigger value="youtube">
                 <div className="flex items-center gap-2">
-                  <Image src="/youtube_logo.png" alt="YouTube Logo" width="16" height="16" />
+                  <Image src="/yt_logo.png" alt="YouTube Logo" width="16" height="16" />
                   <p className="font-semibold">YouTube</p>
                 </div>
               </TabsTrigger>
@@ -422,7 +422,7 @@ export default function Home() {
                     className="flex gap-4 mt-4 w-fit"
                     onClick={() => connectYt()}
                   >
-                    <Image src="/youtube_logo.png" alt="Youtube Logo" width="50" height="20" className="w-12" />
+                    <Image src="/yt_logo.png" alt="Youtube Logo" width="50" height="20" className="w-12" />
                     Continue with Youtube
                   </Button>
                 )}

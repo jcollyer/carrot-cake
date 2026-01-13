@@ -1,5 +1,10 @@
 import Button from "@/app/components/primitives/Button";
-import ButtonIcon from "@/app/components/primitives/ButtonIcon";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/app/components/primitives/DropdownMenu";
 import {
   Select,
   SelectContent,
@@ -13,19 +18,20 @@ import Spinner from "@/app/components/primitives/Spinner";
 import KeyReferenceAddButton from "@/app/components/KeyReferenceAddButton";
 import KeyReferenceMenuButton from "@/app/components/KeyReferenceMenuButton";
 import SequentialScheduleSwitch from "@/app/components/SequentialScheduleSwitch";
+import UploadPreview from "@/app/components/UploadPreview";
 import prisma from "@/lib/prisma";
 import { Reference } from "@prisma/client";
-const transparentImage = require("@/public/transparent.png");
 import { getServerSession } from "next-auth"
 import { authOptions } from "@/pages/api/auth/[...nextauth]"
 import { ChangeEvent, useCallback, useEffect, useState } from "react";
-import { Upload, RotateCcw, CloudUpload, X } from "lucide-react";
+import { Upload, RotateCcw, CloudUpload, Check, ChevronLeft, ChevronDown } from "lucide-react";
 import { useDropzone } from "react-dropzone";
 import Image from "next/image";
 import { getCookie } from "cookies-next"
 import { TikTokUserCreatorInfo, TikTokVideoProps } from "@/types"
 import generateVideoThumb from "@/app/utils/generateVideoThumb";
 import { cn } from "@/app/utils/cn";
+import getVideoResolution from "@/app/utils/getVideoResolution";
 import secondsToMinutesAndSeconds from "@/app/utils/secondsToMinutes";
 import { ALL_PRIVACY_STATUS_OPTIONS, VIDEO_ACCESS_OPTIONS } from "@/app/constants";
 import { base64ToArrayBuffer } from "@/app/utils/base64ToArrayBuffer";
@@ -77,6 +83,7 @@ export default function UploadTikTokPage({ references }: { references: Reference
           console.log("File dropped:", event);
           const fileData = event.target?.result;
           if (!fileData) return;
+          const resolution = await getVideoResolution(file);
           const thumb = await generateVideoThumb(file);
           const thumbArrayBuffer = base64ToArrayBuffer((thumb as string).split(",")[1]);
 
@@ -87,6 +94,7 @@ export default function UploadTikTokPage({ references }: { references: Reference
               url: "",
               title: "",
               thumbnail: "",
+              resolution,
               privacyStatus: "",
               commercialUseContent: false,
               commercialUseOrganic: false,
@@ -209,21 +217,6 @@ export default function UploadTikTokPage({ references }: { references: Reference
     <div className="flex flex-col items-center max-w-4xl mx-auto mt-6 p-6">
       <form encType="multipart/form-data" className="w-full">
         <div className="flex justify-between items-center mb-4">
-          <div className="flex flex-col gap-2">
-            <div className="flex gap-2">
-              <Image src="/tiktok.svg" alt="TikTok Logo" width="30" height="12" />
-              <p className="text-xs mt-auto">Upload video max: {minutes}m {remainingSeconds}s</p>
-            </div>
-            <div className="flex gap-2">
-              {!tiktokCreatorInfo ? <Spinner size="medium" /> : (
-                <>
-                  <img src={tiktokCreatorInfo?.creator_avatar_url} alt="TikTok User Thumbnail" width="35" height="35" className="rounded-full" />
-                  <h2 className="text-2xl font-bold text-gray-700">{tiktokCreatorInfo?.creator_nickname}</h2>
-                </>
-              )}
-
-            </div>
-          </div>
           {videos && videos.length > 1 && (
             <div className="flex flex-col gap-1">
               <div className="flex gap-2 mb-4 items-center ml-auto mt-auto">
@@ -240,291 +233,257 @@ export default function UploadTikTokPage({ references }: { references: Reference
         </div>
         <div className="mt-2 mb-5">
           {videos && videos.length > 0 && videos.map((video, index) => (
-            <div className="flex gap-6 mb-6" key={video.file.name}>
-              <div className="flex flex-col shrink-0 w-1/4 relative">
-                {!videos?.[index].thumbnail ? (
-                  <div className="rounded-xl bg-gray-200 h-[362px] flex items-center justify-center">
-                    <p className="text-gray-600 font-medium"><Spinner size="medium" /></p>
-                  </div>
-                ) : (
-                  <img
-                    src={videos?.[index].thumbnail}
-                    alt="thumbnail"
-                    className="rounded-xl object-cover h-[362px]"
-                  />
-                )}
-
-                {!!videos && videos.length > 0 && (
-                  <div className="flex gap-2 absolute bottom-1 left-0 right-0 items-center text-white">
-                    <div className="font-semibold text-xs truncate ml-2">{videos[index]?.file.name}</div>
-                    <div className="font-semibold text-xs ml-auto mr-2">{`${Math.round(videos[index]?.file.size / 100000) / 10}MB`}</div>
-                  </div>
-                )}
+            <UploadPreview
+              key={video.file.name}
+              service="TikTok"
+              video={video}
+              videos={videos}
+              removeVideo={
+                (index) => {
+                  if (videos && videos.length >= 1) {
+                    setVideos(videos.filter((_, i) => i !== index));
+                  }
+                }
+              }
+              index={index}
+              avatarUrl={tiktokCreatorInfo?.creator_avatar_url || ""}
+              nickname={tiktokCreatorInfo?.creator_nickname || ""}
+              onSubmit={onSubmit}
+              disabled={!videos?.every(v => v.privacyStatus !== "" || !v.directPost)}
+            >
+              <div className="flex gap-2 items-center">
+                <p className="text-xs font-medium">Upload Draft</p>
+                <Switch
+                  checked={video.directPost}
+                  onClick={() => editAll ? setVideos(videos.map((v) => ({ ...v, directPost: !v.directPost }))) : setVideos(videos.map((v, i) => i === index ? { ...v, directPost: !v.directPost } : v))}
+                  className="flex items-center cursor-pointer"
+                >
+                  <SwitchThumb />
+                </Switch>
+                <p className="text-xs font-medium">Direct Post</p>
               </div>
-              <div className={cn("flex flex-col w-full", { "opacity-40": !videos || videos.length === 0 })}>
-                <div className="flex flex-col gap-4 h-fit w-full border border-gray-100 rounded-xl p-4 bg-white">
-                  {videos?.[index].uploadProgress || 0 > 0 && (
-                    <div className="flex gap-2 w-full items-center">
-                      <p className="text-sm font-medium w-1/4 shrink-0">Upload progress</p>
-                      <div className="px-2 w-full">
-                        <Progress value={videos?.[index].uploadProgress} />
-                        {/* <div className="relative w-full overflow-hidden rounded-full bg-gray-300 h-2">
-                          <div
-                            className="h-full w-full flex-1 bg-gray-700 transition-all"
-                            style={{ transform: `translateX(-${100 - (videos?.[index].uploadProgress || 0)}%)` }}
-                          >&nbsp;</div>
-                        </div> */}
+              {video.directPost && (
+                <>
+                  <div className="flex gap-2">
+                    <div className="w-1/4 shrink-0">
+                      <p className="text-sm font-medium">Title of your video</p>
+                      <p className="text-xs text-gray-500">Title displayed on TikTok</p>
+                    </div>
+                    <input
+                      onChange={event => editAll ?
+                        !!videos && setVideos(videos.map((video) => ({ ...video, title: event.currentTarget.value }))) :
+                        !!videos && setVideos(videos.map((v, i) => i === index ? { ...v, title: event.currentTarget.value } : v))}
+                      className="border border-gray-300 rounded w-full h-10 px-2 py-1 outline-0 bg-transparent ml-2"
+                      name="title"
+                      value={videos && videos[index]?.title}
+                    />
+                    <div className="flex items-start pr-1">
+                      <KeyReferenceAddButton
+                        type="title"
+                        value={videos && videos[index]?.["title"] || ""}
+                        localReferences={localReferences}
+                        setLocalReferences={setLocalReferences}
+                      />
+                      <KeyReferenceMenuButton
+                        type="title"
+                        localReferences={localReferences}
+                        setLocalReferences={setLocalReferences}
+                        callback={(key, value) => editAll ?
+                          setVideos(videos.map((video) => ({ ...video, [key]: value }))) :
+                          setVideos(videos.map((v, i) => i === index ? { ...v, [key]: value } : v))}
+                      />
+                    </div>
+                  </div>
+
+                  <div className="flex gap-2">
+                    <div className="w-1/4 shrink-0">
+                      <p className="text-sm font-medium">Scheduled Date</p>
+                      <p className="text-xs text-gray-500">Video release</p>
+                    </div>
+                    <div className="w-[calc(100%-235px)] ml-2">
+                      <input
+                        onKeyDown={(e) => e.key === 'Enter' && e.preventDefault()}
+                        type="datetime-local"
+                        className="w-full border border-gray-300 rounded h-10 px-2"
+                        value={sequentialDate !== undefined ? moment(sequentialDate.date).add((index * sequentialDate.interval), 'days').format('YYYY-MM-DDTHH:mm') :
+                          videos[index]?.scheduleDate ? videos[index]?.scheduleDate : new Date().toISOString().split("T")[0]}
+                        onChange={(e) => editAll ?
+                          !!videos && setVideos(videos.map((video) => ({ ...video, scheduleDate: e.target.value }))) :
+                          !!videos && setVideos(videos.map((v, i) => i === index ? { ...v, scheduleDate: e.target.value } : v))}
+                      />
+                    </div>
+                  </div>
+
+                  <div className="flex gap-2">
+                    <div className="w-1/4 shrink-0">
+                      <p className="text-sm font-medium">Video view access</p>
+                      <p className="text-xs text-gray-500">Select who can view this video</p>
+                    </div>
+                    <div className="w-[calc(100%-236px)]">
+                      <Select
+                        onValueChange={(value) => editAll ?
+                          !!videos && setVideos(videos.map((video) => ({ ...video, privacyStatus: value }))) :
+                          !!videos && setVideos(videos.map((v, i) => i === index ? { ...v, privacyStatus: value } : v))}
+                        value={videos && videos[index]?.privacyStatus}
+                      >
+                        <SelectTrigger className="outline-0 border border-gray-300 bg-transparent rounded h-10 ml-2">
+                          <SelectValue placeholder="Select an option" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {ALL_PRIVACY_STATUS_OPTIONS.filter((item) => tiktokCreatorInfo?.privacy_level_options?.includes(item.id)).map((item) => (
+                            <SelectItem key={item.id} value={item.id}>
+                              {item.label}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
+                  <div className="flex gap-2">
+                    <div className="w-1/4 shrink-0">
+                      <p className="text-sm font-medium">Allow user access</p>
+                      <p className="text-xs text-gray-500">Give users permission to interact with your video</p>
+                    </div>
+                    <div className="flex gap-4 ml-2 w-[calc(100%-236px)]">
+                      {Object.values(VIDEO_ACCESS_OPTIONS).map((option) => (
+                        <button
+                          key={option.name}
+                          onClick={(e) => {
+                            e.preventDefault();
+                            !!videos &&
+                              editAll ? setVideos(videos.map((video) => ({
+                                ...video, interactionType: {
+                                  ...video.interactionType,
+                                  [option.name]: !video.interactionType[option.name],
+                                }
+                              }))) : setVideos(videos.map((v, i) => i === index ? {
+                                ...v,
+                                interactionType: {
+                                  ...v.interactionType,
+                                  [option.name]: !v.interactionType[option.name],
+                                },
+                              } : v));
+                          }}
+                          disabled={!!tiktokCreatorInfo?.[`${option.name}_disabled`]}
+                          className={cn("flex flex-col flex-1 items-center gap-2 mb-2 border border-gray-300 rounded p-2",
+                            { "border-blue-700": videos?.[index]?.interactionType[option.name] }
+                          )}
+                        >
+                          <option.icon strokeWidth={1.5} size={16} className={
+                            cn("text-gray-600", {
+                              "text-blue-700": videos?.[index]?.interactionType[option.name],
+                              "opacity-50": !!tiktokCreatorInfo?.[`${option.name}_disabled`]
+                            })}
+                          />
+                          <p className={
+                            cn("text-sm capitalize", {
+                              "text-blue-700": videos?.[index]?.interactionType[option.name],
+                              "text-gray-500": !!tiktokCreatorInfo?.[`${option.name}_disabled`]
+                            })}
+                          >
+                            {option.name}
+                          </p>
+                        </button >
+                      ))}
+                    </div>
+                  </div>
+                  <div className="flex flex-col gap-2">
+                    <div className="flex gap-2">
+                      <div className="flex gap-4 items-center">
+                        <p className="text-sm font-medium">Disclose video content</p>
+                        <Switch
+                          checked={videos?.[index]?.disclose}
+                          className="cursor-pointer"
+                          onClick={() => {
+                            !!videos &&
+                              editAll ?
+                              setVideos(videos.map((video) => ({ ...video, disclose: !videos[index].disclose }))) :
+                              setVideos(videos.map((v, i) => i === index ? {
+                                ...v,
+                                disclose: !videos[index].disclose,
+                              } : v));
+                          }}
+                        >
+                          <SwitchThumb />
+                        </Switch>
                       </div>
                     </div>
-                  )}
-                  <div className="flex gap-2 items-center">
-                    <p className="text-xs font-medium">Upload Draft</p>
-                    <Switch
-                      checked={video.directPost}
-                      onClick={() => editAll ? setVideos(videos.map((v) => ({ ...v, directPost: !v.directPost }))) : setVideos(videos.map((v, i) => i === index ? { ...v, directPost: !v.directPost } : v))}
-                      className="flex items-center cursor-pointer"
-                    >
-                      <SwitchThumb />
-                    </Switch>
-                    <p className="text-xs font-medium">Direct Post</p>
-                    <ButtonIcon
-                      icon={X}
-                      label="Remove Video"
-                      size={26}
-                      strokeWidth={1.5}
-                      onClick={() => {
-                        if (videos && videos.length >= 1) {
-                          setVideos(videos.filter((_, i) => i !== index));
-                        }
-                      }}
-                      className="ml-auto"
-                      tooltip
-                    />
-                  </div>
-                  {video.directPost && (
-                    <>
-                      <div className="flex gap-2">
-                        <div className="w-1/4 shrink-0">
-                          <p className="text-sm font-medium">Title of your video</p>
-                          <p className="text-xs text-gray-500">Title displayed on TikTok</p>
-                        </div>
-                        <input
-                          onChange={event => editAll ?
-                            !!videos && setVideos(videos.map((video) => ({ ...video, title: event.currentTarget.value }))) :
-                            !!videos && setVideos(videos.map((v, i) => i === index ? { ...v, title: event.currentTarget.value } : v))}
-                          className="border border-gray-300 rounded w-full h-10 px-2 py-1 outline-0 bg-transparent ml-2"
-                          name="title"
-                          value={videos && videos[index]?.title}
-                        />
-                        <div className="flex items-start pr-1">
-                          <KeyReferenceAddButton
-                            type="title"
-                            value={videos && videos[index]?.["title"] || ""}
-                            localReferences={localReferences}
-                            setLocalReferences={setLocalReferences}
-                          />
-                          <KeyReferenceMenuButton
-                            type="title"
-                            localReferences={localReferences}
-                            setLocalReferences={setLocalReferences}
-                            callback={(key, value) => editAll ?
-                              setVideos(videos.map((video) => ({ ...video, [key]: value }))) :
-                              setVideos(videos.map((v, i) => i === index ? { ...v, [key]: value } : v))}
-                          />
-                        </div>
+                    {videos[index].disclose && (
+                      <div className="bg-blue-100 text-blue-900 text-sm p-3 rounded mb-1">
+                        Your video will be labeled “Promotional content”. This cannot be changed once your video is posted.
                       </div>
+                    )}
+                    <p className="text-xs text-gray-500">Turn on to disclose that this video promotes goods or services in exchange for something of value. Your video could promote yourself, a third party, or both.</p>
 
-                      <div className="flex gap-2">
-                        <div className="w-1/4 shrink-0">
-                          <p className="text-sm font-medium">Scheduled Date</p>
-                          <p className="text-xs text-gray-500">Video release</p>
-                        </div>
-                        <div className="w-[calc(100%-235px)] ml-2">
-                          <input
-                            onKeyDown={(e) => e.key === 'Enter' && e.preventDefault()}
-                            type="datetime-local"
-                            className="w-full border border-gray-300 rounded h-10 px-2"
-                            value={sequentialDate !== undefined ? moment(sequentialDate.date).add((index * sequentialDate.interval), 'days').format('YYYY-MM-DDTHH:mm') :
-                              videos[index]?.scheduleDate ? videos[index]?.scheduleDate : new Date().toISOString().split("T")[0]}
-                            onChange={(e) => editAll ?
-                              !!videos && setVideos(videos.map((video) => ({ ...video, scheduleDate: e.target.value }))) :
-                              !!videos && setVideos(videos.map((v, i) => i === index ? { ...v, scheduleDate: e.target.value } : v))}
-                          />
-                        </div>
-                      </div>
-
-                      <div className="flex gap-2">
-                        <div className="w-1/4 shrink-0">
-                          <p className="text-sm font-medium">Video view access</p>
-                          <p className="text-xs text-gray-500">Select who can view this video</p>
-                        </div>
-                        <div className="w-[calc(100%-236px)]">
-                          <Select
-                            onValueChange={(value) => editAll ?
-                              !!videos && setVideos(videos.map((video) => ({ ...video, privacyStatus: value }))) :
-                              !!videos && setVideos(videos.map((v, i) => i === index ? { ...v, privacyStatus: value } : v))}
-                            value={videos && videos[index]?.privacyStatus}
-                          >
-                            <SelectTrigger className="outline-0 border border-gray-300 bg-transparent rounded h-10 ml-2">
-                              <SelectValue placeholder="Select an option" />
-                            </SelectTrigger>
-                            <SelectContent>
-                              {ALL_PRIVACY_STATUS_OPTIONS.filter((item) => tiktokCreatorInfo?.privacy_level_options?.includes(item.id)).map((item) => (
-                                <SelectItem key={item.id} value={item.id}>
-                                  {item.label}
-                                </SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
-                        </div>
-                      </div>
-                      <div className="flex gap-2">
-                        <div className="w-1/4 shrink-0">
-                          <p className="text-sm font-medium">Allow user access</p>
-                          <p className="text-xs text-gray-500">Give users permission to interact with your video</p>
-                        </div>
-                        <div className="flex gap-4 ml-2 w-[calc(100%-236px)]">
-                          {Object.values(VIDEO_ACCESS_OPTIONS).map((option) => (
-                            <button
-                              key={option.name}
-                              onClick={(e) => {
-                                e.preventDefault();
-                                !!videos &&
-                                  editAll ? setVideos(videos.map((video) => ({
-                                    ...video, interactionType: {
-                                      ...video.interactionType,
-                                      [option.name]: !video.interactionType[option.name],
-                                    }
-                                  }))) : setVideos(videos.map((v, i) => i === index ? {
-                                    ...v,
-                                    interactionType: {
-                                      ...v.interactionType,
-                                      [option.name]: !v.interactionType[option.name],
-                                    },
-                                  } : v));
-                              }}
-                              disabled={!!tiktokCreatorInfo?.[`${option.name}_disabled`]}
-                              className={cn("flex flex-col flex-1 items-center gap-2 mb-2 border border-gray-300 rounded p-2",
-                                { "border-blue-700": videos?.[index]?.interactionType[option.name] }
-                              )}
-                            >
-                              <option.icon strokeWidth={1.5} size={16} className={
-                                cn("text-gray-600", {
-                                  "text-blue-700": videos?.[index]?.interactionType[option.name],
-                                  "opacity-50": !!tiktokCreatorInfo?.[`${option.name}_disabled`]
-                                })}
-                              />
-                              <p className={
-                                cn("text-sm capitalize", {
-                                  "text-blue-700": videos?.[index]?.interactionType[option.name],
-                                  "text-gray-500": !!tiktokCreatorInfo?.[`${option.name}_disabled`]
-                                })}
-                              >
-                                {option.name}
-                              </p>
-                            </button >
-                          ))}
-                        </div>
-                      </div>
-                      <div className="flex flex-col gap-2">
-                        <div className="flex gap-2">
-                          <div className="flex gap-4 items-center">
-                            <p className="text-sm font-medium">Disclose video content</p>
-                            <Switch
-                              checked={videos?.[index]?.disclose}
-                              className="cursor-pointer"
-                              onClick={() => {
-                                !!videos &&
-                                  editAll ?
-                                  setVideos(videos.map((video) => ({ ...video, disclose: !videos[index].disclose }))) :
-                                  setVideos(videos.map((v, i) => i === index ? {
-                                    ...v,
-                                    disclose: !videos[index].disclose,
-                                  } : v));
-                              }}
-                            >
-                              <SwitchThumb />
-                            </Switch>
-                          </div>
-                        </div>
-                        {videos[index].disclose && (
-                          <div className="bg-blue-100 text-blue-900 text-sm p-3 rounded mb-1">
-                            Your video will be labeled “Promotional content”. This cannot be changed once your video is posted.
-                          </div>
-                        )}
-                        <p className="text-xs text-gray-500">Turn on to disclose that this video promotes goods or services in exchange for something of value. Your video could promote yourself, a third party, or both.</p>
-
-                        {videos[index].disclose && (
-                          <div className="flex flex-col gap-2 pt-4 px-4">
-                            <div className="mb-3">
-                              <label className="flex items-start space-x-3">
-                                <input
-                                  type="checkbox"
-                                  checked={videos[index].yourBrand}
-                                  onChange={() => editAll ?
-                                    setVideos(videos.map((v) => ({ ...v, yourBrand: !videos[index].yourBrand }))) :
-                                    setVideos(videos.map((v, i) => i === index ? {
-                                      ...v,
-                                      yourBrand: !videos[index].yourBrand
-                                    } : v))}
-                                  className="mt-[4px]"
-                                />
-                                <div>
-                                  <p className="text-sm font-medium">Your brand</p>
-                                  <p className="text-sm text-gray-600">
-                                    You are promoting yourself or your own business. This video will be classified as Brand Organic.
-                                  </p>
-                                </div>
-                              </label>
-                            </div>
-
+                    {videos[index].disclose && (
+                      <div className="flex flex-col gap-2 pt-4 px-4">
+                        <div className="mb-3">
+                          <label className="flex items-start space-x-3">
+                            <input
+                              type="checkbox"
+                              checked={videos[index].yourBrand}
+                              onChange={() => editAll ?
+                                setVideos(videos.map((v) => ({ ...v, yourBrand: !videos[index].yourBrand }))) :
+                                setVideos(videos.map((v, i) => i === index ? {
+                                  ...v,
+                                  yourBrand: !videos[index].yourBrand
+                                } : v))}
+                              className="mt-[4px]"
+                            />
                             <div>
-                              <label className="flex items-start space-x-3">
-                                <input
-                                  type="checkbox"
-                                  disabled={videos?.[index]?.privacyStatus === "SELF_ONLY"}
-                                  checked={videos?.[index].brandedContent}
-                                  onChange={() => editAll ?
-                                    setVideos(videos.map((v) => ({ ...v, brandedContent: !videos[index].brandedContent }))) :
-                                    setVideos(videos.map((v, i) => i === index ? {
-                                      ...v,
-                                      brandedContent: !videos[index].brandedContent
-                                    } : v))}
-                                  className="mt-[4px]"
-                                />
-                                <div>
-                                  <p className={cn("text-sm font-medium", { "text-gray-500": videos?.[index]?.privacyStatus === "SELF_ONLY" })} >Branded content</p>
-                                  {videos?.[index]?.privacyStatus === "SELF_ONLY" && (<p className="text-red-600 text-xs">Visibility for branded content can"t be private.</p>)}
-                                  <p className={cn("text-sm text-gray-600", { "text-gray-500": videos?.[index]?.privacyStatus === "SELF_ONLY" })}>
-                                    You are promoting another brand or a third party. This video will be classified as Branded Content.
-                                  </p>
-                                </div>
-                              </label>
-                            </div>
-
-                            {(videos?.[index].yourBrand || videos?.[index].brandedContent) && (
+                              <p className="text-sm font-medium">Your brand</p>
                               <p className="text-sm text-gray-600">
-                                By posting, you agree to TikTok"s{" "}
-
-                                {videos?.[index].brandedContent && (
-                                  <>
-                                    <a href="https://www.tiktok.com/legal/page/global/music-usage-confirmation/en" target="_blank" className="text-blue-600 underline">
-                                      Branded Content Policy{" "}
-                                    </a>
-                                    and{" "}
-                                  </>
-                                )}
-                                <a href="https://www.tiktok.com/legal/page/global/bc-policy/en" target="_blank" className="text-blue-600 underline">Music Usage Confirmation</a>.
+                                You are promoting yourself or your own business. This video will be classified as Brand Organic.
                               </p>
+                            </div>
+                          </label>
+                        </div>
+
+                        <div>
+                          <label className="flex items-start space-x-3">
+                            <input
+                              type="checkbox"
+                              disabled={videos?.[index]?.privacyStatus === "SELF_ONLY"}
+                              checked={videos?.[index].brandedContent}
+                              onChange={() => editAll ?
+                                setVideos(videos.map((v) => ({ ...v, brandedContent: !videos[index].brandedContent }))) :
+                                setVideos(videos.map((v, i) => i === index ? {
+                                  ...v,
+                                  brandedContent: !videos[index].brandedContent
+                                } : v))}
+                              className="mt-[4px]"
+                            />
+                            <div>
+                              <p className={cn("text-sm font-medium", { "text-gray-500": videos?.[index]?.privacyStatus === "SELF_ONLY" })} >Branded content</p>
+                              {videos?.[index]?.privacyStatus === "SELF_ONLY" && (<p className="text-red-600 text-xs">Visibility for branded content can"t be private.</p>)}
+                              <p className={cn("text-sm text-gray-600", { "text-gray-500": videos?.[index]?.privacyStatus === "SELF_ONLY" })}>
+                                You are promoting another brand or a third party. This video will be classified as Branded Content.
+                              </p>
+                            </div>
+                          </label>
+                        </div>
+
+                        {(videos?.[index].yourBrand || videos?.[index].brandedContent) && (
+                          <p className="text-sm text-gray-600">
+                            By posting, you agree to TikTok"s{" "}
+
+                            {videos?.[index].brandedContent && (
+                              <>
+                                <a href="https://www.tiktok.com/legal/page/global/music-usage-confirmation/en" target="_blank" className="text-blue-600 underline">
+                                  Branded Content Policy{" "}
+                                </a>
+                                and{" "}
+                              </>
                             )}
-                          </div>
+                            <a href="https://www.tiktok.com/legal/page/global/bc-policy/en" target="_blank" className="text-blue-600 underline">Music Usage Confirmation</a>.
+                          </p>
                         )}
                       </div>
-                    </>
-                  )}
-                </div>
-              </div>
-            </div>
+                    )}
+                  </div>
+                </>
+              )}
+            </UploadPreview>
           ))}
           {videos && videos.length > 0 && (
             <>

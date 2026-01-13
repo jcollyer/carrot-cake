@@ -3,10 +3,12 @@ function formatBigNumber(number:number):string {
     return number; // Return as-is if not a number
   }
 
-  if (Math.abs(number) >= 1000000) {
-    return (number / 1000000).toFixed(1) + 'm';
+  if(Math.abs(number) >= 1000000000) {
+    return (number / 1000000000).toFixed(1) + 'GB';
+  } else if (Math.abs(number) >= 1000000) {
+    return (number / 1000000).toFixed(1) + 'MB';
   } else if (Math.abs(number) >= 1000) {
-    return (number / 1000).toFixed(1) + 'k';
+    return (number / 1000).toFixed(1) + 'KB';
   } else {
     return number.toString();
   }

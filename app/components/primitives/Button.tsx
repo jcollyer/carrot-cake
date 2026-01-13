@@ -7,7 +7,7 @@ export const button = tv({
   variants: {
     variant: {
       primary:
-        "text-orange-600 border-2 border-orange-400 hover:text-orange-600 hover:border-orange-600 py-2.5 rounded-lg",
+        "text-white border-2 border-orange-500 hover:border-orange-600 bg-orange-600 hover:bg-orange-700 py-2.5 rounded-lg",
       secondary:
         "text-gray-600 hover:text-gray-700 border-2 border-gray-400 hover:border-gray-500 focus:ring-4 focus:outline-none focus:ring-gray-300 rounded-lg text-sm px-5 py-2.5 text-center",
       danger:
@@ -27,6 +27,7 @@ export const button = tv({
       large: "h-[44px] px-[18px] text-md",
       medium: "h-[40px] px-4 py-[10px] text-md",
       small: "h-[30px] py-2 px-[14px] text-sm",
+      xsmall: "h-[24px] px-3 text-sm",
       none: " ",
       icon: "h-9 w-9",
     },
