@@ -5,6 +5,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/app/components/primitives/DropdownMenu";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/app/components/primitives/Tooltip";
 import { Progress } from "@/app/components/primitives/Progress";
 import Spinner from "@/app/components/primitives/Spinner";
 import { Check, ChevronLeft, ChevronDown } from "lucide-react";
@@ -25,9 +26,10 @@ type UploadPreviewProps = {
   removeVideo: (index: number) => void;
   disabled: boolean;
   service: "TikTok" | "Instagram" | "YouTube";
+  disabledReason?: string;
 };
 
-const UploadPreview = ({ video, videos, removeVideo, index, avatarUrl, nickname, onSubmit, disabled, service, children }: UploadPreviewProps) => {
+const UploadPreview = ({ video, videos, removeVideo, index, avatarUrl, nickname, onSubmit, disabled, service, disabledReason, children }: UploadPreviewProps) => {
   return (
     <div
       key={video.file.name}
@@ -157,14 +159,27 @@ const UploadPreview = ({ video, videos, removeVideo, index, avatarUrl, nickname,
           </DropdownMenu>
           {children}
         </div>
-        <Button
-          type="submit"
-          disabled={disabled}
-          onClick={onSubmit}
-          className="mt-auto"
-        >
-          <p className="font-semibold">Upload</p>
-        </Button>
+        <TooltipProvider>
+          <Tooltip>
+            <TooltipTrigger 
+            asChild>
+              <div className="flex">
+              <Button
+                type="submit"
+                disabled={disabled}
+                onClick={onSubmit}
+                className="mt-auto w-full"
+              >
+                <p className="font-semibold">Upload</p>
+              </Button>
+              </div>
+            </TooltipTrigger>
+            <TooltipContent>
+              {disabled && disabledReason && (<p className="text-gray-600 font-semibold">{disabledReason}</p>)}
+            </TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
+
       </div>
     </div>
   )

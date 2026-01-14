@@ -212,7 +212,7 @@ export default function UploadTikTokPage({ references }: { references: Reference
   useEffect(() => {
     getTikTokCreatorInfo();
   }, []);
-
+console.log('-----', videos)
   return (
     <div className="flex flex-col items-center max-w-4xl mx-auto mt-6 p-6">
       <form encType="multipart/form-data" className="w-full">
@@ -249,7 +249,8 @@ export default function UploadTikTokPage({ references }: { references: Reference
               avatarUrl={tiktokCreatorInfo?.creator_avatar_url || ""}
               nickname={tiktokCreatorInfo?.creator_nickname || ""}
               onSubmit={onSubmit}
-              disabled={!videos?.every(v => v.privacyStatus !== "" || !v.directPost)}
+              disabled={video.directPost && (video.privacyStatus === "" || (video.disclose && (!video.yourBrand && !video.brandedContent)))}
+              disabledReason={video.disclose && (!video.yourBrand && !video.brandedContent) ? "You need to indicate if your content promotes yourself, a third party, or both." : "You need to indecate who can view this video."}
             >
               <div className="flex gap-2 items-center">
                 <p className="text-xs font-medium">Upload Draft</p>
@@ -264,43 +265,46 @@ export default function UploadTikTokPage({ references }: { references: Reference
               </div>
               {video.directPost && (
                 <>
-                  <div className="flex gap-2">
-                    <div className="w-1/4 shrink-0">
-                      <p className="text-sm font-medium">Title of your video</p>
-                      <p className="text-xs text-gray-500">Title displayed on TikTok</p>
-                    </div>
-                    <input
-                      onChange={event => editAll ?
-                        !!videos && setVideos(videos.map((video) => ({ ...video, title: event.currentTarget.value }))) :
-                        !!videos && setVideos(videos.map((v, i) => i === index ? { ...v, title: event.currentTarget.value } : v))}
-                      className="border border-gray-300 rounded w-full h-10 px-2 py-1 outline-0 bg-transparent ml-2"
-                      name="title"
-                      value={videos && videos[index]?.title}
-                    />
-                    <div className="flex items-start pr-1">
-                      <KeyReferenceAddButton
-                        type="title"
-                        value={videos && videos[index]?.["title"] || ""}
-                        localReferences={localReferences}
-                        setLocalReferences={setLocalReferences}
+                  <div className="flex flex-col gap-2">
+                    <p className="text-sm font-medium">Caption</p>
+                    <div className="relative group/caption">
+
+                      <textarea
+                        onChange={event => editAll ?
+                          !!videos && setVideos(videos.map((video) => ({ ...video, title: event.currentTarget.value }))) :
+                          !!videos && setVideos(videos.map((v, i) => i === index ? { ...v, title: event.currentTarget.value } : v))}
+                        className="border border-gray-300 rounded min-h-12 w-full px-2 py-1 outline-0 bg-transparent"
+                        placeholder="Add a title that describes your video"
+                        name="title"
+                        value={videos && videos[index]?.title}
+                        maxLength={100}
                       />
-                      <KeyReferenceMenuButton
-                        type="title"
-                        localReferences={localReferences}
-                        setLocalReferences={setLocalReferences}
-                        callback={(key, value) => editAll ?
-                          setVideos(videos.map((video) => ({ ...video, [key]: value }))) :
-                          setVideos(videos.map((v, i) => i === index ? { ...v, [key]: value } : v))}
-                      />
+                      <div className="absolute bottom-4 right-4 text-xs text-gray-500">{videos && videos[index]?.title.length}/100</div>
+                      <div className="absolute hidden group-hover/caption:flex top-1/2 right-2 -translate-y-1/2">
+                        <KeyReferenceAddButton
+                          type="title"
+                          value={videos && videos[index]?.["title"] || ""}
+                          localReferences={localReferences}
+                          setLocalReferences={setLocalReferences}
+                        />
+                        <KeyReferenceMenuButton
+                          type="title"
+                          localReferences={localReferences}
+                          setLocalReferences={setLocalReferences}
+                          callback={(key, value) => editAll ?
+                            setVideos(videos.map((video) => ({ ...video, [key]: value }))) :
+                            setVideos(videos.map((v, i) => i === index ? { ...v, [key]: value } : v))}
+                        />
+                      </div>
                     </div>
                   </div>
 
                   <div className="flex gap-2">
-                    <div className="w-1/4 shrink-0">
+                    <div className="shrink-0">
                       <p className="text-sm font-medium">Scheduled Date</p>
                       <p className="text-xs text-gray-500">Video release</p>
                     </div>
-                    <div className="w-[calc(100%-235px)] ml-2">
+                    <div className="w-full">
                       <input
                         onKeyDown={(e) => e.key === 'Enter' && e.preventDefault()}
                         type="datetime-local"
@@ -314,19 +318,16 @@ export default function UploadTikTokPage({ references }: { references: Reference
                     </div>
                   </div>
 
-                  <div className="flex gap-2">
-                    <div className="w-1/4 shrink-0">
-                      <p className="text-sm font-medium">Video view access</p>
-                      <p className="text-xs text-gray-500">Select who can view this video</p>
-                    </div>
-                    <div className="w-[calc(100%-236px)]">
+                  <div className="flex flex-col gap-2">
+                    <p className="text-sm font-medium">Who can view this video</p>
+                    <div className="w-full">
                       <Select
                         onValueChange={(value) => editAll ?
                           !!videos && setVideos(videos.map((video) => ({ ...video, privacyStatus: value }))) :
                           !!videos && setVideos(videos.map((v, i) => i === index ? { ...v, privacyStatus: value } : v))}
                         value={videos && videos[index]?.privacyStatus}
                       >
-                        <SelectTrigger className="outline-0 border border-gray-300 bg-transparent rounded h-10 ml-2">
+                        <SelectTrigger className="outline-0 border border-gray-300 bg-transparent rounded h-10">
                           <SelectValue placeholder="Select an option" />
                         </SelectTrigger>
                         <SelectContent>
@@ -339,12 +340,9 @@ export default function UploadTikTokPage({ references }: { references: Reference
                       </Select>
                     </div>
                   </div>
-                  <div className="flex gap-2">
-                    <div className="w-1/4 shrink-0">
-                      <p className="text-sm font-medium">Allow user access</p>
-                      <p className="text-xs text-gray-500">Give users permission to interact with your video</p>
-                    </div>
-                    <div className="flex gap-4 ml-2 w-[calc(100%-236px)]">
+                  <div className="flex flex-col gap-2">
+                      <p className="text-sm font-medium">Allow user to</p>
+                    <div className="flex gap-4">
                       {Object.values(VIDEO_ACCESS_OPTIONS).map((option) => (
                         <button
                           key={option.name}
@@ -387,7 +385,7 @@ export default function UploadTikTokPage({ references }: { references: Reference
                       ))}
                     </div>
                   </div>
-                  <div className="flex flex-col gap-2">
+                  <div className="flex flex-col gap-2 mb-4">
                     <div className="flex gap-2">
                       <div className="flex gap-4 items-center">
                         <p className="text-sm font-medium">Disclose video content</p>
@@ -409,8 +407,11 @@ export default function UploadTikTokPage({ references }: { references: Reference
                       </div>
                     </div>
                     {videos[index].disclose && (
-                      <div className="bg-blue-100 text-blue-900 text-sm p-3 rounded mb-1">
-                        Your video will be labeled “Promotional content”. This cannot be changed once your video is posted.
+                      <div className="flex gap-3 text-sm p-3 rounded-lg mb-1 bg-blue-100">
+                        <div className="size-4 shrink-0 p-2 bg-blue-600 rounded-full inline-flex items-center justify-center mt-1 mb-2">
+                          <p className="font-semibold text-white">!</p>
+                        </div>
+                        <p>Your video will be labeled {videos?.[index].brandedContent ? '"Paid partnership"' : '"Promotional content"'}. <br />This cannot be changed once your video is posted.</p>
                       </div>
                     )}
                     <p className="text-xs text-gray-500">Turn on to disclose that this video promotes goods or services in exchange for something of value. Your video could promote yourself, a third party, or both.</p>
@@ -465,7 +466,7 @@ export default function UploadTikTokPage({ references }: { references: Reference
 
                         {(videos?.[index].yourBrand || videos?.[index].brandedContent) && (
                           <p className="text-sm text-gray-600">
-                            By posting, you agree to TikTok"s{" "}
+                            By posting, you agree to TikTok's{" "}
 
                             {videos?.[index].brandedContent && (
                               <>
@@ -533,114 +534,6 @@ export default function UploadTikTokPage({ references }: { references: Reference
                 <p className="mt-2 text-xs">
                   Supports .mp4 and .mov files up to 2GB
                 </p>
-              </div>
-            </div>
-            <div className="flex flex-col w-full opacity-40">
-              <div className="flex flex-col gap-5 h-fit w-full border border-gray-100 rounded-xl p-4 bg-white">
-                <div className="flex gap-2 items-center">
-                  <p className="text-xs font-medium">Upload Draft</p>
-                  <Switch
-                    checked={true}
-                    className="flex items-center cursor-pointer"
-                  >
-                    <SwitchThumb />
-                  </Switch>
-                  <p className="text-xs font-medium">Direct Post</p>
-                </div>
-                <>
-                  <div className="flex gap-2">
-                    <div className="w-1/4 shrink-0">
-                      <p className="text-sm font-medium">Title of your video</p>
-                      <p className="text-xs text-gray-500">Title displayed on TikTok</p>
-                    </div>
-                    <input
-                      className="border border-gray-300 rounded w-full h-10 px-2 py-1 outline-0 bg-transparent ml-2"
-                      name="title"
-                    />
-                    <div className="flex items-start">
-                      <KeyReferenceAddButton
-                        type="title"
-                        value=""
-                        localReferences={localReferences}
-                        setLocalReferences={setLocalReferences}
-                      />
-                      <KeyReferenceMenuButton
-                        type="title"
-                        localReferences={localReferences}
-                        setLocalReferences={setLocalReferences}
-                        callback={(key, value) => setVideos(videos?.map((video) => ({ ...video, [key]: value })))}
-                      />
-                    </div>
-                  </div>
-                  <div className="flex gap-2">
-                    <div className="w-1/4 shrink-0">
-                      <p className="text-sm font-medium">Scheduled Date</p>
-                      <p className="text-xs text-gray-500">Video release</p>
-                    </div>
-                    <div className="w-[calc(100%-235px)] ml-2">
-                      <input
-                        onKeyDown={(e) => e.key === 'Enter' && e.preventDefault()}
-                        type="datetime-local"
-                        className="w-full border border-gray-300 rounded h-10 px-2"
-                        value={new Date().toISOString().split("T")[0]}
-                      />
-                    </div>
-                  </div>
-                  <div className="flex gap-2">
-                    <div className="w-1/4 shrink-0">
-                      <p className="text-sm font-medium">Video view access</p>
-                      <p className="text-xs text-gray-500">Select who can view this video</p>
-                    </div>
-                    <div className="w-[calc(100%-236px)]">
-                      <Select>
-                        <SelectTrigger className="outline-0 border border-gray-300 bg-transparent rounded h-10 ml-2">
-                          <SelectValue placeholder="Select an option" />
-                        </SelectTrigger>
-                      </Select>
-                    </div>
-                  </div>
-                  <div className="flex gap-2">
-                    <div className="w-1/4 shrink-0">
-                      <p className="text-sm font-medium">Allow user access</p>
-                      <p className="text-xs text-gray-500">Give users permission to interact with your video</p>
-                    </div>
-                    <div className="flex gap-4 ml-2 w-[calc(100%-236px)]">
-                      {Object.values(VIDEO_ACCESS_OPTIONS).map((option) => (
-                        <button
-                          key={option.name}
-                          className="flex flex-col flex-1 items-center gap-2 mb-2 border border-gray-300 rounded p-2"
-                        >
-                          <option.icon strokeWidth={1.5} size={16} className={
-                            cn("text-gray-600", {
-                              "opacity-50": !!tiktokCreatorInfo?.[`${option.name}_disabled`]
-                            })}
-                          />
-                          <p className={
-                            cn("text-sm capitalize", {
-                              "text-gray-500": !!tiktokCreatorInfo?.[`${option.name}_disabled`]
-                            })}
-                          >
-                            {option.name}
-                          </p>
-                        </button >
-                      ))}
-                    </div>
-                  </div>
-                  <div className="flex flex-col gap-2">
-                    <div className="flex gap-2">
-                      <div className="flex gap-4 items-center">
-                        <p className="text-sm font-medium">Disclose video content</p>
-                        <Switch
-                          checked={false}
-                          className="cursor-pointer"
-                        >
-                          <SwitchThumb />
-                        </Switch>
-                      </div>
-                    </div>
-                    <p className="text-xs text-gray-500">Turn on to disclose that this video promotes goods or services in exchange for something of value. Your video could promote yourself, a third party, or both.</p>
-                  </div>
-                </>
               </div>
             </div>
           </div>

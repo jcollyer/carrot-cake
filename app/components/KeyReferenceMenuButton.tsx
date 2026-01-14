@@ -30,7 +30,7 @@ const KeyReferenceMenuButton = ({ type, localReferences, setLocalReferences, cal
       <MenuButton disabled={disabled}>
         <BookMarked strokeWidth={1.5} size={24} className={clsx("text-gray-600", { "opacity-50": disabled })} />
       </MenuButton>
-      <Menu>
+      <Menu className="-mt-2">
         {localReferences
           .filter((reference) => reference.type === type)
           .map((ref) =>
