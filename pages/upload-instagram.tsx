@@ -9,14 +9,12 @@ import SequentialScheduleSwitch from "@/app/components/SequentialScheduleSwitch"
 import TagsInput from "@/app/components/TagsInput";
 import prisma from "@/lib/prisma";
 import { Reference } from "@prisma/client";
-const transparentImage = require("@/public/transparent.png");
 import { getServerSession } from "next-auth"
 import { authOptions } from "@/pages/api/auth/[...nextauth]"
-import { ChangeEvent, useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { Upload, X, RotateCcw, CloudUpload, Video, Videotape, Play } from "lucide-react";
 import { useDropzone } from "react-dropzone";
 import { getCookie } from "cookies-next"
-import Image from "next/image";
 import moment from "moment";
 import { InstagramUserInfo, InstagramVideoProps } from "@/types"
 import generateVideoThumb from "@/app/utils/generateVideoThumb";
@@ -144,28 +142,28 @@ export default function UploadInstagramPage({ references }: { references: Refere
           accessToken,
           InstagramuserId: igUserInfo?.id,
         }),
-      }).then(async (data) => {
-        console.log("Video scheduled successfully:--------", data);
+      }).catch((error) => {
+        console.error("Error scheduling video:", error);
       });
-
-
     } catch (error) {
       console.error("Error scheduling video:", error);
     }
   }
 
-  const onSubmit = async (event: ChangeEvent<any>) => {
-    event.preventDefault();
+  const onSubmit = async (index?: number) => {
     if (!accessToken) {
       console.error("No access token found");
       return;
     }
-    if (!!videos.length) {
-      setIsUploading(true);
-      for (const [i, video] of videos.entries()) {
-        scheduleVideoToInstagram(video);
-        if (i === videos.length - 1) {
-          setIsUploading(false);
+    if (index !== undefined) {
+      await scheduleVideoToInstagram(videos[index]);
+      const updatedVideos = videos.filter((_, i) => i !== index);
+      setVideos(updatedVideos);
+      return;
+    } else {
+      if (!!videos && videos.length > 0) {
+        for (const [index, video] of videos.entries()) {
+          await scheduleVideoToInstagram(video);
           setVideos([]);
         }
       }
@@ -227,147 +225,147 @@ export default function UploadInstagramPage({ references }: { references: Refere
               disabled={isUploading}
             >
               <div className="flex flex-col w-full">
-                  {videos[index]?.uploadProgress || 0 > 0 && (
-                    <div className="flex gap-2 w-full items-center">
-                      <p className="text-sm font-medium w-1/4 shrink-0">Upload progress</p>
-                      <div className="px-2 w-full"><Progress value={Number(videos?.[index].uploadProgress)} /></div>
-                    </div>
-                  )}
-                  <ButtonIcon
-                    icon={X}
-                    label="Remove Video"
-                    size={26}
-                    strokeWidth={1.5}
-                    onClick={() => {
-                      if (videos && videos.length >= 1) {
-                        setVideos(videos.filter((_, i) => i !== index));
-                      }
-                    }}
-                    className="ml-auto"
-                    tooltip
-                  />
+                {videos[index]?.uploadProgress || 0 > 0 && (
+                  <div className="flex gap-2 w-full items-center">
+                    <p className="text-sm font-medium w-1/4 shrink-0">Upload progress</p>
+                    <div className="px-2 w-full"><Progress value={Number(videos?.[index].uploadProgress)} /></div>
+                  </div>
+                )}
+                <ButtonIcon
+                  icon={X}
+                  label="Remove Video"
+                  size={26}
+                  strokeWidth={1.5}
+                  onClick={() => {
+                    if (videos && videos.length >= 1) {
+                      setVideos(videos.filter((_, i) => i !== index));
+                    }
+                  }}
+                  className="ml-auto"
+                  tooltip
+                />
 
-                  <div className="flex gap-2">
-                    <div className="w-1/4 shrink-0">
-                      <p className="text-sm font-medium">Caption of your video</p>
-                      <p className="text-xs text-gray-500">Main video caption</p>
-                    </div>
+                <div className="flex gap-2">
+                  <div className="w-1/4 shrink-0">
+                    <p className="text-sm font-medium">Caption of your video</p>
+                    <p className="text-xs text-gray-500">Main video caption</p>
+                  </div>
+                  <input
+                    onKeyDown={(e) => e.key === 'Enter' && e.preventDefault()}
+                    onChange={event => editAll ?
+                      !!videos && setVideos(videos.map((video) => ({ ...video, caption: event.currentTarget.value }))) :
+                      !!videos && setVideos(videos.map((v, i) => i === index ? { ...v, caption: event.currentTarget.value } : v))}
+                    className="border border-gray-300 rounded w-full h-10 px-2 py-1 outline-0 bg-transparent ml-2"
+                    name="caption"
+                    value={videos && videos[index]?.caption || ""}
+                  />
+                  <div className="flex items-start pr-1">
+                    <KeyReferenceAddButton
+                      type="caption"
+                      value={videos && videos[index]?.["caption"] || ""}
+                      localReferences={localReferences}
+                      setLocalReferences={setLocalReferences}
+                    />
+                    <KeyReferenceMenuButton
+                      type="caption"
+                      localReferences={localReferences}
+                      setLocalReferences={setLocalReferences}
+                      callback={(key, value) => editAll ?
+                        setVideos(videos.map((video) => ({ ...video, [key]: value }))) :
+                        setVideos(videos.map((v, i) => i === index ? { ...v, [key]: value } : v))}
+                    />
+                  </div>
+                </div>
+
+                <div className="flex gap-2">
+                  <div className="w-1/4 shrink-0">
+                    <p className="text-sm font-medium">Select Media Type</p>
+                    <p className="text-xs text-gray-500">Choose the type of media you are uploading</p>
+                  </div>
+                  <div className="flex gap-4 ml-2 w-[calc(100%-236px)]">
+                    {Object.values(MEDIA_TYPES).map((option) => (
+                      <button
+                        key={option.name}
+                        className={cn("flex flex-col flex-1 items-center gap-2 mb-2 border border-gray-300 rounded p-2", {
+                          "border-blue-500": videos[index]?.mediaType === option.name,
+                        })}
+                        type="button"
+                        onClick={() => editAll ?
+                          !!videos && setVideos(videos.map((video) => ({ ...video, mediaType: option.name as "Stories" | "Videos" | "Reels" }))) :
+                          !!videos && setVideos(videos.map((v, i) => i === index ? { ...v, mediaType: option.name as "Stories" | "Videos" | "Reels" } : v))}
+                      >
+                        <option.icon strokeWidth={1.5} size={16} className={cn("text-gray-600", {
+                          "text-blue-500": videos[index]?.mediaType === option.name,
+                        })} />
+                        <p className={cn("text-sm capitalize", {
+                          "text-blue-500": videos[index]?.mediaType === option.name,
+                          "text-gray-500": videos[index]?.mediaType !== option.name,
+                        })}>
+                          {option.name}
+                        </p>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="flex gap-2">
+                  <div className="w-1/4 shrink-0">
+                    <p className="text-sm font-medium">Scheduled Date</p>
+                    <p className="text-xs text-gray-500">Video release</p>
+                  </div>
+                  <div className="w-[calc(100%-235px)] ml-2">
                     <input
                       onKeyDown={(e) => e.key === 'Enter' && e.preventDefault()}
-                      onChange={event => editAll ?
-                        !!videos && setVideos(videos.map((video) => ({ ...video, caption: event.currentTarget.value }))) :
-                        !!videos && setVideos(videos.map((v, i) => i === index ? { ...v, caption: event.currentTarget.value } : v))}
-                      className="border border-gray-300 rounded w-full h-10 px-2 py-1 outline-0 bg-transparent ml-2"
-                      name="caption"
-                      value={videos && videos[index]?.caption || ""}
+                      type="datetime-local"
+                      className="w-full border border-gray-300 rounded h-10 px-2"
+                      value={sequentialDate !== undefined ? moment(sequentialDate.date).add((index * sequentialDate.interval), 'days').format('YYYY-MM-DDTHH:mm') :
+                        videos[index]?.scheduleDate ? videos[index]?.scheduleDate : new Date().toISOString().split("T")[0]}
+                      onChange={(e) => editAll ?
+                        !!videos && setVideos(videos.map((video) => ({ ...video, scheduleDate: e.target.value }))) :
+                        !!videos && setVideos(videos.map((v, i) => i === index ? { ...v, scheduleDate: e.target.value } : v))}
                     />
-                    <div className="flex items-start pr-1">
-                      <KeyReferenceAddButton
-                        type="caption"
-                        value={videos && videos[index]?.["caption"] || ""}
-                        localReferences={localReferences}
-                        setLocalReferences={setLocalReferences}
-                      />
-                      <KeyReferenceMenuButton
-                        type="caption"
-                        localReferences={localReferences}
-                        setLocalReferences={setLocalReferences}
-                        callback={(key, value) => editAll ?
-                          setVideos(videos.map((video) => ({ ...video, [key]: value }))) :
-                          setVideos(videos.map((v, i) => i === index ? { ...v, [key]: value } : v))}
-                      />
-                    </div>
                   </div>
+                </div>
 
-                  <div className="flex gap-2">
-                    <div className="w-1/4 shrink-0">
-                      <p className="text-sm font-medium">Select Media Type</p>
-                      <p className="text-xs text-gray-500">Choose the type of media you are uploading</p>
-                    </div>
-                    <div className="flex gap-4 ml-2 w-[calc(100%-236px)]">
-                      {Object.values(MEDIA_TYPES).map((option) => (
-                        <button
-                          key={option.name}
-                          className={cn("flex flex-col flex-1 items-center gap-2 mb-2 border border-gray-300 rounded p-2", {
-                            "border-blue-500": videos[index]?.mediaType === option.name,
-                          })}
-                          type="button"
-                          onClick={() => editAll ?
-                            !!videos && setVideos(videos.map((video) => ({ ...video, mediaType: option.name as "Stories" | "Videos" | "Reels" }))) :
-                            !!videos && setVideos(videos.map((v, i) => i === index ? { ...v, mediaType: option.name as "Stories" | "Videos" | "Reels" } : v))}
-                        >
-                          <option.icon strokeWidth={1.5} size={16} className={cn("text-gray-600", {
-                            "text-blue-500": videos[index]?.mediaType === option.name,
-                          })} />
-                          <p className={cn("text-sm capitalize", {
-                            "text-blue-500": videos[index]?.mediaType === option.name,
-                            "text-gray-500": videos[index]?.mediaType !== option.name,
-                          })}>
-                            {option.name}
-                          </p>
-                        </button>
-                      ))}
-                    </div>
+                <div className="flex gap-2">
+                  <div className="w-1/4 shrink-0">
+                    <p className="text-sm font-medium">Video Tags</p>
+                    <p className="text-xs text-gray-500">Keywords</p>
                   </div>
-
-                  <div className="flex gap-2">
-                    <div className="w-1/4 shrink-0">
-                      <p className="text-sm font-medium">Scheduled Date</p>
-                      <p className="text-xs text-gray-500">Video release</p>
-                    </div>
-                    <div className="w-[calc(100%-235px)] ml-2">
-                      <input
-                        onKeyDown={(e) => e.key === 'Enter' && e.preventDefault()}
-                        type="datetime-local"
-                        className="w-full border border-gray-300 rounded h-10 px-2"
-                        value={sequentialDate !== undefined ? moment(sequentialDate.date).add((index * sequentialDate.interval), 'days').format('YYYY-MM-DDTHH:mm') :
-                          videos[index]?.scheduleDate ? videos[index]?.scheduleDate : new Date().toISOString().split("T")[0]}
-                        onChange={(e) => editAll ?
-                          !!videos && setVideos(videos.map((video) => ({ ...video, scheduleDate: e.target.value }))) :
-                          !!videos && setVideos(videos.map((v, i) => i === index ? { ...v, scheduleDate: e.target.value } : v))}
-                      />
-                    </div>
-                  </div>
-
-                  <div className="flex gap-2">
-                    <div className="w-1/4 shrink-0">
-                      <p className="text-sm font-medium">Video Tags</p>
-                      <p className="text-xs text-gray-500">Keywords</p>
-                    </div>
-                    <TagsInput
-                      onAddTags={(tag) => editAll ?
-                        !!videos && setVideos(videos.map((video) => ({ ...video, tags: video.tags ? `${video.tags},${tag}` : tag }))) :
-                        !!videos && setVideos(videos.map((v, i) => i === index ? { ...v, tags: v.tags ? `${v.tags},${tag}` : tag } : v))}
-                      onRemoveTags={(indexToRemove) => editAll ? !!videos && setVideos(videos.map((video) => {
-                        let tagsArr = video.tags?.split(",")
-                        tagsArr?.splice(indexToRemove, 1)
-                        const tagsString = tagsArr?.join(",")
-                        return { ...video, tags: tagsString }
-                      })) : setVideos(videos.map((v, i) => {
-                        let tagsArr = video.tags?.split(",")
-                        tagsArr?.splice(indexToRemove, 1)
-                        const tagsString = tagsArr?.join(",")
-                        return i === index ? { ...v, tags: tagsString } : { ...v }
-                      }))}
-                      tags={videos[index]?.tags?.split(",") || []}
+                  <TagsInput
+                    onAddTags={(tag) => editAll ?
+                      !!videos && setVideos(videos.map((video) => ({ ...video, tags: video.tags ? `${video.tags},${tag}` : tag }))) :
+                      !!videos && setVideos(videos.map((v, i) => i === index ? { ...v, tags: v.tags ? `${v.tags},${tag}` : tag } : v))}
+                    onRemoveTags={(indexToRemove) => editAll ? !!videos && setVideos(videos.map((video) => {
+                      let tagsArr = video.tags?.split(",")
+                      tagsArr?.splice(indexToRemove, 1)
+                      const tagsString = tagsArr?.join(",")
+                      return { ...video, tags: tagsString }
+                    })) : setVideos(videos.map((v, i) => {
+                      let tagsArr = video.tags?.split(",")
+                      tagsArr?.splice(indexToRemove, 1)
+                      const tagsString = tagsArr?.join(",")
+                      return i === index ? { ...v, tags: tagsString } : { ...v }
+                    }))}
+                    tags={videos[index]?.tags?.split(",") || []}
+                  />
+                  <div className="flex items-start pr-1">
+                    <KeyReferenceAddButton
+                      type="tags"
+                      value={videos && videos[index]?.["tags"] || ""}
+                      localReferences={localReferences}
+                      setLocalReferences={setLocalReferences}
                     />
-                    <div className="flex items-start pr-1">
-                      <KeyReferenceAddButton
-                        type="tags"
-                        value={videos && videos[index]?.["tags"] || ""}
-                        localReferences={localReferences}
-                        setLocalReferences={setLocalReferences}
-                      />
-                      <KeyReferenceMenuButton
-                        type="tags"
-                        localReferences={localReferences}
-                        setLocalReferences={setLocalReferences}
-                        callback={(key, value) => editAll ?
-                          setVideos(videos.map((video) => ({ ...video, [key]: value }))) :
-                          setVideos(videos.map((v, i) => i === index ? { ...v, [key]: value } : v))}
-                      />
-                    </div>
+                    <KeyReferenceMenuButton
+                      type="tags"
+                      localReferences={localReferences}
+                      setLocalReferences={setLocalReferences}
+                      callback={(key, value) => editAll ?
+                        setVideos(videos.map((video) => ({ ...video, [key]: value }))) :
+                        setVideos(videos.map((v, i) => i === index ? { ...v, [key]: value } : v))}
+                    />
                   </div>
+                </div>
               </div>
             </UploadPreview>
           ))}
@@ -390,7 +388,10 @@ export default function UploadInstagramPage({ references }: { references: Refere
             <Button
               variant="secondary"
               type="submit"
-              onClick={onSubmit}
+              onClick={(e) => {
+                e.preventDefault();
+                onSubmit();
+              }}
               disabled={isUploading}
               className="flex gap-2 items-center flex-1"
             >

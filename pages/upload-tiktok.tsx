@@ -1,11 +1,5 @@
 import Button from "@/app/components/primitives/Button";
 import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/app/components/primitives/DropdownMenu";
-import {
   Select,
   SelectContent,
   SelectItem,
@@ -13,8 +7,6 @@ import {
   SelectValue,
 } from "@/app/components/primitives/Select";
 import { Switch, SwitchThumb } from "@/app/components/primitives/Switch";
-import { Progress } from "@/app/components/primitives/Progress";
-import Spinner from "@/app/components/primitives/Spinner";
 import KeyReferenceAddButton from "@/app/components/KeyReferenceAddButton";
 import KeyReferenceMenuButton from "@/app/components/KeyReferenceMenuButton";
 import SequentialScheduleSwitch from "@/app/components/SequentialScheduleSwitch";
@@ -23,10 +15,9 @@ import prisma from "@/lib/prisma";
 import { Reference } from "@prisma/client";
 import { getServerSession } from "next-auth"
 import { authOptions } from "@/pages/api/auth/[...nextauth]"
-import { ChangeEvent, useCallback, useEffect, useState } from "react";
-import { Upload, RotateCcw, CloudUpload, Check, ChevronLeft, ChevronDown } from "lucide-react";
+import { useCallback, useEffect, useState } from "react";
+import { Upload, RotateCcw, CloudUpload } from "lucide-react";
 import { useDropzone } from "react-dropzone";
-import Image from "next/image";
 import { getCookie } from "cookies-next"
 import { TikTokUserCreatorInfo, TikTokVideoProps } from "@/types"
 import generateVideoThumb from "@/app/utils/generateVideoThumb";
@@ -172,9 +163,13 @@ export default function UploadTikTokPage({ references }: { references: Reference
           disableStitch: video.interactionType.stitch,
           draft: video.draft,
         }),
-      }).then(async (data) => {
-        console.log("Video scheduled successfully:--------", data);
-      });
+      }).then(response => response.json())
+        .then(async ({ data }) => {
+          console.log("Scheduled video response:", data);
+        })
+        .catch(error => {
+          console.error("Fetch error:", error);
+        });
     } catch (error) {
       console.error("Error scheduling video:", error);
     }
@@ -193,18 +188,22 @@ export default function UploadTikTokPage({ references }: { references: Reference
       });
   }
 
-  const onSubmit = async (event: ChangeEvent<any>) => {
-    event.preventDefault();
+  const onSubmit = async (index?: number) => {
     if (!tikTokAccessTokens) {
       console.error("No access token found");
       return;
     }
-    if (!!videos && videos.length > 0) {
-      for (const [index, video] of videos.entries()) {
-        setVideos((prev) => prev?.map((v, i) => i === index ? { ...v, uploadProgress: 2 } : v));
-        await scheduleVideoToTikTok(video);
-        setVideos((prev) => prev?.map((v, i) => i === index ? { ...v, uploadProgress: 100 } : v));
-        setVideos([]);
+    if (index !== undefined) {
+      await scheduleVideoToTikTok(videos[index]);
+      const updatedVideos = videos.filter((_, i) => i !== index);
+      setVideos(updatedVideos);
+      return;
+    } else {
+      if (!!videos && videos.length > 0) {
+        for (const [index, video] of videos.entries()) {
+          await scheduleVideoToTikTok(video);
+          setVideos([]);
+        }
       }
     }
   };
@@ -212,7 +211,7 @@ export default function UploadTikTokPage({ references }: { references: Reference
   useEffect(() => {
     getTikTokCreatorInfo();
   }, []);
-console.log('-----', videos)
+
   return (
     <div className="flex flex-col items-center max-w-4xl mx-auto mt-6 p-6">
       <form encType="multipart/form-data" className="w-full">
@@ -341,38 +340,40 @@ console.log('-----', videos)
                     </div>
                   </div>
                   <div className="flex flex-col gap-2">
-                      <p className="text-sm font-medium">Allow user to</p>
-                    <div className="flex gap-4">
+                    <p className="text-sm font-medium">Allow user to</p>
+                    <div className="flex gap-6 items-center">
                       {Object.values(VIDEO_ACCESS_OPTIONS).map((option) => (
-                        <button
+                        <div
                           key={option.name}
-                          onClick={(e) => {
-                            e.preventDefault();
-                            !!videos &&
-                              editAll ? setVideos(videos.map((video) => ({
-                                ...video, interactionType: {
-                                  ...video.interactionType,
-                                  [option.name]: !video.interactionType[option.name],
-                                }
-                              }))) : setVideos(videos.map((v, i) => i === index ? {
-                                ...v,
-                                interactionType: {
-                                  ...v.interactionType,
-                                  [option.name]: !v.interactionType[option.name],
-                                },
-                              } : v));
-                          }}
-                          disabled={!!tiktokCreatorInfo?.[`${option.name}_disabled`]}
-                          className={cn("flex flex-col flex-1 items-center gap-2 mb-2 border border-gray-300 rounded p-2",
+                          className={cn("flex items-center gap-2",
                             { "border-blue-700": videos?.[index]?.interactionType[option.name] }
                           )}
                         >
-                          <option.icon strokeWidth={1.5} size={16} className={
-                            cn("text-gray-600", {
-                              "text-blue-700": videos?.[index]?.interactionType[option.name],
-                              "opacity-50": !!tiktokCreatorInfo?.[`${option.name}_disabled`]
-                            })}
+                          <input
+                            type="checkbox"
+                            onClick={(e) => {
+                              const checked = (e.target as HTMLInputElement).checked;
+                              editAll ?
+                                setVideos(videos.map((video) => ({
+                                  ...video,
+                                  interactionType: {
+                                    ...video.interactionType,
+                                    [option.name]: checked,
+                                  }
+                                }))) :
+                                setVideos(videos.map((v, i) => i === index ? {
+                                  ...v,
+                                  interactionType: {
+                                    ...v.interactionType,
+                                    [option.name]: checked,
+                                  }
+                                } : v));
+                            }}
+                            disabled={!!tiktokCreatorInfo?.[`${option.name}_disabled`]}
+                            checked={videos?.[index]?.interactionType[option.name]}
+                            className="size-4"
                           />
+
                           <p className={
                             cn("text-sm capitalize", {
                               "text-blue-700": videos?.[index]?.interactionType[option.name],
@@ -381,11 +382,11 @@ console.log('-----', videos)
                           >
                             {option.name}
                           </p>
-                        </button >
+                        </div>
                       ))}
                     </div>
                   </div>
-                  <div className="flex flex-col gap-2 mb-4">
+                  <div className="flex flex-col gap-2">
                     <div className="flex gap-2">
                       <div className="flex gap-4 items-center">
                         <p className="text-sm font-medium">Disclose video content</p>
@@ -504,7 +505,10 @@ console.log('-----', videos)
                   variant="secondary"
                   type="submit"
                   disabled={!videos?.every(v => v.privacyStatus !== "" || !v.directPost)}
-                  onClick={onSubmit}
+                  onClick={(e) => {
+                    e.preventDefault();
+                    onSubmit();
+                  }}
                   className="flex flex-1 items-center gap-2"
                 >
                   <CloudUpload />

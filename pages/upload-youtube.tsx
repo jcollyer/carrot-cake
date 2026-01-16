@@ -87,8 +87,7 @@ export default function UploadYouTubePage({ references }: { references: Referenc
 
   const { getRootProps, getInputProps } = useDropzone({ onDrop });
 
-  const onSubmit = async (event: ChangeEvent<any>) => {
-    event.preventDefault();
+  const onSubmit = async () => {
     const accessToken = !!tokens && JSON.parse(tokens as string).access_token;
 
     if (!accessToken) {

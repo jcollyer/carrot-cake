@@ -1,5 +1,12 @@
 import Button from "@/app/components/primitives/Button";
 import {
+  Dialog,
+  DialogClose,
+  DialogContent,
+  DialogFooter,
+  DialogTitle,
+} from "@/app/components/primitives/Dialog";
+import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
@@ -12,7 +19,7 @@ import { Check, ChevronLeft, ChevronDown } from "lucide-react";
 import Image from "next/image";
 import { cn } from "@/app/utils/cn";
 import formatBigNumber from "@/app/utils/formatBigNumbers";
-import { ChangeEvent, ReactNode } from "react";
+import { ChangeEvent, ReactNode, useEffect, useState } from "react";
 import { InstagramVideoProps, SanitizedVideoProps, TikTokVideoProps } from "@/types";
 
 type UploadPreviewProps = {
@@ -22,7 +29,7 @@ type UploadPreviewProps = {
   index: number;
   avatarUrl: string;
   nickname: string;
-  onSubmit: (event: ChangeEvent<any>) => Promise<void>;
+  onSubmit: (index?: number) => void;
   removeVideo: (index: number) => void;
   disabled: boolean;
   service: "TikTok" | "Instagram" | "YouTube";
@@ -30,6 +37,26 @@ type UploadPreviewProps = {
 };
 
 const UploadPreview = ({ video, videos, removeVideo, index, avatarUrl, nickname, onSubmit, disabled, service, disabledReason, children }: UploadPreviewProps) => {
+  const [uploadVideoModalOpen, setUploadVideoModalOpen] = useState<boolean>(false);
+  const [uploadingAfterSubmit, setUploadingAfterSubmit] = useState<boolean>(false);
+  const [progress, setProgress] = useState<number>(0);
+
+  useEffect(() => {
+    if (uploadingAfterSubmit) {
+      const interval = setInterval(() => {
+        setProgress((prevProgress) => {
+          if (prevProgress >= 100) {
+            clearInterval(interval);
+            return 100;
+          }
+          return prevProgress + 0.1;
+        });
+      }, 10);
+
+      return () => clearInterval(interval);
+    }
+  }, [uploadingAfterSubmit, progress]);
+
   return (
     <div
       key={video.file.name}
@@ -97,7 +124,7 @@ const UploadPreview = ({ video, videos, removeVideo, index, avatarUrl, nickname,
           </div>
         )}
       </div>
-      <div className={cn("flex flex-col w-full", { "opacity-40": !videos || videos.length === 0 })}>
+      <div className={cn("flex flex-col gap-4 w-full", { "opacity-40": !videos || videos.length === 0 })}>
         <div className="flex flex-col gap-4 h-fit w-full">
           {videos?.[index].uploadProgress || 0 > 0 && (
             <div className="flex gap-2 w-full items-center">
@@ -130,16 +157,12 @@ const UploadPreview = ({ video, videos, removeVideo, index, avatarUrl, nickname,
             >
               <div className="flex gap-2 items-center p-4 rounded bg-gray-100">
                 <div className="relative flex gap-2 items-center">
-                  <img src={avatarUrl
-                    //tiktokCreatorInfo?.creator_avatar_url
-                  } alt={`${service} User Thumbnail`} width="45" height="45" className="rounded-full" />
+                  <img src={avatarUrl} alt={`${service} User Thumbnail`} width="45" height="45" className="rounded-full" />
                   <div className="absolute -bottom-px -right-px">
                     <Image src={`/${service.toLowerCase()}_logo.png`} alt={`${service} Logo`} width="18" height="18" />
                   </div>
                 </div>
-                <h3 className="text-md font-bold text-gray-700">{nickname
-                  //tiktokCreatorInfo?.creator_nickname
-                }</h3>
+                <h3 className="text-md font-bold text-gray-700">{nickname}</h3>
                 <ChevronDown size={24} strokeWidth={2} className="ml-auto" />
               </div>
             </DropdownMenuTrigger>
@@ -161,17 +184,20 @@ const UploadPreview = ({ video, videos, removeVideo, index, avatarUrl, nickname,
         </div>
         <TooltipProvider>
           <Tooltip>
-            <TooltipTrigger 
-            asChild>
+            <TooltipTrigger
+              asChild>
               <div className="flex">
-              <Button
-                type="submit"
-                disabled={disabled}
-                onClick={onSubmit}
-                className="mt-auto w-full"
-              >
-                <p className="font-semibold">Upload</p>
-              </Button>
+                <Button
+                  type="submit"
+                  disabled={disabled}
+                  onClick={(e) => {
+                    e.preventDefault();
+                    setUploadVideoModalOpen(true);
+                  }}
+                  className="mt-auto w-full"
+                >
+                  <p className="font-semibold">Upload</p>
+                </Button>
               </div>
             </TooltipTrigger>
             <TooltipContent>
@@ -181,6 +207,63 @@ const UploadPreview = ({ video, videos, removeVideo, index, avatarUrl, nickname,
         </TooltipProvider>
 
       </div>
+      <Dialog
+        open={uploadVideoModalOpen}
+        onOpenChange={setUploadVideoModalOpen}
+      >
+        <DialogContent className="sm:max-w-3xl">
+          <DialogTitle>Upload Video to TikTok</DialogTitle>
+          {uploadingAfterSubmit ? (
+            <>
+              <Progress value={progress} />
+              <p className="text-sm text-gray-600 dark:text-gray-400">
+                Your video is being uploaded to TikTok. This may take a few minutes depending on the size of your video and your internet connection. You may close this dialog and continue using the app while the upload is in progress.
+              </p>
+            </>
+          ) : (
+            <p className="text-sm text-gray-600 dark:text-gray-400">
+              Are you sure you want to upload this video to TikTok? Please ensure that you have reviewed all the details and settings before proceeding with the upload.
+            </p>
+          )}
+          <DialogFooter>
+            {!uploadingAfterSubmit ? (
+              <>
+                <DialogClose asChild>
+                  <Button
+                    variant="outline"
+                    onClick={() => {
+                      setUploadVideoModalOpen(false);
+                    }}
+                  >
+                    Cancel
+                  </Button>
+                </DialogClose>
+                <Button
+                  onClick={() => {
+                    setUploadingAfterSubmit(true);
+                  }}
+                >
+                  Upload Video
+                </Button>
+              </>
+            ) : (
+              <DialogClose asChild>
+                <Button
+                  variant="outline"
+                  onClick={() => {
+                    onSubmit(index);
+                    setUploadVideoModalOpen(false);
+                    setUploadingAfterSubmit(false);
+                    setProgress(0);
+                  }}
+                >
+                  Close
+                </Button>
+              </DialogClose>
+            )}
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }
