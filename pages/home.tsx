@@ -12,7 +12,6 @@ import {
   TabsList,
   TabsTrigger,
 } from "@/app/components/primitives/Tabs";
-import Calendar from "@/app/components/Calendar";
 import {
   sanitizeYTMetadata,
   sanitizeTikTokMetadata,
@@ -28,12 +27,12 @@ import {
   InstagramVideo,
   YouTubeVideo,
   YouTubeUserInfo,
-  TikTokVideo,
   TikTokUserInfo,
   InstagramUserInfo,
   NeonTikTokVideo,
 } from "@/types"
 import moment from "moment";
+import CalendarMonth from "@/app/components/CalendarMonth";
 
 export const getServerSideProps = async (context: any) => {
   const session = await getServerSession(context.req, context.res, authOptions);
@@ -408,7 +407,7 @@ export default function Home() {
                         router.push("/");
                       }}
                     />
-                    <Calendar
+                    <CalendarMonth
                       scheduledVideos={sanitizeYTMetadata(youTubeVideos) || []}
                       setEditVideo={setEditVideo}
                       title="Uploaded YouTube Videos"
@@ -445,11 +444,11 @@ export default function Home() {
                       }}
                       type="tiktok"
                     />
-                    <Calendar
+                    <CalendarMonth
                       scheduledVideos={sanitizeTikTokMetadata(tiktokVideos) || []}
                       setEditVideo={setEditVideo}
                       title="Uploaded TikTok Videos"
-                      canEdit={false}
+                      canEdit
                     />
                   </>
                 )}
@@ -483,7 +482,7 @@ export default function Home() {
                       }}
                       type="instagram"
                     />
-                    <Calendar
+                    <CalendarMonth
                       scheduledVideos={sanitizeInstagramMetadata(instagramVideos) || []}
                       setEditVideo={setEditVideo}
                       title="Uploaded Instagram Videos"
