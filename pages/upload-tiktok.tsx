@@ -213,7 +213,7 @@ export default function UploadTikTokPage({ references }: { references: Reference
   }, []);
 
   return (
-    <div className="flex flex-col items-center max-w-4xl mx-auto mt-6 p-6">
+    <div className="flex flex-col items-center max-w-[990px] mx-auto mt-6 p-6">
       <form encType="multipart/form-data" className="w-full">
         <div className="flex justify-between items-center mb-4">
           {videos && videos.length > 1 && (
@@ -415,7 +415,7 @@ export default function UploadTikTokPage({ references }: { references: Reference
                         <p>Your video will be labeled {videos?.[index].brandedContent ? '"Paid partnership"' : '"Promotional content"'}. <br />This cannot be changed once your video is posted.</p>
                       </div>
                     )}
-                    <p className="text-xs text-gray-500">Turn on to disclose that this video promotes goods or services in exchange for something of value. Your video could promote yourself, a third party, or both.</p>
+                    <p className="text-xs text-gray-600">Turn on to disclose that this video promotes goods or services in exchange for something of value. Your video could promote yourself, a third party, or both.</p>
 
                     {videos[index].disclose && (
                       <div className="flex flex-col gap-2 pt-4 px-4">
@@ -514,9 +514,6 @@ export default function UploadTikTokPage({ references }: { references: Reference
                   <CloudUpload />
                   Upload {videos && videos.length} Video{videos && videos.length > 1 ? "s" : ""} to TikTok
                 </Button>
-              </div>
-              <div className="bg-amber-100 text-amber-900 text-sm p-3 mt-4 rounded">
-                By posting, you agree to TikTok"s <a href="https://www.tiktok.com/legal/page/global/music-usage-confirmation/en" target="_blank" className="text-amber-600 underline">Music Usage Confirmation</a>.
               </div>
             </>
           )}

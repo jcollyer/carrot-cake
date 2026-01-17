@@ -15,7 +15,7 @@ import {
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/app/components/primitives/Tooltip";
 import { Progress } from "@/app/components/primitives/Progress";
 import Spinner from "@/app/components/primitives/Spinner";
-import { Check, ChevronLeft, ChevronDown } from "lucide-react";
+import { Check, ChevronLeft, ChevronDown, TriangleAlert } from "lucide-react";
 import Image from "next/image";
 import { cn } from "@/app/utils/cn";
 import formatBigNumber from "@/app/utils/formatBigNumbers";
@@ -60,12 +60,12 @@ const UploadPreview = ({ video, videos, removeVideo, index, avatarUrl, nickname,
   return (
     <div
       key={video.file.name}
-      className="flex gap-6 mb-6 border border-gray-100 rounded-xl p-4 bg-white"
+      className="flex gap-6 mb-6 px-6 py-4 border border-gray-100 rounded-xl bg-white"
     >
       <div className="flex flex-col shrink-0 w-1/2 relative">
         {(videos?.[index].url && videos?.[index].thumbnail) ? (
           <>
-            <div className="flex gap-2 items-center mb-5">
+            <div className="flex gap-2 items-center mb-6">
               <div className="bg-green-600 rounded-full p-1">
                 <Check size={18} strokeWidth={4} className="text-white" />
               </div>
@@ -85,7 +85,7 @@ const UploadPreview = ({ video, videos, removeVideo, index, avatarUrl, nickname,
               <video
                 controls
                 poster={videos?.[index].thumbnail}
-                className="bg-black h-[440px]"
+                className="bg-black h-[470px]"
               >
                 <source
                   src={videos?.[index].url}
@@ -124,7 +124,7 @@ const UploadPreview = ({ video, videos, removeVideo, index, avatarUrl, nickname,
           </div>
         )}
       </div>
-      <div className={cn("flex flex-col gap-4 w-full", { "opacity-40": !videos || videos.length === 0 })}>
+      <div className={cn("flex flex-col gap-4 w-full justify-between", { "opacity-40": !videos || videos.length === 0 })}>
         <div className="flex flex-col gap-4 h-fit w-full">
           {videos?.[index].uploadProgress || 0 > 0 && (
             <div className="flex gap-2 w-full items-center">
@@ -146,7 +146,7 @@ const UploadPreview = ({ video, videos, removeVideo, index, avatarUrl, nickname,
               onClick={() => window.history.back()}
               className="bg-gray-100 rounded-md p-2 hover:bg-gray-300 transition-colors"
             >
-              <ChevronLeft size={22} strokeWidth={2} />
+              <ChevronLeft size={18} strokeWidth={3} className="text-gray-600" />
             </button>
             <h2 className="text-2xl font-bold text-gray-700">Upload to {service}</h2>
           </div>
@@ -155,11 +155,11 @@ const UploadPreview = ({ video, videos, removeVideo, index, avatarUrl, nickname,
               asChild
               className="rounded-md border border-gray-100 bg-gray-100 dark:border-gray-800 dark:bg-gray-800"
             >
-              <div className="flex gap-2 items-center p-4 rounded bg-gray-100">
+              <div className="flex gap-2 items-center px-4 py-3 rounded bg-gray-100">
                 <div className="relative flex gap-2 items-center">
-                  <img src={avatarUrl} alt={`${service} User Thumbnail`} width="45" height="45" className="rounded-full" />
+                  <img src={avatarUrl} alt={`${service} User Thumbnail`} width="40" height="40" className="rounded-full" />
                   <div className="absolute -bottom-px -right-px">
-                    <Image src={`/${service.toLowerCase()}_logo.png`} alt={`${service} Logo`} width="18" height="18" />
+                    <Image src={`/${service.toLowerCase()}_logo.png`} alt={`${service} Logo`} width="15" height="15" />
                   </div>
                 </div>
                 <h3 className="text-md font-bold text-gray-700">{nickname}</h3>
@@ -212,17 +212,23 @@ const UploadPreview = ({ video, videos, removeVideo, index, avatarUrl, nickname,
         onOpenChange={setUploadVideoModalOpen}
       >
         <DialogContent className="sm:max-w-3xl">
-          <DialogTitle>Upload Video to TikTok</DialogTitle>
+          <DialogTitle>Upload Video to {service}</DialogTitle>
           {uploadingAfterSubmit ? (
             <>
               <Progress value={progress} />
               <p className="text-sm text-gray-600 dark:text-gray-400">
-                Your video is being uploaded to TikTok. This may take a few minutes depending on the size of your video and your internet connection. You may close this dialog and continue using the app while the upload is in progress.
+                Your video is being uploaded to {service}. This may take a few minutes depending on the size of your video and your internet connection. You may close this dialog and continue using the app while the upload is in progress.
               </p>
             </>
           ) : (
             <p className="text-sm text-gray-600 dark:text-gray-400">
-              Are you sure you want to upload this video to TikTok? Please ensure that you have reviewed all the details and settings before proceeding with the upload.
+              Please ensure that you have reviewed all the details and settings before proceeding with the upload.
+              {service === "TikTok" && (
+                       <div className="flex gap-2 itmes-center bg-amber-100 text-amber-900 text-sm p-3 mt-4 rounded">
+                        <TriangleAlert size={18} />
+                By posting, you agree to TikTok"s <a href="https://www.tiktok.com/legal/page/global/music-usage-confirmation/en" target="_blank" className="text-amber-600 underline">Music Usage Confirmation</a>.
+              </div>
+              )}
             </p>
           )}
           <DialogFooter>
