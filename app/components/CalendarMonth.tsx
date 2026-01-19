@@ -133,8 +133,6 @@ export default function Calendar({ scheduledVideos = [], canEdit = false, setEdi
             });
             const videoScheduled = videosScheduled.length > 0;
 
-            console.log("-------", videoScheduled);
-
             return (
               <div
                 key={idx}
@@ -144,46 +142,50 @@ export default function Calendar({ scheduledVideos = [], canEdit = false, setEdi
                 )}
               >
 
-                {videosScheduled.map((video) =>
-                  <div
-                    key={video.id}
-                    className={cn("relative flex flex-col flex-1 overflow-hidden text-left rounded-sm bg-cover bg-center bg-gray-800 border-r border-b border-gray-300")}
-                    style={{
-                      backgroundImage: `url(${video.thumbnail})`,
-                      height: `${100 / videosScheduled.length}%`,
-                    }}
-                  >
-                    <div className="absolute top-0 left-0 w-full h-full bg-black opacity-50"></div>
-                    {/* backup for thumbs from IG database which can be .mp4 */}
-                    {video.mediaType === "VIDEO" && (
-                      <video className="absolute -top-6 left-0 w-[200%]" muted>
-                        <source className="w-full" src={video.thumbnail} type="video/mp4" />
-                      </video>
-                    )}
-                    <div className="flex flex-col z-10 h-full">
-                      <div className="mt-auto mb-2">
-                        <p className="text-white mx-1 mt-6 truncate font-bold text-lg">{video.title}</p>
-                        <p className="text-white text-sm mx-1 line-clamp-2">{video.description}</p>
-                      </div>
-                      {canEdit && (
-                        <button
-                          className={cn("absolute top-1 left-1 bg-white bg-opacity-20 hover:bg-opacity-40 text-white p-1 rounded-full transition")}
-                          onClick={() =>
-                            setEditVideo({
-                              id: video.id,
-                              title: video.title,
-                              description: video.description,
-                              scheduleDate: video.scheduleDate,
-                              categoryId: video.categoryId,
-                              tags: video.tags,
-                              thumbnail: video.thumbnail,
-                            })}
-                        >
-                          <Pencil size={16} className="text-gray-100" />
-                        </button>
+                {videosScheduled.map((video) => {
+                  return (
+                    <div
+                      key={video.id}
+                      className={cn("relative flex flex-col flex-1 overflow-hidden text-left rounded-sm bg-cover bg-center bg-gray-800 border-r border-b border-gray-300")}
+                      style={{
+                        backgroundImage: `url(${video.thumbnail})`,
+                        height: `${100 / videosScheduled.length}%`,
+                      }}
+                    >
+                      <div className="absolute top-0 left-0 w-full h-full bg-black opacity-50"></div>
+                      {/* backup for thumbs from IG database which can be .mp4 */}
+                      {video.mediaType === "VIDEO" && (
+                        <video className="absolute -top-6 left-0 w-[200%]" muted>
+                          <source className="w-full" src={video.thumbnail} type="video/mp4" />
+                        </video>
                       )}
+                      <div className="flex flex-col z-10 h-full">
+                        <div className="mt-auto mb-2">
+                          <p className="text-white mx-1 mt-6 truncate font-bold text-lg">{video.title}</p>
+                          <p className="text-white text-sm mx-1 line-clamp-2">{video.description}</p>
+                        </div>
+                        {canEdit && (
+                          <button
+                            className={cn("absolute top-1 left-1 bg-white bg-opacity-20 hover:bg-opacity-40 text-white p-1 rounded-full transition")}
+                            onClick={() =>
+                              setEditVideo({
+                                id: video.id,
+                                title: video.title,
+                                description: video.description,
+                                scheduleDate: video.scheduleDate,
+                                categoryId: video.categoryId,
+                                tags: video.tags,
+                                thumbnail: video.thumbnail,
+                              })}
+                          >
+                            <Pencil size={16} className="text-gray-100" />
+                          </button>
+                        )}
+                      </div>
                     </div>
-                  </div>
+
+                  )
+                }
                 )}
                 <div className="absolute right-2 top-1 text-sm font-medium">
                   <p className={cn({

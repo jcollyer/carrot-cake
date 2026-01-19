@@ -15,29 +15,28 @@ import {
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/app/components/primitives/Tooltip";
 import { Progress } from "@/app/components/primitives/Progress";
 import Spinner from "@/app/components/primitives/Spinner";
-import { Check, ChevronLeft, ChevronDown, TriangleAlert } from "lucide-react";
+import { Check, ChevronDown, TriangleAlert } from "lucide-react";
 import Image from "next/image";
-import { cn } from "@/app/utils/cn";
 import formatBigNumber from "@/app/utils/formatBigNumbers";
-import { ChangeEvent, ReactNode, useEffect, useState } from "react";
+import { ReactNode, useEffect, useState } from "react";
 import { InstagramVideoProps, SanitizedVideoProps, TikTokVideoProps } from "@/types";
 
 type UploadPreviewProps = {
   children: ReactNode;
   video: TikTokVideoProps | InstagramVideoProps | SanitizedVideoProps;
-  videos: TikTokVideoProps[] | InstagramVideoProps[] | SanitizedVideoProps[];
   index: number;
-  avatarUrl: string;
+  avatarUrl: string | null;
   nickname: string;
   onSubmit: (index?: number) => void;
-  removeVideo: (index: number) => void;
   disabled: boolean;
   service: "TikTok" | "Instagram" | "YouTube";
   disabledReason?: string;
+  setResetVideos?: (reset: boolean) => void;
+  setUploadVideoModalOpen?: (open: boolean) => void;
 };
 
-const UploadPreview = ({ video, videos, removeVideo, index, avatarUrl, nickname, onSubmit, disabled, service, disabledReason, children }: UploadPreviewProps) => {
-  const [uploadVideoModalOpen, setUploadVideoModalOpen] = useState<boolean>(false);
+const UploadPreview = ({ video, index, avatarUrl, nickname, onSubmit, disabled, service, disabledReason, children, setResetVideos, setUploadVideoModalOpen }: UploadPreviewProps) => {
+  const [confirmUploadVideoModalOpen, setConfirmUploadVideoModalOpen] = useState<boolean>(false);
   const [uploadingAfterSubmit, setUploadingAfterSubmit] = useState<boolean>(false);
   const [progress, setProgress] = useState<number>(0);
 
@@ -60,96 +59,61 @@ const UploadPreview = ({ video, videos, removeVideo, index, avatarUrl, nickname,
   return (
     <div
       key={video.file.name}
-      className="flex gap-6 mb-6 px-6 py-4 border border-gray-100 rounded-xl bg-white"
+      className="grid grid-cols-2 gap-8 md:flex md:gap-6"
     >
-      <div className="flex flex-col shrink-0 w-1/2 relative">
-        {(videos?.[index].url && videos?.[index].thumbnail) ? (
+      <div className="flex flex-col">
+        {(video?.url && video?.thumbnail) ? (
           <>
             <div className="flex gap-2 items-center mb-6">
               <div className="bg-green-600 rounded-full p-1">
                 <Check size={18} strokeWidth={4} className="text-white" />
               </div>
               <p className="text-lg font-semibold">Your Video is Ready</p>
-              <Button
-                size="xsmall"
-                variant="outline"
-                className="ml-2"
-                onClick={() => {
-                  removeVideo(index);
-                }}
-              >
-                <p className="text-xs">Remove Video</p>
-              </Button>
             </div>
             <div className="flex flex-col rounded-lg overflow-hidden bg-black">
               <video
                 controls
-                poster={videos?.[index].thumbnail}
+                poster={video?.thumbnail}
                 className="bg-black h-[470px]"
               >
                 <source
-                  src={videos?.[index].url}
-                  type={videos?.[index].file.type}
+                  src={video?.url ?? null}
+                  type={video?.file.type}
                 />
                 Your browser does not support the video tag.
               </video>
-              <div className="flex gap-2 items-center bg-black border-t border-gray-800">
-                <div className="relative flex flex-col w-1/4 p-4">
+              <div className="grid grid-cols-4 items-center bg-black border-t border-gray-800">
+                <div className="relative flex flex-col p-4">
                   <p className="text-sm text-gray-400">Filename</p>
-                  <p className="text-xs text-gray-300 font-medium truncate">{videos[index]?.file.name}</p>
+                  <p className="text-xs text-gray-300 font-medium truncate">{video?.file.name}</p>
                   <div className="absolute top-[calc(50%-10px)] right-0 h-5 w-px bg-gray-800">&nbsp;</div>
                 </div>
-                <div className="relative flex flex-col w-1/4 p-4">
+                <div className="relative flex flex-col p-4">
                   <p className="text-sm text-gray-400">Format</p>
-                  <p className="text-xs text-gray-300 font-medium truncate">{videos[index]?.file.type.split("/").pop().toUpperCase()}</p>
+                  <p className="text-xs text-gray-300 font-medium truncate">{video?.file.type.split("/").pop().toUpperCase()}</p>
                   <div className="absolute top-[calc(50%-10px)] right-0 h-5 w-px bg-gray-800">&nbsp;</div>
                 </div>
-                <div className="relative flex flex-col w-1/4 p-4">
+                <div className="relative flex flex-col p-4">
                   <p className="text-sm text-gray-400">Resolution</p>
-                  <p className="text-xs text-gray-300 font-medium truncate">{videos[index]?.resolution}</p>
+                  <p className="text-xs text-gray-300 font-medium truncate">{video?.resolution}</p>
                   <div className="absolute top-[calc(50%-10px)] right-0 h-5 w-px bg-gray-800">&nbsp;</div>
                 </div>
-                <div className="relative flex flex-col w-1/4 p-4">
+                <div className="relative flex flex-col p-4">
                   <p className="text-sm text-gray-400">Size</p>
-                  <p className="text-xs text-gray-300 font-medium truncate">{formatBigNumber(videos[index]?.file.size)}</p>
+                  <p className="text-xs text-gray-300 font-medium truncate">{formatBigNumber(video?.file.size)}</p>
                 </div>
-                <div className="font-semibold text-xs truncate ml-2">{videos[index]?.file.name}</div>
-                <div className="font-semibold text-xs ml-auto mr-2">{`${Math.round(videos[index]?.file.size / 100000) / 10}MB`}</div>
               </div>
             </div>
           </>
         ) : (
-          <div className="rounded-xl bg-gray-200 h-full flex items-center justify-center">
+          <div className="rounded-xl bg-gray-200 h-full flex items-center justify-center w-96">
             <p className="text-gray-600 font-medium"><Spinner size="medium" /></p>
           </div>
         )}
       </div>
-      <div className={cn("flex flex-col gap-4 w-full justify-between", { "opacity-40": !videos || videos.length === 0 })}>
+      <div className="flex flex-col gap-4 w-full justify-between">
         <div className="flex flex-col gap-4 h-fit w-full">
-          {videos?.[index].uploadProgress || 0 > 0 && (
-            <div className="flex gap-2 w-full items-center">
-              <p className="text-sm font-medium w-1/4 shrink-0">Upload progress</p>
-              <div className="px-2 w-full">
-                <Progress value={videos?.[index].uploadProgress} />
-                {/* <div className="relative w-full overflow-hidden rounded-full bg-gray-300 h-2">
-                          <div
-                            className="h-full w-full flex-1 bg-gray-700 transition-all"
-                            style={{ transform: `translateX(-${100 - (videos?.[index].uploadProgress || 0)}%)` }}
-                          >&nbsp;</div>
-                        </div> */}
-              </div>
-            </div>
-          )}
-          <div className="flex gap-4 items-center">
-            <button
-              type="button"
-              onClick={() => window.history.back()}
-              className="bg-gray-100 rounded-md p-2 hover:bg-gray-300 transition-colors"
-            >
-              <ChevronLeft size={18} strokeWidth={3} className="text-gray-600" />
-            </button>
-            <h2 className="text-2xl font-bold text-gray-700">Upload to {service}</h2>
-          </div>
+          <h2 className="text-2xl font-bold text-gray-700">Upload to {service}</h2>
           <DropdownMenu>
             <DropdownMenuTrigger
               asChild
@@ -157,7 +121,10 @@ const UploadPreview = ({ video, videos, removeVideo, index, avatarUrl, nickname,
             >
               <div className="flex gap-2 items-center px-4 py-3 rounded bg-gray-100">
                 <div className="relative flex gap-2 items-center">
-                  <img src={avatarUrl} alt={`${service} User Thumbnail`} width="40" height="40" className="rounded-full" />
+                  {avatarUrl ? (
+                    <img src={avatarUrl} alt={`${service} User Thumbnail`} width="40" height="40" className="rounded-full" />) : (
+                    <Spinner size="small" />
+                  )}
                   <div className="absolute -bottom-px -right-px">
                     <Image src={`/${service.toLowerCase()}_logo.png`} alt={`${service} Logo`} width="15" height="15" />
                   </div>
@@ -192,7 +159,7 @@ const UploadPreview = ({ video, videos, removeVideo, index, avatarUrl, nickname,
                   disabled={disabled}
                   onClick={(e) => {
                     e.preventDefault();
-                    setUploadVideoModalOpen(true);
+                    setConfirmUploadVideoModalOpen(true);
                   }}
                   className="mt-auto w-full"
                 >
@@ -205,13 +172,12 @@ const UploadPreview = ({ video, videos, removeVideo, index, avatarUrl, nickname,
             </TooltipContent>
           </Tooltip>
         </TooltipProvider>
-
       </div>
       <Dialog
-        open={uploadVideoModalOpen}
-        onOpenChange={setUploadVideoModalOpen}
+        open={confirmUploadVideoModalOpen}
+        onOpenChange={setConfirmUploadVideoModalOpen}
       >
-        <DialogContent className="sm:max-w-3xl">
+        <DialogContent className="sm:max-w-3xl" aria-describedby="Upload Video Dialog">
           <DialogTitle>Upload Video to {service}</DialogTitle>
           {uploadingAfterSubmit ? (
             <>
@@ -221,15 +187,15 @@ const UploadPreview = ({ video, videos, removeVideo, index, avatarUrl, nickname,
               </p>
             </>
           ) : (
-            <p className="text-sm text-gray-600 dark:text-gray-400">
+            <div className="text-sm text-gray-600 dark:text-gray-400">
               Please ensure that you have reviewed all the details and settings before proceeding with the upload.
               {service === "TikTok" && (
-                       <div className="flex gap-2 itmes-center bg-amber-100 text-amber-900 text-sm p-3 mt-4 rounded">
-                        <TriangleAlert size={18} />
-                By posting, you agree to TikTok"s <a href="https://www.tiktok.com/legal/page/global/music-usage-confirmation/en" target="_blank" className="text-amber-600 underline">Music Usage Confirmation</a>.
-              </div>
+                <div className="flex gap-2 items-center bg-amber-100 text-amber-900 text-sm p-3 mt-4 rounded">
+                  <TriangleAlert size={18} />
+                  By posting, you agree to TikTok"s <a href="https://www.tiktok.com/legal/page/global/music-usage-confirmation/en" target="_blank" className="text-amber-600 underline">Music Usage Confirmation</a>.
+                </div>
               )}
-            </p>
+            </div>
           )}
           <DialogFooter>
             {!uploadingAfterSubmit ? (
@@ -238,7 +204,7 @@ const UploadPreview = ({ video, videos, removeVideo, index, avatarUrl, nickname,
                   <Button
                     variant="outline"
                     onClick={() => {
-                      setUploadVideoModalOpen(false);
+                      setConfirmUploadVideoModalOpen(false);
                     }}
                   >
                     Cancel
@@ -246,6 +212,7 @@ const UploadPreview = ({ video, videos, removeVideo, index, avatarUrl, nickname,
                 </DialogClose>
                 <Button
                   onClick={() => {
+                    onSubmit(index);
                     setUploadingAfterSubmit(true);
                   }}
                 >
@@ -257,9 +224,10 @@ const UploadPreview = ({ video, videos, removeVideo, index, avatarUrl, nickname,
                 <Button
                   variant="outline"
                   onClick={() => {
-                    onSubmit(index);
-                    setUploadVideoModalOpen(false);
+                    setConfirmUploadVideoModalOpen(false);
+                    setUploadVideoModalOpen?.(false);
                     setUploadingAfterSubmit(false);
+                    setResetVideos?.(true);
                     setProgress(0);
                   }}
                 >

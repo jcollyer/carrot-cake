@@ -145,15 +145,11 @@ export default function UploadYouTubePage({ references }: { references: Referenc
               key={video.file.name}
               service="YouTube"
               video={video}
-              videos={videos}
               index={index}
               avatarUrl={ytUserInfo?.thumbnail || ""}
               nickname={ytUserInfo?.userName || ""}
               onSubmit={onSubmit}
               disabled={isUploading}
-              removeVideo={() => {
-                setVideos(videos.filter((_, i) => i !== index))
-              }}
             >
                 <div className="flex flex-col w-full">
                     {videos[index]?.uploadProgress || 0 > 0 && (

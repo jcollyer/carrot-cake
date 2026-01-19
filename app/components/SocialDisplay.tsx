@@ -6,14 +6,11 @@ import {
   UserRoundPlus,
   Eye,
   Unplug,
-  CloudUpload,
   HeartPlus,
   UserRoundCheck,
   UserPlus
 } from "lucide-react";
-import { useRouter } from "next/router";
-
-type props = {
+type SocialDisplayProps = {
   userName?: string;
   thumbnail?: string;
   videoCount?: string | number;
@@ -22,15 +19,13 @@ type props = {
   likesCount?: string | number;
   followsCount?: string | number;
   followersCount?: string | number;
-  type: "youtube" | "tiktok" | "instagram";
   onLogout?: () => void;
+  type: "youtube" | "tiktok" | "instagram";
 };
 
-const SocialDisplay = ({ userName, thumbnail, videoCount, subscriberCount, viewCount, likesCount, followsCount, followersCount, onLogout, type }: props) => {
-  const router = useRouter();
-
+const SocialDisplay = ({ userName, thumbnail, videoCount, subscriberCount, viewCount, likesCount, followsCount, followersCount, onLogout, type }: SocialDisplayProps) => {
   return (
-    <div className="flex gap-6 items-center w-full">
+    <>
       <div className="flex gap-2 shrink-0 items-center h-12">
         <img src={thumbnail} alt={`${type} user thumbnail`} width="35" height="35" className="rounded-full" />
         <h2 className="text-2xl font-bold text-gray-800">{userName}</h2>
@@ -144,18 +139,8 @@ const SocialDisplay = ({ userName, thumbnail, videoCount, subscriberCount, viewC
           label={`Disconnect from  ${type.charAt(0).toUpperCase() + type.slice(1)}`}
           tooltip
         />
-        <ButtonIcon
-          icon={CloudUpload}
-          label={`Upload to ${type.charAt(0).toUpperCase() + type.slice(1)}`}
-          className="flex gap-2"
-          variant="cta"
-          size={24}
-          strokeWidth={2}
-          tooltip
-          onClick={() => router.push(`/upload-${type}`)}
-        />
       </div>
-    </div>
+    </>
   )
 };
 

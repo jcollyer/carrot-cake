@@ -5,7 +5,7 @@ import Image from "next/image";
 import { getServerSession } from "next-auth"
 import { authOptions } from "@/pages/api/auth/[...nextauth]"
 import { getCookie, setCookie, deleteCookie } from "cookies-next"
-import { CircleX } from "lucide-react";
+import { CircleX, Upload } from "lucide-react";
 import {
   Tabs,
   TabsContent,
@@ -30,9 +30,12 @@ import {
   TikTokUserInfo,
   InstagramUserInfo,
   NeonTikTokVideo,
+  TikTokVideoProps,
+  TikTokVideo,
 } from "@/types"
 import moment from "moment";
 import CalendarMonth from "@/app/components/CalendarMonth";
+import UploadVideo from "@/app/components/UploadVideo";
 
 export const getServerSideProps = async (context: any) => {
   const session = await getServerSession(context.req, context.res, authOptions);
@@ -74,6 +77,7 @@ export default function Home() {
     thumbnail: "",
   });
   const [tabOpen, setTabOpen] = useState("youtube");
+  const [resetVideos, setResetVideos] = useState(false);
 
   const connectTt = async () => {
     listenCookieChange(({ oldValue, newValue }) => {
@@ -139,7 +143,15 @@ export default function Home() {
       .then(response => response.json())
       .then(data => {
         const { videos } = data.data;
-        setTiktokVideos(prevVideos => [...(prevVideos || []), ...videos]);
+        setTiktokVideos(prevVideos => {
+          const existing = prevVideos || [];
+          const videoIds = new Set(videos.map((v: TikTokVideo) => v.id));
+          const filtered = existing.filter((v) => !videoIds.has(v.id));
+          return [...filtered, ...videos];
+        });
+        setTiktokVideos(videos)
+
+
       })
       .catch(error => {
         console.error("Fetch error:", error);
@@ -149,7 +161,13 @@ export default function Home() {
   const getUserTikTokVideosFromNeon = async () => {
     fetch("/api/tiktok/get-neon-user-tiktok-videos").then(async (data) => {
       const { videos } = await data.json();
-      setTiktokVideos(prevVideos => [...(prevVideos || []), ...videos]);
+      setTiktokVideos(prevVideos => {
+        const existing = prevVideos || []
+        const videoIds = new Set(videos.map((v: NeonTikTokVideo) => v.id))
+        const filtered = existing.filter((v) => !videoIds.has(v.id))
+
+        return [...filtered, ...videos]
+      });
     });
   };
 
@@ -307,7 +325,7 @@ export default function Home() {
       getTikTokUserVideos();
       getUserTikTokVideosFromNeon();
     }
-  }, [tiktokTokens]);
+  }, [tiktokTokens, resetVideos]);
 
   useEffect(() => {
     if (playlistId)
@@ -391,22 +409,25 @@ export default function Home() {
               <div className="flex flex-col gap-6 mb-16 px-4">
                 {!!ytUserInfo ? (
                   <>
-                    <SocialDisplay
-                      userName={ytUserInfo.userName}
-                      thumbnail={ytUserInfo.thumbnail}
-                      videoCount={ytUserInfo.videoCount}
-                      subscriberCount={ytUserInfo.subscriberCount}
-                      viewCount={ytUserInfo.viewCount}
-                      type="youtube"
-                      onLogout={() => {
-                        deleteCookie("userPlaylistId");
-                        deleteCookie("youtube-tokens");
-                        setYouTubeVideos([]);
-                        setYtUserInfo(undefined);
-                        setPlaylistId("");
-                        router.push("/");
-                      }}
-                    />
+                    <div className="flex gap-6 items-center w-full">
+                      <SocialDisplay
+                        userName={ytUserInfo.userName}
+                        thumbnail={ytUserInfo.thumbnail}
+                        videoCount={ytUserInfo.videoCount}
+                        subscriberCount={ytUserInfo.subscriberCount}
+                        viewCount={ytUserInfo.viewCount}
+                        type="youtube"
+                        onLogout={() => {
+                          deleteCookie("userPlaylistId");
+                          deleteCookie("youtube-tokens");
+                          setYouTubeVideos([]);
+                          setYtUserInfo(undefined);
+                          setPlaylistId("");
+                          router.push("/");
+                        }}
+                      />
+                      <UploadVideo type="youtube" setResetVideos={setResetVideos} />
+                    </div>
                     <CalendarMonth
                       scheduledVideos={sanitizeYTMetadata(youTubeVideos) || []}
                       setEditVideo={setEditVideo}
@@ -432,18 +453,21 @@ export default function Home() {
               <div className="flex flex-col gap-4 mb-16 px-4">
                 {!!tiktokUserInfo && (
                   <>
-                    <SocialDisplay
-                      userName={tiktokUserInfo.display_name}
-                      thumbnail={tiktokUserInfo.avatar_url}
-                      videoCount={tiktokUserInfo.video_count}
-                      likesCount={tiktokUserInfo.likes_count}
-                      onLogout={() => {
-                        deleteCookie("tiktok-tokens");
-                        setTiktokVideos([]);
-                        setTiktokUserInfo(undefined);
-                      }}
-                      type="tiktok"
-                    />
+                    <div className="flex gap-6 items-center w-full">
+                      <SocialDisplay
+                        userName={tiktokUserInfo.display_name}
+                        thumbnail={tiktokUserInfo.avatar_url}
+                        videoCount={tiktokUserInfo.video_count}
+                        likesCount={tiktokUserInfo.likes_count}
+                        onLogout={() => {
+                          deleteCookie("tiktok-tokens");
+                          setTiktokVideos([]);
+                          setTiktokUserInfo(undefined);
+                        }}
+                        type="tiktok"
+                      />
+                      <UploadVideo type="tiktok" setResetVideos={setResetVideos} />
+                    </div>
                     <CalendarMonth
                       scheduledVideos={sanitizeTikTokMetadata(tiktokVideos) || []}
                       setEditVideo={setEditVideo}
@@ -470,18 +494,21 @@ export default function Home() {
               <div className="flex flex-col gap-6 mb-16 px-4">
                 {!!instagramUserData && (
                   <>
-                    <SocialDisplay
-                      userName={instagramUserData.username}
-                      thumbnail={instagramUserData.profile_picture_url}
-                      videoCount={instagramUserData.media_count}
-                      followsCount={instagramUserData.follows_count}
-                      followersCount={instagramUserData.followers_count}
-                      onLogout={() => {
-                        deleteCookie("ig-access-token");
-                        setInstagramUserData(undefined);
-                      }}
-                      type="instagram"
-                    />
+                    <div className="flex gap-6 items-center w-full">
+                      <SocialDisplay
+                        userName={instagramUserData.username}
+                        thumbnail={instagramUserData.profile_picture_url}
+                        videoCount={instagramUserData.media_count}
+                        followsCount={instagramUserData.follows_count}
+                        followersCount={instagramUserData.followers_count}
+                        onLogout={() => {
+                          deleteCookie("ig-access-token");
+                          setInstagramUserData(undefined);
+                        }}
+                        type="instagram"
+                      />
+                      <UploadVideo type="instagram" setResetVideos={setResetVideos} />
+                    </div>
                     <CalendarMonth
                       scheduledVideos={sanitizeInstagramMetadata(instagramVideos) || []}
                       setEditVideo={setEditVideo}
@@ -513,7 +540,7 @@ export default function Home() {
             <CircleX className="ml-auto text-gray-500 hover:text-gray-900 cursor-pointer" size="34" strokeWidth={1} onClick={() => closeEditVideo()} />
           </div>
           <div className="flex flex-col gap-8">
-            <img src={editVideo.thumbnail} alt="Thumbnail" width="340" height="210" />
+            <img src={editVideo.thumbnail ?? undefined} alt="Thumbnail" width="340" height="210" />
             <div className="flex gap-2 items-center">
               <p className="font-semibold">Title:</p>
               <input

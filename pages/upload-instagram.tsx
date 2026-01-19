@@ -210,14 +210,6 @@ export default function UploadInstagramPage({ references }: { references: Refere
               key={video.file.name}
               service="Instagram"
               video={video}
-              videos={videos}
-              removeVideo={
-                (index) => {
-                  if (videos && videos.length >= 1) {
-                    setVideos(videos.filter((_, i) => i !== index));
-                  }
-                }
-              }
               index={index}
               avatarUrl={igUserInfo?.profile_picture_url || ""}
               nickname={igUserInfo?.username || ""}

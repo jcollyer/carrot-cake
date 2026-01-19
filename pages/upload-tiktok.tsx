@@ -236,14 +236,6 @@ export default function UploadTikTokPage({ references }: { references: Reference
               key={video.file.name}
               service="TikTok"
               video={video}
-              videos={videos}
-              removeVideo={
-                (index) => {
-                  if (videos && videos.length >= 1) {
-                    setVideos(videos.filter((_, i) => i !== index));
-                  }
-                }
-              }
               index={index}
               avatarUrl={tiktokCreatorInfo?.creator_avatar_url || ""}
               nickname={tiktokCreatorInfo?.creator_nickname || ""}

@@ -15,7 +15,7 @@ export default async function handler(
   const region = searchParams.get("region");
   const s3Bucket = searchParams.get("s3Bucket");
   console.log(
-    "Attempting to delete file:-------",
+    "Attempting to delete file:",
     String(fileName).split("/").pop(),
     process.env.AWS_S3_IG_BUCKET_NAME
   );
