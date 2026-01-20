@@ -5,7 +5,7 @@ import Image from "next/image";
 import { getServerSession } from "next-auth"
 import { authOptions } from "@/pages/api/auth/[...nextauth]"
 import { getCookie, setCookie, deleteCookie } from "cookies-next"
-import { CircleX, Upload } from "lucide-react";
+import { CircleX } from "lucide-react";
 import {
   Tabs,
   TabsContent,
@@ -30,7 +30,6 @@ import {
   TikTokUserInfo,
   InstagramUserInfo,
   NeonTikTokVideo,
-  TikTokVideoProps,
   TikTokVideo,
 } from "@/types"
 import moment from "moment";
@@ -197,7 +196,13 @@ export default function Home() {
   const getUserIgVideosFromNeon = async () => {
     fetch("/api/instagram/get-neon-user-ig-videos").then(async (data) => {
       const { videos } = await data.json();
-      setInstagramVideos(prevVideos => [...(prevVideos || []), ...videos]);
+      setInstagramVideos(prevVideos => {
+        const existing = prevVideos || []
+        const ids = new Set(videos.map((v:InstagramVideo) => v.id))
+        const filtered = existing.filter((v) => !ids.has(v.id))
+        
+        return [...filtered, ...videos] 
+      });
     });
   };
 
@@ -322,7 +327,7 @@ export default function Home() {
   useEffect(() => {
     if (tiktokTokens) {
       getTikTokUserInfo();
-      getTikTokUserVideos();
+      // getTikTokUserVideos();
       getUserTikTokVideosFromNeon();
     }
   }, [tiktokTokens, resetVideos]);
@@ -337,10 +342,10 @@ export default function Home() {
     if (instagramToken) {
       setTabOpen("instagram");
       getInstagramUserData();
-      getUserIgVideos();
+      // getUserIgVideos();
       getUserIgVideosFromNeon();
     }
-  }, [instagramToken]);
+  }, [instagramToken, resetVideos]);
 
   return (
     <main className="flex mt-8">
