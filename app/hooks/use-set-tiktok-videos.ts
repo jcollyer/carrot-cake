@@ -1,11 +1,10 @@
-import { TikTokVideoProps } from "@/types";
 import moment from "moment";
-import getVideoResolution from "../utils/getVideoResolution";
-import generateVideoThumb from "../utils/generateVideoThumb";
-import { base64ToArrayBuffer } from "../utils/base64ToArrayBuffer";
+import getVideoResolution from "@/app/utils/getVideoResolution";
+import generateVideoThumb from "@/app/utils/generateVideoThumb";
+import { base64ToArrayBuffer } from "@/app/utils/base64ToArrayBuffer";
 
-export const useSetTiktokVideo = () => {
-  const setTiktokVideo = async (
+export const useSetTiktokVideos = () => {
+  const setTiktokVideos = async (
     file: File,
     index: number,
     fileData: ArrayBuffer,
@@ -86,5 +85,7 @@ export const useSetTiktokVideo = () => {
       });
   };
 
-  return { setTiktokVideo };
+  return { setTiktokVideos };
 };
+
+export default useSetTiktokVideos;

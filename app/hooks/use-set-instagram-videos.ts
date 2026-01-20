@@ -77,3 +77,5 @@ export const useSetInstagramVideos = () => {
   };
   return { setInstagramVideos };
 };
+
+export default useSetInstagramVideos;

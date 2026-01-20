@@ -115,7 +115,6 @@ const TiktokUploadDialogContent = ({ videos, setVideos, references, setResetVide
         }
       }
     }
-    // setResetVideos(true);
   };
 
   const getTikTokCreatorInfo = async () => {

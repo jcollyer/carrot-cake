@@ -1,5 +1,5 @@
 import Button from "@/app/components/primitives/Button";
-import { CloudUpload } from "lucide-react";
+import { CloudUpload, Youtube } from "lucide-react";
 import {
   Dialog,
   DialogClose,
@@ -13,8 +13,10 @@ import { useCallback } from "react";
 import { useState } from "react";
 import InstagramUploadDialogContent from "@/app/components/InstagramUploadDialogContent";
 import TiktokUploadDialogContent from "@/app/components/TiktokUploadDialogContent";
-import { useSetTiktokVideo } from "@/app/hooks/use-set-tiktok-video";
-import { useSetInstagramVideos } from "@/app/hooks/use-set-instagram-videos";
+import YoutubeUploadDialogContent from "@/app/components/YoutubeUploadDialogContent";
+import useSetTiktokVideos from "@/app/hooks/use-set-tiktok-videos";
+import useSetInstagramVideos from "@/app/hooks/use-set-instagram-videos";
+import useSetYoutubeVideos from "@/app/hooks/use-set-youtube-videos";
 
 type UploadVideoProps = {
   type: "tiktok" | "instagram" | "youtube";
@@ -22,8 +24,9 @@ type UploadVideoProps = {
 };
 
 const UploadVideo = ({ type, setResetVideos}: UploadVideoProps) => {
-  const { setTiktokVideo } = useSetTiktokVideo();
+  const { setTiktokVideos } = useSetTiktokVideos();
   const {setInstagramVideos} = useSetInstagramVideos();
+  const { setYoutubeVideos } = useSetYoutubeVideos();
    const [videos, setVideos] = useState<any[]>([]);
   const [uploadVideoModalOpen, setUploadVideoModalOpen] = useState<boolean>(false);
 
@@ -36,17 +39,20 @@ const UploadVideo = ({ type, setResetVideos}: UploadVideoProps) => {
           const fileData = event.target?.result;
           if (!fileData) return;
           if(type === "tiktok") {
-            await setTiktokVideo(file, index, fileData as ArrayBuffer, setVideos);
+            await setTiktokVideos(file, index, fileData as ArrayBuffer, setVideos);
           }
           if(type === "instagram") {
             await setInstagramVideos({ file, index, fileData: fileData as ArrayBuffer, setVideos});
+          }
+          if(type === "youtube") {
+            await setYoutubeVideos(file, setVideos);
           }
         }
         reader.readAsArrayBuffer(file);
         setUploadVideoModalOpen(true);
       });
     }
-  }, [setTiktokVideo, setInstagramVideos, setVideos, type]);
+  }, [setTiktokVideos, setInstagramVideos, setYoutubeVideos, setVideos, type]);
   const { getRootProps, getInputProps } = useDropzone({ onDrop });
   return (
     <div className="flex">
@@ -81,6 +87,14 @@ const UploadVideo = ({ type, setResetVideos}: UploadVideoProps) => {
           )}
           {type === "instagram" && (
              <InstagramUploadDialogContent
+              videos={videos}
+              setVideos={setVideos}
+              setResetVideos={setResetVideos}
+              setUploadVideoModalOpen={setUploadVideoModalOpen}
+            />
+          )}
+          {type === "youtube" && (
+            <YoutubeUploadDialogContent 
               videos={videos}
               setVideos={setVideos}
               setResetVideos={setResetVideos}

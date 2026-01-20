@@ -336,7 +336,7 @@ export default function Home() {
     if (playlistId)
       // getYTChannelInfo();
       getYouTubeVideos();
-  }, [playlistId]);
+  }, [playlistId, resetVideos]);
 
   useEffect(() => {
     if (instagramToken) {
