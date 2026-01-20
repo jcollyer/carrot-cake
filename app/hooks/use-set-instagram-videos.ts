@@ -1,7 +1,8 @@
 import { InstagramVideoProps } from "@/types";
 import moment from "moment";
-import generateVideoThumb from "../utils/generateVideoThumb";
-import { base64ToArrayBuffer } from "../utils/base64ToArrayBuffer";
+import generateVideoThumb from "@/app/utils/generateVideoThumb";
+import { base64ToArrayBuffer } from "@/app/utils/base64ToArrayBuffer";
+import getVideoResolution from "@/app/utils/getVideoResolution";
 
 export const useSetInstagramVideos = () => {
   const setInstagramVideos = async ({
@@ -16,6 +17,7 @@ export const useSetInstagramVideos = () => {
     setVideos: React.Dispatch<React.SetStateAction<InstagramVideoProps[]>>;
   }) => {
     const thumb = await generateVideoThumb(file);
+    const resolution = await getVideoResolution(file);
     const thumbArrayBuffer = base64ToArrayBuffer(
       (thumb as string).split(",")[1]
     );
@@ -31,6 +33,7 @@ export const useSetInstagramVideos = () => {
         uploadProgress: 0,
         location: "",
         file,
+        resolution,
         thumbnail: thumb as string,
       },
     ]);

@@ -30,7 +30,7 @@ export function getResolution(width: number, height: number): VideoResolution {
 }
 
 function getVideoResolution(file: File): string {
-  let textContent = "1080p"
+  let textContent = "1080P"
   // 1. Create a temporary video element
   const video = document.createElement("video");
 

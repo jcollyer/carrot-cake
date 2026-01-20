@@ -1,10 +1,18 @@
 import {
+  Dialog,
+  DialogClose,
+  DialogContent,
+  DialogFooter,
+  DialogTitle,
+} from "@/app/components/primitives/Dialog";
+import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
 } from "@/app/components/primitives/Select";
+import { Progress } from "@/app/components/primitives/Progress";
 import Button from "@/app/components/primitives/Button";
 import { Switch, SwitchThumb } from "@/app/components/primitives/Switch";
 import KeyReferenceAddButton from "@/app/components/KeyReferenceAddButton";
@@ -20,7 +28,7 @@ import { getServerSession } from "next-auth"
 import { authOptions } from "@/pages/api/auth/[...nextauth]"
 import { TikTokUserCreatorInfo, TikTokVideoProps } from "@/types";
 import SequentialScheduleSwitch from "./SequentialScheduleSwitch";
-import { CloudUpload, RotateCcw } from "lucide-react";
+import { CloudUpload, RotateCcw, TriangleAlert } from "lucide-react";
 import { Reference } from "@prisma/client";
 
 export const getServerSideProps = async (context: any) => {
@@ -65,6 +73,25 @@ const TiktokUploadDialogContent = ({ videos, setVideos, references, setResetVide
   const [tiktokCreatorInfo, setTiktokCreatorInfo] = useState<TikTokUserCreatorInfo>();
   const [editAll, setEditAll] = useState<boolean>(false);
   const [sequentialDate, setSequentialDate] = useState<{ date: string, interval: number }>();
+  const [confirmUploadVideoModalOpen, setConfirmUploadVideoModalOpen] = useState<boolean>(false);
+  const [uploadingAfterSubmit, setUploadingAfterSubmit] = useState<boolean>(false);
+  const [progress, setProgress] = useState<number>(0);
+
+    useEffect(() => {
+    if (uploadingAfterSubmit) {
+      const interval = setInterval(() => {
+        setProgress((prevProgress) => {
+          if (prevProgress >= 100) {
+            clearInterval(interval);
+            return 100;
+          }
+          return prevProgress + 0.1;
+        });
+      }, 10);
+
+      return () => clearInterval(interval);
+    }
+  }, [uploadingAfterSubmit, progress]);
 
   async function scheduleVideoToTikTok(video: TikTokVideoProps) {
     try {
@@ -421,7 +448,7 @@ const TiktokUploadDialogContent = ({ videos, setVideos, references, setResetVide
               disabled={!videos?.every(v => v.privacyStatus !== "" || !v.directPost)}
               onClick={(e) => {
                 e.preventDefault();
-                onSubmit();
+                setConfirmUploadVideoModalOpen(true);
               }}
               className="flex flex-1 items-center gap-2"
             >
@@ -431,6 +458,69 @@ const TiktokUploadDialogContent = ({ videos, setVideos, references, setResetVide
           </div>
         </>
       )}
+      <Dialog
+        open={confirmUploadVideoModalOpen}
+        onOpenChange={setConfirmUploadVideoModalOpen}
+      >
+        <DialogContent className="sm:max-w-3xl" aria-describedby="Upload Video Dialog">
+          <DialogTitle>Upload Video to TikTok</DialogTitle>
+          {uploadingAfterSubmit ? (
+            <>
+              <Progress value={progress} />
+              <p className="text-sm text-gray-600 dark:text-gray-400">
+                Your video is being uploaded to TikTok. This may take a few minutes depending on the size of your video and your internet connection. You may close this dialog and continue using the app while the upload is in progress.
+              </p>
+            </>
+          ) : (
+            <div className="text-sm text-gray-600 dark:text-gray-400">
+              Please ensure that you have reviewed all the details and settings before proceeding with the upload.
+              <div className="flex gap-2 items-center bg-amber-100 text-amber-900 text-sm p-3 mt-4 rounded">
+                <TriangleAlert size={18} />
+                By posting, you agree to TikTok"s <a href="https://www.tiktok.com/legal/page/global/music-usage-confirmation/en" target="_blank" className="text-amber-600 underline">Music Usage Confirmation</a>.
+              </div>
+            </div>
+          )}
+          <DialogFooter>
+            {!uploadingAfterSubmit ? (
+              <>
+                <DialogClose asChild>
+                  <Button
+                    variant="outline"
+                    onClick={() => {
+                      setConfirmUploadVideoModalOpen(false);
+                    }}
+                  >
+                    Cancel
+                  </Button>
+                </DialogClose>
+                <Button
+                  onClick={() => {
+                    onSubmit();
+                    setUploadingAfterSubmit(true);
+                  }}
+                >
+                   Upload {videos && videos.length} Video{videos && videos.length > 1 ? "s" : ""}
+                </Button>
+              </>
+            ) : (
+              <DialogClose asChild>
+                <Button
+                  variant="outline"
+                  onClick={() => {
+                    setConfirmUploadVideoModalOpen(false);
+                    setUploadVideoModalOpen?.(false);
+                    setUploadingAfterSubmit(false);
+                    setResetVideos?.(true);
+                    setProgress(0);
+                  }}
+                >
+                  Close
+                </Button>
+              </DialogClose>
+            )}
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </form>
   );
 };

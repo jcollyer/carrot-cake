@@ -1,6 +1,7 @@
 import generateVideoThumb from "@/app/utils/generateVideoThumb";
 import { SanitizedVideoProps } from "@/types"
 import moment from "moment";
+import getVideoResolution from "@/app/utils/getVideoResolution";
 const transparentImage = require("@/public/transparent.png");
 
 export const useSetYoutubeVideos = () => {
@@ -9,6 +10,7 @@ export const useSetYoutubeVideos = () => {
     setVideos: React.Dispatch<React.SetStateAction<any[]>>
   ) => {
     const thumbnail = await generateVideoThumb(file);
+    const resolution = await getVideoResolution(file);
 
     setVideos((videos: SanitizedVideoProps[]) => [
       ...videos,
@@ -16,6 +18,7 @@ export const useSetYoutubeVideos = () => {
         categoryId: "1",
         description: "",
         file,
+        resolution,
         url: "youtube-upload",
         title: "",
         scheduleDate: moment().format("YYYY-MM-DD"),
