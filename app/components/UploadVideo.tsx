@@ -17,17 +17,18 @@ import YoutubeUploadDialogContent from "@/app/components/YoutubeUploadDialogCont
 import useSetTiktokVideos from "@/app/hooks/use-set-tiktok-videos";
 import useSetInstagramVideos from "@/app/hooks/use-set-instagram-videos";
 import useSetYoutubeVideos from "@/app/hooks/use-set-youtube-videos";
+import Spinner from "./primitives/Spinner";
 
 type UploadVideoProps = {
   type: "tiktok" | "instagram" | "youtube";
   setResetVideos: React.Dispatch<React.SetStateAction<boolean>>;
 };
 
-const UploadVideo = ({ type, setResetVideos}: UploadVideoProps) => {
+const UploadVideo = ({ type, setResetVideos }: UploadVideoProps) => {
   const { setTiktokVideos } = useSetTiktokVideos();
-  const {setInstagramVideos} = useSetInstagramVideos();
+  const { setInstagramVideos } = useSetInstagramVideos();
   const { setYoutubeVideos } = useSetYoutubeVideos();
-   const [videos, setVideos] = useState<any[]>([]);
+  const [videos, setVideos] = useState<any[]>([]);
   const [uploadVideoModalOpen, setUploadVideoModalOpen] = useState<boolean>(false);
 
   const onDrop = useCallback((acceptedFiles: any) => {
@@ -38,13 +39,13 @@ const UploadVideo = ({ type, setResetVideos}: UploadVideoProps) => {
           console.log("File dropped:", event);
           const fileData = event.target?.result;
           if (!fileData) return;
-          if(type === "tiktok") {
+          if (type === "tiktok") {
             await setTiktokVideos(file, index, fileData as ArrayBuffer, setVideos);
           }
-          if(type === "instagram") {
-            await setInstagramVideos({ file, index, fileData: fileData as ArrayBuffer, setVideos});
+          if (type === "instagram") {
+            await setInstagramVideos({ file, index, fileData: fileData as ArrayBuffer, setVideos });
           }
-          if(type === "youtube") {
+          if (type === "youtube") {
             await setYoutubeVideos(file, setVideos);
           }
         }
@@ -77,6 +78,7 @@ const UploadVideo = ({ type, setResetVideos}: UploadVideoProps) => {
           <VisuallyHidden asChild>
             <DialogTitle>My Dialog Title</DialogTitle>
           </VisuallyHidden>
+          {videos.length === 0 && (<div className="flex items-center justify-center mt-10"><Spinner /></div>)}
           {type === "tiktok" && (
             <TiktokUploadDialogContent
               videos={videos}
@@ -86,7 +88,7 @@ const UploadVideo = ({ type, setResetVideos}: UploadVideoProps) => {
             />
           )}
           {type === "instagram" && (
-             <InstagramUploadDialogContent
+            <InstagramUploadDialogContent
               videos={videos}
               setVideos={setVideos}
               setResetVideos={setResetVideos}
@@ -94,7 +96,7 @@ const UploadVideo = ({ type, setResetVideos}: UploadVideoProps) => {
             />
           )}
           {type === "youtube" && (
-            <YoutubeUploadDialogContent 
+            <YoutubeUploadDialogContent
               videos={videos}
               setVideos={setVideos}
               setResetVideos={setResetVideos}

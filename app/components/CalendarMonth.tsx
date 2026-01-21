@@ -128,7 +128,9 @@ export default function Calendar({ scheduledVideos = [], canEdit = false, setEdi
 
             const isToday = isSameDay(date, today);
             const videosScheduled = scheduledVideos.filter((video) => {
-              const videoDate = new Date(video.scheduleDate || "");
+              // Parse date string "YYYY-MM-DD" without timezone conversion
+              const [year, month, day] = (video.scheduleDate || "").split("-").map(Number);
+              const videoDate = new Date(year, month - 1, day);
               return isSameDay(date, videoDate);
             });
             const videoScheduled = videosScheduled.length > 0;
