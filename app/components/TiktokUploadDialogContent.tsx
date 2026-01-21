@@ -22,53 +22,22 @@ import { cn } from "@/app/utils/cn";
 import { ALL_PRIVACY_STATUS_OPTIONS, VIDEO_ACCESS_OPTIONS } from "@/app/constants";
 import { useEffect, useState } from "react";
 import moment from "moment";
-import prisma from "@/lib/prisma";
 import { getCookie } from "cookies-next"
-import { getServerSession } from "next-auth"
-import { authOptions } from "@/pages/api/auth/[...nextauth]"
 import { TikTokUserCreatorInfo, TikTokVideoProps } from "@/types";
 import SequentialScheduleSwitch from "./SequentialScheduleSwitch";
 import { CloudUpload, RotateCcw, TriangleAlert } from "lucide-react";
 import { Reference } from "@prisma/client";
 
-export const getServerSideProps = async (context: any) => {
-  const session = await getServerSession(context.req, context.res, authOptions);
-  if (!session) {
-    return {
-      redirect: {
-        destination: "/",
-        permanent: false,
-      },
-    };
-  }
-
-  const references = await prisma.user.findUnique({
-    where: {
-      email: session?.user?.email,
-    },
-    select: {
-      references: {
-        select: { id: true, value: true, type: true },
-      },
-    },
-  });
-
-  return {
-    props: references,
-  };
-};
-
 type TiktokUploadDialogContentProps = {
   videos: TikTokVideoProps[];
   setVideos: React.Dispatch<React.SetStateAction<any[]>>;
-  references?: Reference[];
+  references: Reference[];
   setResetVideos: (reset: boolean) => void;
   setUploadVideoModalOpen: (open: boolean) => void;
 };
 
 const TiktokUploadDialogContent = ({ videos, setVideos, references, setResetVideos, setUploadVideoModalOpen }: TiktokUploadDialogContentProps) => {
   const tikTokAccessTokens = getCookie("tiktok-tokens") as string;
-
   const [localReferences, setLocalReferences] = useState<Reference[]>(references || []);
   const [tiktokCreatorInfo, setTiktokCreatorInfo] = useState<TikTokUserCreatorInfo>();
   const [editAll, setEditAll] = useState<boolean>(false);

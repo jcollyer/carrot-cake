@@ -32,6 +32,7 @@ import {
   NeonTikTokVideo,
   TikTokVideo,
 } from "@/types"
+import { Reference } from "@prisma/client";
 import moment from "moment";
 import CalendarMonth from "@/app/components/CalendarMonth";
 import UploadVideo from "@/app/components/UploadVideo";
@@ -46,14 +47,27 @@ export const getServerSideProps = async (context: any) => {
       },
     };
   }
+
+  const references = await prisma?.user.findUnique({
+    where: {
+      email: session?.user?.email,
+    },
+    select: {
+      references: {
+        select: { id: true, value: true, type: true },
+      },
+    },
+  });
+
   return {
     props: {
       session,
+      references,
     },
   };
 };
 
-export default function Home() {
+export default function Home({references}: {references: { references: Reference[] }}) {
   const router = useRouter();
   const [youtubeTokens, setYouTubeTokens] = useState(getCookie("youtube-tokens"));
   const [tiktokTokens, setTiktokTokens] = useState(getCookie("tiktok-tokens"));
@@ -431,7 +445,7 @@ export default function Home() {
                           router.push("/");
                         }}
                       />
-                      <UploadVideo type="youtube" setResetVideos={setResetVideos} />
+                      <UploadVideo type="youtube" setResetVideos={setResetVideos} references={references.references} />
                     </div>
                     <CalendarMonth
                       scheduledVideos={sanitizeYTMetadata(youTubeVideos) || []}
@@ -471,7 +485,7 @@ export default function Home() {
                         }}
                         type="tiktok"
                       />
-                      <UploadVideo type="tiktok" setResetVideos={setResetVideos} />
+                      <UploadVideo type="tiktok" setResetVideos={setResetVideos} references={references.references} />
                     </div>
                     <CalendarMonth
                       scheduledVideos={sanitizeTikTokMetadata(tiktokVideos) || []}
@@ -512,7 +526,7 @@ export default function Home() {
                         }}
                         type="instagram"
                       />
-                      <UploadVideo type="instagram" setResetVideos={setResetVideos} />
+                      <UploadVideo type="instagram" setResetVideos={setResetVideos} references={references.references} />
                     </div>
                     <CalendarMonth
                       scheduledVideos={sanitizeInstagramMetadata(instagramVideos) || []}

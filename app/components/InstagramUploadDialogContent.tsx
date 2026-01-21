@@ -12,51 +12,21 @@ import KeyReferenceAddButton from "@/app/components/KeyReferenceAddButton";
 import KeyReferenceMenuButton from "@/app/components/KeyReferenceMenuButton";
 import SequentialScheduleSwitch from "@/app/components/SequentialScheduleSwitch";
 import TagsInput from "@/app/components/TagsInput";
-import prisma from "@/lib/prisma";
 import { Reference } from "@prisma/client";
-import { getServerSession } from "next-auth"
-import { authOptions } from "@/pages/api/auth/[...nextauth]"
 import { useEffect, useState } from "react";
-import { X, RotateCcw, CloudUpload, Video, Videotape, Play, TriangleAlert } from "lucide-react";
+import {RotateCcw, CloudUpload, Video, Videotape, Play} from "lucide-react";
 import { getCookie } from "cookies-next"
 import moment from "moment";
 import { InstagramUserInfo, InstagramVideoProps } from "@/types"
 import { cn } from "@/app/utils/cn";
 import UploadPreview from "@/app/components/UploadPreview";
 
-export const getServerSideProps = async (context: any) => {
-  const session = await getServerSession(context.req, context.res, authOptions);
-  if (!session) {
-    return {
-      redirect: {
-        destination: "/",
-        permanent: false,
-      },
-    };
-  }
-
-  const references = await prisma.user.findUnique({
-    where: {
-      email: session?.user?.email,
-    },
-    select: {
-      references: {
-        select: { id: true, value: true, type: true },
-      },
-    },
-  });
-
-  return {
-    props: references,
-  };
-};
-
 const MEDIA_TYPES = [{ name: "Stories", icon: Play }, { name: "Videos", icon: Video }, { name: "Reels", icon: Videotape }];
 
 type InstagramUploadDialogContentProps = {
   videos: InstagramVideoProps[];
   setVideos: React.Dispatch<React.SetStateAction<any[]>>;
-  references?: Reference[];
+  references: Reference[];
   setResetVideos: (reset: boolean) => void;
   setUploadVideoModalOpen: (open: boolean) => void;
 };

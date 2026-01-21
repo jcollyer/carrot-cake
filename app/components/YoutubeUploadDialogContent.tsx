@@ -15,44 +15,15 @@ import SequentialScheduleSwitch from "@/app/components/SequentialScheduleSwitch"
 import TagsInput from "@/app/components/TagsInput";
 import { useGetYouTubeUserInfo } from "@/app/hooks/use-get-youtube-user-info";
 import { useUploadYoutubeVideo } from "@/app/hooks/use-upload-youtube-video";
-import prisma from "@/lib/prisma";
 import { Reference } from "@prisma/client";
-import { getServerSession } from "next-auth"
-import { authOptions } from "@/pages/api/auth/[...nextauth]"
 import { useEffect, useState } from "react";
-import { RotateCcw, CloudUpload, TriangleAlert } from "lucide-react";
+import { RotateCcw, CloudUpload } from "lucide-react";
 import { getCookie } from "cookies-next"
 import moment from "moment";
 import { CATEGORIES } from "@/app/constants";
 import { SanitizedVideoProps, YouTubeUserInfo } from "@/types"
 import UploadPreview from "@/app/components/UploadPreview";
 
-export const getServerSideProps = async (context: any) => {
-  const session = await getServerSession(context.req, context.res, authOptions);
-  if (!session) {
-    return {
-      redirect: {
-        destination: "/",
-        permanent: false,
-      },
-    };
-  }
-
-  const references = await prisma.user.findUnique({
-    where: {
-      email: session?.user?.email,
-    },
-    select: {
-      references: {
-        select: { id: true, value: true, type: true },
-      },
-    },
-  });
-
-  return {
-    props: references,
-  };
-};
 
 type YoutubeUploadDialogContentProps = {
   videos: SanitizedVideoProps[];
@@ -69,7 +40,6 @@ const YoutubeUploadDialogContent = ({
   setResetVideos,
   setUploadVideoModalOpen,
 }: YoutubeUploadDialogContentProps) => {
-
   const tokens = getCookie("youtube-tokens");
   const [editAll, setEditAll] = useState<boolean>(false);
   const [localReferences, setLocalReferences] = useState<Reference[]>(references || []);

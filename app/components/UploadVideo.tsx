@@ -18,13 +18,14 @@ import useSetTiktokVideos from "@/app/hooks/use-set-tiktok-videos";
 import useSetInstagramVideos from "@/app/hooks/use-set-instagram-videos";
 import useSetYoutubeVideos from "@/app/hooks/use-set-youtube-videos";
 import Spinner from "./primitives/Spinner";
+import { Reference } from "@prisma/client";
 
 type UploadVideoProps = {
   type: "tiktok" | "instagram" | "youtube";
   setResetVideos: React.Dispatch<React.SetStateAction<boolean>>;
+  references: Reference[];
 };
-
-const UploadVideo = ({ type, setResetVideos }: UploadVideoProps) => {
+const UploadVideo = ({ type, setResetVideos, references }: UploadVideoProps) => {
   const { setTiktokVideos } = useSetTiktokVideos();
   const { setInstagramVideos } = useSetInstagramVideos();
   const { setYoutubeVideos } = useSetYoutubeVideos();
@@ -79,30 +80,30 @@ const UploadVideo = ({ type, setResetVideos }: UploadVideoProps) => {
             <DialogTitle>My Dialog Title</DialogTitle>
           </VisuallyHidden>
           {videos.length === 0 && (<div className="flex items-center justify-center mt-10"><Spinner /></div>)}
-          {type === "tiktok" && (
-            <TiktokUploadDialogContent
-              videos={videos}
-              setVideos={setVideos}
-              setResetVideos={setResetVideos}
-              setUploadVideoModalOpen={setUploadVideoModalOpen}
-            />
-          )}
-          {type === "instagram" && (
-            <InstagramUploadDialogContent
-              videos={videos}
-              setVideos={setVideos}
-              setResetVideos={setResetVideos}
-              setUploadVideoModalOpen={setUploadVideoModalOpen}
-            />
-          )}
-          {type === "youtube" && (
-            <YoutubeUploadDialogContent
-              videos={videos}
-              setVideos={setVideos}
-              setResetVideos={setResetVideos}
-              setUploadVideoModalOpen={setUploadVideoModalOpen}
-            />
-          )}
+          {type === "tiktok" && <TiktokUploadDialogContent
+            videos={videos}
+            setVideos={setVideos}
+            setResetVideos={setResetVideos}
+            setUploadVideoModalOpen={setUploadVideoModalOpen}
+            references={references}
+          />
+          }
+          {type === "instagram" && <InstagramUploadDialogContent
+            videos={videos}
+            setVideos={setVideos}
+            setResetVideos={setResetVideos}
+            setUploadVideoModalOpen={setUploadVideoModalOpen}
+            references={references}
+          />
+          }
+          {type === "youtube" && <YoutubeUploadDialogContent
+            videos={videos}
+            setVideos={setVideos}
+            setResetVideos={setResetVideos}
+            setUploadVideoModalOpen={setUploadVideoModalOpen}
+            references={references}
+          />
+          }
           <DialogClose asChild>
             <Button variant="secondary" className="w-fit ml-auto mt-4">Close</Button>
           </DialogClose>
