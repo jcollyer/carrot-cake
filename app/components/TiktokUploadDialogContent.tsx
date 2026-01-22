@@ -12,12 +12,18 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/app/components/primitives/Select";
-import { Progress } from "@/app/components/primitives/Progress";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger
+} from "@/app/components/primitives/Tooltip";
 import Button from "@/app/components/primitives/Button";
-import { Switch, SwitchThumb } from "@/app/components/primitives/Switch";
 import KeyReferenceAddButton from "@/app/components/KeyReferenceAddButton";
 import KeyReferenceMenuButton from "@/app/components/KeyReferenceMenuButton";
 import UploadPreview from "@/app/components/UploadPreview";
+import { Progress } from "@/app/components/primitives/Progress";
+import { Switch, SwitchThumb } from "@/app/components/primitives/Switch";
 import { cn } from "@/app/utils/cn";
 import { ALL_PRIVACY_STATUS_OPTIONS, VIDEO_ACCESS_OPTIONS } from "@/app/constants";
 import { useEffect, useState } from "react";
@@ -25,7 +31,7 @@ import moment from "moment";
 import { getCookie } from "cookies-next"
 import { TikTokUserCreatorInfo, TikTokVideoProps } from "@/types";
 import SequentialScheduleSwitch from "./SequentialScheduleSwitch";
-import { CloudUpload, RotateCcw, TriangleAlert } from "lucide-react";
+import { CloudUpload, Info, RotateCcw, TriangleAlert } from "lucide-react";
 import { Reference } from "@prisma/client";
 
 type TiktokUploadDialogContentProps = {
@@ -46,7 +52,7 @@ const TiktokUploadDialogContent = ({ videos, setVideos, references, setResetVide
   const [uploadingAfterSubmit, setUploadingAfterSubmit] = useState<boolean>(false);
   const [progress, setProgress] = useState<number>(0);
 
-    useEffect(() => {
+  useEffect(() => {
     if (uploadingAfterSubmit) {
       const interval = setInterval(() => {
         setProgress((prevProgress) => {
@@ -241,8 +247,14 @@ const TiktokUploadDialogContent = ({ videos, setVideos, references, setResetVide
                     </SelectTrigger>
                     <SelectContent>
                       {ALL_PRIVACY_STATUS_OPTIONS.filter((item) => tiktokCreatorInfo?.privacy_level_options?.includes(item.id)).map((item) => (
-                        <SelectItem key={item.id} value={item.id}>
+                        <SelectItem key={item.id} value={item.id} disabled={videos?.[index].brandedContent && item.id === "SELF_ONLY"}>
                           {item.label}
+                          {videos?.[index].brandedContent && item.id === "SELF_ONLY" && (
+                            <div className="flex gap-2 items-center mt-1">
+                              <Info size={16} className="text-red-700" />
+                              <p className="text-xs text-red-700">Branded content visibility cannot be set to private</p>
+                            </div>
+                          )}
                         </SelectItem>
                       ))}
                     </SelectContent>
@@ -468,7 +480,7 @@ const TiktokUploadDialogContent = ({ videos, setVideos, references, setResetVide
                     setUploadingAfterSubmit(true);
                   }}
                 >
-                   Upload {videos && videos.length} Video{videos && videos.length > 1 ? "s" : ""}
+                  Upload {videos && videos.length} Video{videos && videos.length > 1 ? "s" : ""}
                 </Button>
               </>
             ) : (

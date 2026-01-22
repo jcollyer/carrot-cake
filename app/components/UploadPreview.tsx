@@ -12,7 +12,12 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/app/components/primitives/DropdownMenu";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/app/components/primitives/Tooltip";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger
+} from "@/app/components/primitives/Tooltip";
 import { Progress } from "@/app/components/primitives/Progress";
 import Spinner from "@/app/components/primitives/Spinner";
 import { Check, ChevronDown, TriangleAlert } from "lucide-react";

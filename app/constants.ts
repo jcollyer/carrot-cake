@@ -25,7 +25,7 @@ export const ALL_PRIVACY_STATUS_OPTIONS = [
   { id: "PUBLIC_TO_EVERYONE", label: "Public to Everyone" },
   { id: "MUTUAL_FOLLOW_FRIENDS", label: "Mutual Follow Friends" },
   { id: "FOLLOWER_OF_CREATOR", label: "Followers of Creator" },
-  { id: "SELF_ONLY", label: "Unlisted" },
+  { id: "SELF_ONLY", label: "Unlisted (self only)" },
 ];
 
 export const CATEGORIES: {id: string, label: string}[] = [

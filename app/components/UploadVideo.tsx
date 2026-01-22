@@ -7,10 +7,6 @@ import {
   DialogFooter,
   DialogTitle,
 } from "@/app/components/primitives/Dialog";
-import { VisuallyHidden } from "@/app/components/primitives/VisuallyHidden";
-import { useDropzone } from "react-dropzone";
-import { useCallback } from "react";
-import { useState } from "react";
 import InstagramUploadDialogContent from "@/app/components/InstagramUploadDialogContent";
 import TiktokUploadDialogContent from "@/app/components/TiktokUploadDialogContent";
 import YoutubeUploadDialogContent from "@/app/components/YoutubeUploadDialogContent";
@@ -18,7 +14,12 @@ import useSetTiktokVideos from "@/app/hooks/use-set-tiktok-videos";
 import useSetInstagramVideos from "@/app/hooks/use-set-instagram-videos";
 import useSetYoutubeVideos from "@/app/hooks/use-set-youtube-videos";
 import Spinner from "./primitives/Spinner";
+import { VisuallyHidden } from "@/app/components/primitives/VisuallyHidden";
+import getVideoDuration from "@/app/utils/getVideoDuration";
 import { Reference } from "@prisma/client";
+import { useDropzone } from "react-dropzone";
+import { useCallback } from "react";
+import { useState } from "react";
 
 type UploadVideoProps = {
   type: "tiktok" | "instagram" | "youtube";
@@ -37,9 +38,15 @@ const UploadVideo = ({ type, setResetVideos, references }: UploadVideoProps) => 
       acceptedFiles.forEach(async (file: any, index: number) => {
         const reader = new FileReader();
         reader.onload = async (event) => {
-          console.log("File dropped:", event);
           const fileData = event.target?.result;
           if (!fileData) return;
+          
+          const duration = await getVideoDuration(file) as number;
+          if (duration > 3600) {
+            alert("Video duration exceeds the maximum allowed length of 60 minutes.");
+            return;
+          }
+          
           if (type === "tiktok") {
             await setTiktokVideos(file, index, fileData as ArrayBuffer, setVideos);
           }
