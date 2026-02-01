@@ -17,12 +17,13 @@ import { useGetYouTubeUserInfo } from "@/app/hooks/use-get-youtube-user-info";
 import { useUploadYoutubeVideo } from "@/app/hooks/use-upload-youtube-video";
 import { Reference } from "@prisma/client";
 import { useEffect, useState } from "react";
-import { RotateCcw, CloudUpload } from "lucide-react";
+import { RotateCcw, CloudUpload, Upload } from "lucide-react";
 import { getCookie } from "cookies-next"
 import moment from "moment";
 import { CATEGORIES } from "@/app/constants";
 import { SanitizedVideoProps, YouTubeUserInfo } from "@/types"
 import UploadPreview from "@/app/components/UploadPreview";
+import UploadTextarea from "./UploadTextarea";
 
 
 type YoutubeUploadDialogContentProps = {
@@ -120,6 +121,8 @@ const YoutubeUploadDialogContent = ({
           disabled={videos[index]?.title === ""}
           setResetVideos={setResetVideos}
           setUploadVideoModalOpen={setUploadVideoModalOpen}
+          videos={videos}
+          setVideos={setVideos}
         >
           <div className="flex flex-col gap-4 w-full">
             {videos[index]?.uploadProgress || 0 > 0 && (
@@ -128,83 +131,44 @@ const YoutubeUploadDialogContent = ({
                 <div className="px-2 w-full"><Progress value={Number(videos?.[index].uploadProgress)} /></div>
               </div>
             )}
-            <div className="flex gap-2">
-              <div className="w-1/4 shrink-0">
-                <p className="text-sm font-medium">Title of your video</p>
-                <p className="text-xs text-gray-500">Main video title</p>
-              </div>
-              <input
-                onKeyDown={(e) => e.key === 'Enter' && e.preventDefault()}
-                onChange={event => editAll ?
-                  !!videos && setVideos(videos.map((video) => ({ ...video, title: event.currentTarget.value }))) :
-                  !!videos && setVideos(videos.map((v, i) => i === index ? { ...v, title: event.currentTarget.value } : v))}
-                className="border border-gray-300 rounded w-full h-10 px-2 py-1 outline-0 bg-transparent ml-2"
-                name="title"
-                value={videos && videos[index]?.title}
-              />
-              <div className="flex items-start pr-1">
-                <KeyReferenceAddButton
-                  type="title"
-                  value={videos && videos[index]?.["title"] || ""}
-                  localReferences={localReferences}
-                  setLocalReferences={setLocalReferences}
-                />
-                <KeyReferenceMenuButton
-                  type="title"
-                  localReferences={localReferences}
-                  setLocalReferences={setLocalReferences}
-                  callback={(key, value) => editAll ?
-                    setVideos(videos.map((video) => ({ ...video, [key]: value }))) :
-                    setVideos(videos.map((v, i) => i === index ? { ...v, [key]: value } : v))
-                  }
-                />
-              </div>
-            </div>
+            <UploadTextarea
+              editAll={editAll}
+              videos={videos}
+              setVideos={setVideos}
+              index={index}
+              localReferences={localReferences}
+              setLocalReferences={setLocalReferences}
+              header="Caption"
+              placeholder="Add a title that describes your video"
+              type="title"
+            />
+
+            <UploadTextarea
+              editAll={editAll}
+              videos={videos}
+              setVideos={setVideos}
+              index={index}
+              localReferences={localReferences}
+              setLocalReferences={setLocalReferences}
+              header="Description"
+              placeholder="Description displayed on YouTube"
+              type="description"
+            />
+
 
             <div className="flex gap-2">
-              <div className="w-1/4 shrink-0">
-                <p className="text-sm font-medium">Video Description</p>
-                <p className="text-xs text-gray-500">Description displayed on YouTube</p>
-              </div>
-              <textarea
-                onChange={event => editAll ?
-                  !!videos && setVideos(videos.map((video) => ({ ...video, description: event.currentTarget.value }))) :
-                  !!videos && setVideos(videos.map((v, i) => i === index ? { ...v, description: event.currentTarget.value } : v))}
-                className="border border-gray-300 rounded w-full h-20 px-2 py-1 outline-0 bg-transparent ml-2"
-                name="description"
-                value={videos && videos[index]?.description}
-              />
-              <div className="flex items-start pr-1">
-                <KeyReferenceAddButton
-                  type="description"
-                  value={videos && videos[index]?.["description"] || ""}
-                  localReferences={localReferences}
-                  setLocalReferences={setLocalReferences}
-                />
-                <KeyReferenceMenuButton
-                  type="description"
-                  localReferences={localReferences}
-                  setLocalReferences={setLocalReferences}
-                  callback={(key, value) => editAll ?
-                    setVideos(videos.map((video) => ({ ...video, [key]: value }))) :
-                    setVideos(videos.map((v, i) => i === index ? { ...v, [key]: value } : v))}
-                />
-              </div>
-            </div>
-
-            <div className="flex gap-2">
-              <div className="w-1/4 shrink-0">
+              <div className="shrink-0">
                 <p className="text-sm font-medium">Video category</p>
                 <p className="text-xs text-gray-500">Genre type</p>
               </div>
-              <div className="w-[calc(100%-235px)]">
+              <div className="w-full">
                 <Select
                   onValueChange={(value) => editAll ?
                     !!videos && setVideos(videos.map((video) => ({ ...video, categoryId: value }))) :
                     !!videos && setVideos(videos.map((v, i) => i === index ? { ...v, categoryId: value } : v))}
                   value={videos && videos[index]?.categoryId}
                 >
-                  <SelectTrigger className="outline-0 border border-gray-300 bg-transparent rounded h-10 ml-2">
+                  <SelectTrigger className="outline-0 border border-gray-300 bg-transparent rounded h-10">
                     <SelectValue placeholder="Select an option" />
                   </SelectTrigger>
                   <SelectContent>
@@ -219,26 +183,7 @@ const YoutubeUploadDialogContent = ({
             </div>
 
             <div className="flex gap-2">
-              <div className="w-1/4 shrink-0">
-                <p className="text-sm font-medium">Scheduled Date</p>
-                <p className="text-xs text-gray-500">Video release</p>
-              </div>
-              <div className="w-[calc(100%-235px)] ml-2">
-                <input
-                  onKeyDown={(e) => e.key === 'Enter' && e.preventDefault()}
-                  type="date"
-                  className="w-full border border-gray-300 rounded h-10 px-2"
-                  value={sequentialDate !== undefined ? moment(sequentialDate.date).add((index * sequentialDate.interval), 'days').format('YYYY-MM-DD') :
-                    videos[index]?.scheduleDate ? videos[index]?.scheduleDate : new Date().toISOString().split("T")[0]}
-                  onChange={(e) => editAll ?
-                    !!videos && setVideos(videos.map((video) => ({ ...video, scheduleDate: e.target.value }))) :
-                    !!videos && setVideos(videos.map((v, i) => i === index ? { ...v, scheduleDate: e.target.value } : v))}
-                />
-              </div>
-            </div>
-
-            <div className="flex gap-2">
-              <div className="w-1/4 shrink-0">
+              <div className="shrink-0">
                 <p className="text-sm font-medium">Video Tags</p>
                 <p className="text-xs text-gray-500">Keywords</p>
               </div>

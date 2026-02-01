@@ -7,6 +7,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
+    "typecheck": "tsc",
     "ngrok": "ngrok http --url=jointly-topical-leech.ngrok-free.app 3000",
     "postinstall": "prisma generate",
     "prisma": "npx prisma generate && npx prisma migrate",

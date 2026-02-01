@@ -54,7 +54,7 @@ const MEDIA_TYPES = [{ name: "Stories", icon: Play }, { name: "Videos", icon: Vi
 export default function UploadInstagramPage({ references }: { references: Reference[] }) {
   const tokens = getCookie("ig-access-token");
   const [editAll, setEditAll] = useState<boolean>(false);
-  const [videos, setVideos] = useState<InstagramVideoProps[]>([]);
+  const [videos, setVideos] = useState<any[]>([]);
   const [localReferences, setLocalReferences] = useState<Reference[]>(references || []);
   const [igUserInfo, setIgUserInfo] = useState<InstagramUserInfo | null>(null);
   const [isUploading, setIsUploading] = useState<boolean>(false);
@@ -215,6 +215,8 @@ export default function UploadInstagramPage({ references }: { references: Refere
               nickname={igUserInfo?.username || ""}
               onSubmit={onSubmit}
               disabled={isUploading}
+              videos={videos}
+              setVideos={setVideos}
             >
               <div className="flex flex-col w-full">
                 {videos[index]?.uploadProgress || 0 > 0 && (

@@ -23,16 +23,25 @@ import Spinner from "@/app/components/primitives/Spinner";
 import { Check, ChevronDown, TriangleAlert } from "lucide-react";
 import Image from "next/image";
 import formatBigNumber from "@/app/utils/formatBigNumbers";
+import { cn } from "@/app/utils/cn";
 import { ReactNode, useEffect, useState } from "react";
 import { InstagramVideoProps, SanitizedVideoProps, TikTokVideoProps } from "@/types";
+import moment from "moment";
 
 type UploadPreviewProps = {
   children: ReactNode;
   video: TikTokVideoProps | InstagramVideoProps | SanitizedVideoProps;
+  videos: (TikTokVideoProps | InstagramVideoProps | SanitizedVideoProps)[];
+  setVideos: React.Dispatch<React.SetStateAction<(TikTokVideoProps | InstagramVideoProps | SanitizedVideoProps)[]>>;
   index: number;
+  editAll?: boolean;
+  sequentialDate?: {
+    date: string;
+    interval: number;
+  };
   avatarUrl: string | null;
   nickname: string;
-  onSubmit: (index?: number) => void;
+  onSubmit: (index?: number, publishNow?: boolean) => void;
   disabled: boolean;
   service: "TikTok" | "Instagram" | "YouTube";
   disabledReason?: string;
@@ -40,10 +49,27 @@ type UploadPreviewProps = {
   setUploadVideoModalOpen?: (open: boolean) => void;
 };
 
-const UploadPreview = ({ video, index, avatarUrl, nickname, onSubmit, disabled, service, disabledReason, children, setResetVideos, setUploadVideoModalOpen }: UploadPreviewProps) => {
+const UploadPreview = ({
+  video,
+  videos,
+  setVideos,
+  index,
+  editAll,
+  sequentialDate,
+  avatarUrl,
+  nickname,
+  onSubmit,
+  disabled,
+  service,
+  disabledReason,
+  children,
+  setResetVideos,
+  setUploadVideoModalOpen
+}: UploadPreviewProps) => {
   const [confirmUploadVideoModalOpen, setConfirmUploadVideoModalOpen] = useState<boolean>(false);
   const [uploadingAfterSubmit, setUploadingAfterSubmit] = useState<boolean>(false);
   const [progress, setProgress] = useState<number>(0);
+  const [publishNow, setPublishNow] = useState<boolean>(false);
 
   useEffect(() => {
     if (uploadingAfterSubmit) {
@@ -152,7 +178,42 @@ const UploadPreview = ({ video, index, avatarUrl, nickname, onSubmit, disabled, 
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
+          <div className="flex gap-2">
+            <div className="shrink-0">
+              <p className="text-sm font-medium">Scheduled Date</p>
+              <p className="text-xs text-gray-500">Video release</p>
+            </div>
+            <div className="flex gap-2 items-center">
+              <input
+                disabled={publishNow}
+                onKeyDown={(e) => e.key === 'Enter' && e.preventDefault()}
+                type="datetime-local"
+                className="w-full border border-gray-300 rounded h-10 px-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                value={sequentialDate !== undefined ? moment(sequentialDate.date).add((index * sequentialDate.interval), 'days').format('YYYY-MM-DDTHH:mm') :
+                  videos[index]?.scheduleDate ? videos[index]?.scheduleDate : new Date().toISOString().split("T")[0]}
+                onChange={(e) => editAll ?
+                  !!videos && setVideos(videos.map((video) => ({ ...video, scheduleDate: e.target.value }))) :
+                  !!videos && setVideos(videos.map((v, i) => i === index ? { ...v, scheduleDate: e.target.value } : v))}
+              />
+                <label className={cn("flex shrink-0 gap-2 items-center border px-2 py-3 rounded cursor-pointer", {
+                  "border-blue-500 bg-blue-100": publishNow,
+                })}>
+                  <input
+                    type="checkbox"
+                    checked={publishNow}
+                    className="size-4"
+                    onChange={() => {
+                      setPublishNow(!publishNow);
+                    }}
+                  />
+                  <p className="text-xs font-semibold">Upload Now</p>
+
+                </label>
+            </div>
+          </div>
+
           {children}
+
         </div>
         <TooltipProvider>
           <Tooltip>
@@ -217,7 +278,7 @@ const UploadPreview = ({ video, index, avatarUrl, nickname, onSubmit, disabled, 
                 </DialogClose>
                 <Button
                   onClick={() => {
-                    onSubmit(index);
+                    onSubmit(index, publishNow);
                     setUploadingAfterSubmit(true);
                   }}
                 >
@@ -234,6 +295,7 @@ const UploadPreview = ({ video, index, avatarUrl, nickname, onSubmit, disabled, 
                     setUploadingAfterSubmit(false);
                     setResetVideos?.(true);
                     setProgress(0);
+                    setVideos([]);
                   }}
                 >
                   Close

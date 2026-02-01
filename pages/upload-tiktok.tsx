@@ -58,7 +58,7 @@ export const getServerSideProps = async (context: any) => {
 export default function UploadTikTokPage({ references }: { references: Reference[] }) {
   const tikTokAccessTokens = getCookie("tiktok-tokens") as string;
 
-  const [videos, setVideos] = useState<TikTokVideoProps[]>([]);
+  const [videos, setVideos] = useState<any[]>([]);
   const [localReferences, setLocalReferences] = useState<Reference[]>(references || []);
   const [tiktokCreatorInfo, setTiktokCreatorInfo] = useState<TikTokUserCreatorInfo>();
   const [editAll, setEditAll] = useState<boolean>(false);
@@ -242,6 +242,8 @@ export default function UploadTikTokPage({ references }: { references: Reference
               onSubmit={onSubmit}
               disabled={video.directPost && (video.privacyStatus === "" || (video.disclose && (!video.yourBrand && !video.brandedContent)))}
               disabledReason={video.disclose && (!video.yourBrand && !video.brandedContent) ? "You need to indicate if your content promotes yourself, a third party, or both." : "You need to indecate who can view this video."}
+              videos={videos}
+              setVideos={setVideos}
             >
               <div className="flex gap-2 items-center">
                 <p className="text-xs font-medium">Upload Draft</p>

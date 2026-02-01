@@ -56,7 +56,7 @@ export const getServerSideProps = async (context: any) => {
 export default function UploadYouTubePage({ references }: { references: Reference[] }) {
   const tokens = getCookie("youtube-tokens");
   const [editAll, setEditAll] = useState<boolean>(false);
-  const [videos, setVideos] = useState<SanitizedVideoProps[]>([]);
+  const [videos, setVideos] = useState<any[]>([]);
   const [localReferences, setLocalReferences] = useState<Reference[]>(references || []);
   const [ytUserInfo, setYtUserInfo] = useState<YouTubeUserInfo | null>(null);
   const [isUploading, setIsUploading] = useState<boolean>(false);
@@ -150,6 +150,8 @@ export default function UploadYouTubePage({ references }: { references: Referenc
               nickname={ytUserInfo?.userName || ""}
               onSubmit={onSubmit}
               disabled={isUploading}
+              setVideos={setVideos}
+              videos={videos}
             >
                 <div className="flex flex-col w-full">
                     {videos[index]?.uploadProgress || 0 > 0 && (

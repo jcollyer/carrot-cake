@@ -14,12 +14,13 @@ import SequentialScheduleSwitch from "@/app/components/SequentialScheduleSwitch"
 import TagsInput from "@/app/components/TagsInput";
 import { Reference } from "@prisma/client";
 import { useEffect, useState } from "react";
-import {RotateCcw, CloudUpload, Video, Videotape, Play} from "lucide-react";
+import { RotateCcw, CloudUpload, Video, Videotape, Play } from "lucide-react";
 import { getCookie } from "cookies-next"
 import moment from "moment";
 import { InstagramUserInfo, InstagramVideoProps } from "@/types"
 import { cn } from "@/app/utils/cn";
 import UploadPreview from "@/app/components/UploadPreview";
+import UploadTextarea from "./UploadTextarea";
 
 const MEDIA_TYPES = [{ name: "Stories", icon: Play }, { name: "Videos", icon: Video }, { name: "Reels", icon: Videotape }];
 
@@ -138,52 +139,28 @@ const InstagramUploadDialogContent = ({ videos, setVideos, references, setResetV
           disabled={!!video.url ? false : true}
           setResetVideos={setResetVideos}
           setUploadVideoModalOpen={setUploadVideoModalOpen}
+          videos={videos}
+          setVideos={setVideos}
         >
           <div className="flex flex-col gap-4 w-full">
-            {videos[index]?.uploadProgress || 0 > 0 && (
-              <div className="flex gap-2 w-full items-center">
-                <p className="text-sm font-medium w-1/4 shrink-0">Upload progress</p>
-                <div className="px-2 w-full"><Progress value={Number(videos?.[index].uploadProgress)} /></div>
-              </div>
-            )}
-            <div className="flex gap-2">
-              <div className="w-1/4 shrink-0">
-                <p className="text-sm font-medium">Video Caption</p>
-                <p className="text-xs text-gray-500">Main video caption</p>
-              </div>
-              <input
-                onKeyDown={(e) => e.key === 'Enter' && e.preventDefault()}
-                onChange={event => editAll ?
-                  !!videos && setVideos(videos.map((video) => ({ ...video, caption: event.currentTarget.value }))) :
-                  !!videos && setVideos(videos.map((v, i) => i === index ? { ...v, caption: event.currentTarget.value } : v))}
-                className="border border-gray-300 rounded w-full h-10 px-2 py-1 outline-0 bg-transparent ml-2"
-                name="caption"
-                value={videos && videos[index]?.caption || ""}
-              />
-              <div className="flex items-start pr-1">
-                <KeyReferenceAddButton
-                  type="caption"
-                  value={videos && videos[index]?.["caption"] || ""}
-                  localReferences={localReferences}
-                  setLocalReferences={setLocalReferences}
-                />
-                <KeyReferenceMenuButton
-                  type="caption"
-                  localReferences={localReferences}
-                  setLocalReferences={setLocalReferences}
-                  callback={(key, value) => editAll ?
-                    setVideos(videos.map((video) => ({ ...video, [key]: value }))) :
-                    setVideos(videos.map((v, i) => i === index ? { ...v, [key]: value } : v))}
-                />
-              </div>
-            </div>
+            <UploadTextarea
+              editAll={editAll}
+              videos={videos}
+              setVideos={setVideos}
+              index={index}
+              localReferences={localReferences}
+              setLocalReferences={setLocalReferences}
+              header="Video Caption"
+              placeholder="Main video caption"
+              type="caption"
+            />
 
             <div className="flex gap-2">
-              <div className="w-1/4 shrink-0">
+              <div className="shrink-0">
                 <p className="text-sm font-medium">Select Media Type</p>
-                <p className="text-xs text-gray-500">Choose the type of media you are uploading</p>
+                <p className="text-xs text-gray-500">Choose the type of<br /> media you are uploading</p>
               </div>
-              <div className="flex gap-4 ml-2 w-[calc(100%-236px)]">
+              <div className="flex gap-4 flex-1">
                 {Object.values(MEDIA_TYPES).map((option) => (
                   <button
                     key={option.name}
@@ -210,26 +187,7 @@ const InstagramUploadDialogContent = ({ videos, setVideos, references, setResetV
             </div>
 
             <div className="flex gap-2">
-              <div className="w-1/4 shrink-0">
-                <p className="text-sm font-medium">Scheduled Date</p>
-                <p className="text-xs text-gray-500">Video release</p>
-              </div>
-              <div className="w-[calc(100%-235px)] ml-2">
-                <input
-                  onKeyDown={(e) => e.key === 'Enter' && e.preventDefault()}
-                  type="datetime-local"
-                  className="w-full border border-gray-300 rounded h-10 px-2"
-                  value={sequentialDate !== undefined ? moment(sequentialDate.date).add((index * sequentialDate.interval), 'days').format('YYYY-MM-DDTHH:mm') :
-                    videos[index]?.scheduleDate ? videos[index]?.scheduleDate : new Date().toISOString().split("T")[0]}
-                  onChange={(e) => editAll ?
-                    !!videos && setVideos(videos.map((video) => ({ ...video, scheduleDate: e.target.value }))) :
-                    !!videos && setVideos(videos.map((v, i) => i === index ? { ...v, scheduleDate: e.target.value } : v))}
-                />
-              </div>
-            </div>
-
-            <div className="flex gap-2">
-              <div className="w-1/4 shrink-0">
+              <div className="shrink-0">
                 <p className="text-sm font-medium">Video Tags</p>
                 <p className="text-xs text-gray-500">Keywords</p>
               </div>

@@ -12,12 +12,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/app/components/primitives/Select";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger
-} from "@/app/components/primitives/Tooltip";
 import Button from "@/app/components/primitives/Button";
 import KeyReferenceAddButton from "@/app/components/KeyReferenceAddButton";
 import KeyReferenceMenuButton from "@/app/components/KeyReferenceMenuButton";
@@ -27,12 +21,12 @@ import { Switch, SwitchThumb } from "@/app/components/primitives/Switch";
 import { cn } from "@/app/utils/cn";
 import { ALL_PRIVACY_STATUS_OPTIONS, VIDEO_ACCESS_OPTIONS } from "@/app/constants";
 import { useEffect, useState } from "react";
-import moment from "moment";
 import { getCookie } from "cookies-next"
 import { TikTokUserCreatorInfo, TikTokVideoProps } from "@/types";
 import SequentialScheduleSwitch from "./SequentialScheduleSwitch";
-import { CloudUpload, Info, RotateCcw, TriangleAlert } from "lucide-react";
+import { CloudUpload, Info, RotateCcw, TriangleAlert, Upload } from "lucide-react";
 import { Reference } from "@prisma/client";
+import UploadTextarea from "./UploadTextarea";
 
 type TiktokUploadDialogContentProps = {
   videos: TikTokVideoProps[];
@@ -103,13 +97,29 @@ const TiktokUploadDialogContent = ({ videos, setVideos, references, setResetVide
     }
   }
 
-  const onSubmit = async (index?: number) => {
+  const onSubmit = async (index?: number, publishNow?: boolean) => {
     if (!tikTokAccessTokens) {
       console.error("No access token found");
       return;
     }
     if (index !== undefined) {
-      await scheduleVideoToTikTok(videos[index]);
+      if (publishNow) {
+        videos[index].scheduleDate = new Date().toISOString();
+        await scheduleVideoToTikTok(videos[index]);
+        // api/tiktok/cron/post-videos
+        fetch("/api/tiktok/direct-post", {
+          method: "GET",
+        })
+          .then(response => response.json())
+          .then(async ({ data }) => {
+            console.log("Post videos cron response:", data);
+          })
+          .catch(error => {
+            console.error("Fetch error:", error);
+          });
+      } else {
+        await scheduleVideoToTikTok(videos[index]);
+      }
     } else {
       if (!!videos && videos.length > 0) {
         for (const video of videos) {
@@ -158,6 +168,10 @@ const TiktokUploadDialogContent = ({ videos, setVideos, references, setResetVide
           key={video.file.name}
           service="TikTok"
           video={video}
+          videos={videos}
+          setVideos={setVideos}
+          editAll={editAll}
+          sequentialDate={sequentialDate}
           index={index}
           avatarUrl={tiktokCreatorInfo?.creator_avatar_url || null}
           nickname={tiktokCreatorInfo?.creator_nickname || ""}
@@ -180,58 +194,17 @@ const TiktokUploadDialogContent = ({ videos, setVideos, references, setResetVide
           </div>
           {video.directPost && (
             <>
-              <div className="flex flex-col gap-2">
-                <p className="text-sm font-medium">Caption</p>
-                <div className="relative group/caption">
-
-                  <textarea
-                    onChange={event => editAll ?
-                      !!videos && setVideos(videos.map((video) => ({ ...video, title: event.currentTarget.value }))) :
-                      !!videos && setVideos(videos.map((v, i) => i === index ? { ...v, title: event.currentTarget.value } : v))}
-                    className="border border-gray-300 rounded min-h-12 w-full px-2 py-1 outline-0 bg-transparent"
-                    placeholder="Add a title that describes your video"
-                    name="title"
-                    value={videos && videos[index]?.title}
-                    maxLength={100}
-                  />
-                  <div className="absolute bottom-4 right-4 text-xs text-gray-500">{videos && videos[index]?.title.length}/100</div>
-                  <div className="absolute hidden group-hover/caption:flex top-1/2 right-2 -translate-y-1/2">
-                    <KeyReferenceAddButton
-                      type="title"
-                      value={videos && videos[index]?.["title"] || ""}
-                      localReferences={localReferences}
-                      setLocalReferences={setLocalReferences}
-                    />
-                    <KeyReferenceMenuButton
-                      type="title"
-                      localReferences={localReferences}
-                      setLocalReferences={setLocalReferences}
-                      callback={(key, value) => editAll ?
-                        setVideos(videos.map((video) => ({ ...video, [key]: value }))) :
-                        setVideos(videos.map((v, i) => i === index ? { ...v, [key]: value } : v))}
-                    />
-                  </div>
-                </div>
-              </div>
-
-              <div className="flex gap-2">
-                <div className="shrink-0">
-                  <p className="text-sm font-medium">Scheduled Date</p>
-                  <p className="text-xs text-gray-500">Video release</p>
-                </div>
-                <div className="w-full">
-                  <input
-                    onKeyDown={(e) => e.key === 'Enter' && e.preventDefault()}
-                    type="datetime-local"
-                    className="w-full border border-gray-300 rounded h-10 px-2"
-                    value={sequentialDate !== undefined ? moment(sequentialDate.date).add((index * sequentialDate.interval), 'days').format('YYYY-MM-DDTHH:mm') :
-                      videos[index]?.scheduleDate ? videos[index]?.scheduleDate : new Date().toISOString().split("T")[0]}
-                    onChange={(e) => editAll ?
-                      !!videos && setVideos(videos.map((video) => ({ ...video, scheduleDate: e.target.value }))) :
-                      !!videos && setVideos(videos.map((v, i) => i === index ? { ...v, scheduleDate: e.target.value } : v))}
-                  />
-                </div>
-              </div>
+            <UploadTextarea
+              editAll={editAll}
+              videos={videos}
+              setVideos={setVideos}
+              index={index}
+              localReferences={localReferences}
+              setLocalReferences={setLocalReferences}
+              header="Caption"
+              placeholder="Add a title that describes your video"
+              type="title"
+            />
 
               <div className="flex flex-col gap-2">
                 <p className="text-sm font-medium">Who can view this video</p>
