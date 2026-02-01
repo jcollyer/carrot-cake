@@ -32,6 +32,7 @@ import {
   NeonTikTokVideo,
   TikTokVideo,
 } from "@/types"
+import prisma from "@/lib/prisma";
 import { Reference } from "@prisma/client";
 import moment from "moment";
 import CalendarMonth from "@/app/components/CalendarMonth";
