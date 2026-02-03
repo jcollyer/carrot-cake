@@ -87,6 +87,7 @@ model TiktokVideos {
   userId                  String
   videoUrl                String
   title                   String
+  publishId               String?
   yourBrand               Boolean
   brandedContent          Boolean
   privacyStatus           String

@@ -1,6 +1,7 @@
 import type { SanitizedVideoProps } from "@/types";
-import { ChevronLeft, ChevronRight, Pencil } from "lucide-react";
-import { useState, useMemo } from "react";
+import { ChevronLeft, ChevronRight, ImageUp, Pencil, Smartphone } from "lucide-react";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/app/components/primitives/Tooltip";
+import { useState, useMemo, useEffect } from "react";
 import { cn } from "@/app/utils/cn";
 import ButtonIcon from "./primitives/ButtonIcon";
 
@@ -27,10 +28,13 @@ type CalendarProps = {
   canEdit?: boolean;
   setEditVideo: (video: SanitizedVideoProps) => void;
   title: string;
+  hasStatus?: boolean;
+  tiktokTokens?: string;
 };
 
-export default function Calendar({ scheduledVideos = [], canEdit = false, setEditVideo, title }: CalendarProps) {
+export default function Calendar({ scheduledVideos = [], canEdit = false, setEditVideo, title, hasStatus = false, tiktokTokens }: CalendarProps) {
   const [currentMonth, setCurrentMonth] = useState(() => new Date());
+  const [videoStatuses, setVideoStatuses] = useState<{ [key: string]: any }>({});
   const today = new Date();
 
   const days = useMemo(() => {
@@ -81,6 +85,41 @@ export default function Calendar({ scheduledVideos = [], canEdit = false, setEdi
     month: "long",
     year: "numeric",
   });
+
+  const getVideoStatus = async (publishId: string) => {
+    const accessToken = tiktokTokens;
+    if (!publishId || !accessToken) return null;
+    try {
+      const response = await fetch("/api/tiktok/publish-status", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ publishId, accessToken }),
+      });
+      const data = await response.json();
+      return data;
+    } catch (error) {
+      console.error("Error getting publish status:", error);
+      return null;
+    }
+  }
+
+  useEffect(() => {
+    if (hasStatus && scheduledVideos.length > 0) {
+      const fetchStatuses = async () => {
+        const statuses: { [key: string]: any } = {};
+        for (const video of scheduledVideos) {
+          if (video.publishId) {
+            const status = await getVideoStatus(video.publishId);
+            statuses[video.publishId] = status;
+          }
+        }
+        setVideoStatuses(statuses);
+      };
+      fetchStatuses();
+    }
+  }, [scheduledVideos, hasStatus, tiktokTokens]);
 
   return (
     <>
@@ -182,6 +221,28 @@ export default function Calendar({ scheduledVideos = [], canEdit = false, setEdi
                           >
                             <Pencil size={16} className="text-gray-100" />
                           </button>
+                        )}
+                        {hasStatus && Object.keys(videoStatuses).includes(video.publishId || "") && (
+                          <TooltipProvider>
+                            <Tooltip delayDuration={100}>
+                              <TooltipTrigger asChild>
+                                <div className={cn("size-3 rounded-full bg-white absolute bottom-2 left-2 shadow-sm cursor-pointer", {
+                                  "bg-green-500": videoStatuses[video.publishId || ""]?.data?.status === "PUBLISH_COMPLETE",
+                                  "bg-yellow-500": videoStatuses[video.publishId || ""]?.data?.status === "PROCESSING_DOWNLOAD",
+                                  "bg-red-500": videoStatuses[video.publishId || ""]?.data?.status === "FAILED",
+                                  "bg-gray-100": videoStatuses[video.publishId || ""]?.data?.status === "SEND_TO_USER_INBOX",
+                                })}>
+                                  &nbsp;
+                                </div>
+                              </TooltipTrigger>
+                              <TooltipContent>
+                                <div className="flex gap-2 items-center">
+                                  <ImageUp className="text-gray-600" size="16" strokeWidth={2.5} />
+                                  <p className="text-gray-600 font-semibold">Tiktok upload status: {videoStatuses[video.publishId || ""]?.data?.status}</p>
+                                </div>
+                              </TooltipContent>
+                            </Tooltip>
+                          </TooltipProvider>
                         )}
                       </div>
                     </div>

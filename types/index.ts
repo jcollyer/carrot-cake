@@ -31,6 +31,7 @@ export type SanitizedVideoProps = {
   resolution?: string;
   id?: string;
   scheduleDate?: string;
+  publishId?: string;
   tags?: string;
   title: string;
   thumbnail?: string;
@@ -71,6 +72,7 @@ export type NeonTikTokVideo = {
   userId: string;
   videoUrl: string;
   yourBrand: boolean;
+  publishId?: string;
 };
 
 export type TikTokVideoProps = {

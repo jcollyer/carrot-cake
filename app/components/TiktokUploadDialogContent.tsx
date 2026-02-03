@@ -13,8 +13,6 @@ import {
   SelectValue,
 } from "@/app/components/primitives/Select";
 import Button from "@/app/components/primitives/Button";
-import KeyReferenceAddButton from "@/app/components/KeyReferenceAddButton";
-import KeyReferenceMenuButton from "@/app/components/KeyReferenceMenuButton";
 import UploadPreview from "@/app/components/UploadPreview";
 import { Progress } from "@/app/components/primitives/Progress";
 import { Switch, SwitchThumb } from "@/app/components/primitives/Switch";
@@ -105,18 +103,21 @@ const TiktokUploadDialogContent = ({ videos, setVideos, references, setResetVide
     if (index !== undefined) {
       if (publishNow) {
         videos[index].scheduleDate = new Date().toISOString();
-        await scheduleVideoToTikTok(videos[index]);
-        // api/tiktok/cron/post-videos
-        fetch("/api/tiktok/direct-post", {
-          method: "GET",
-        })
-          .then(response => response.json())
-          .then(async ({ data }) => {
-            console.log("Post videos cron response:", data);
+        await scheduleVideoToTikTok(videos[index])
+
+        // Wait 5 seconds to make sure video appears in Neon before calling direct-post
+        setTimeout(async () => {
+          await fetch("/api/tiktok/direct-post", {
+            method: "GET",
           })
-          .catch(error => {
-            console.error("Fetch error:", error);
-          });
+            .then(response => response.json())
+            .then(async ({ message }) => {
+              console.log(message);
+            })
+            .catch(error => {
+              console.error("Fetch error:", error);
+            });
+        }, 5000);
       } else {
         await scheduleVideoToTikTok(videos[index]);
       }
@@ -194,17 +195,17 @@ const TiktokUploadDialogContent = ({ videos, setVideos, references, setResetVide
           </div>
           {video.directPost && (
             <>
-            <UploadTextarea
-              editAll={editAll}
-              videos={videos}
-              setVideos={setVideos}
-              index={index}
-              localReferences={localReferences}
-              setLocalReferences={setLocalReferences}
-              header="Caption"
-              placeholder="Add a title that describes your video"
-              type="title"
-            />
+              <UploadTextarea
+                editAll={editAll}
+                videos={videos}
+                setVideos={setVideos}
+                index={index}
+                localReferences={localReferences}
+                setLocalReferences={setLocalReferences}
+                header="Caption"
+                placeholder="Add a title that describes your video"
+                type="title"
+              />
 
               <div className="flex flex-col gap-2">
                 <p className="text-sm font-medium">Who can view this video</p>

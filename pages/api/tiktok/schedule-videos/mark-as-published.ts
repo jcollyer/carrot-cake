@@ -6,6 +6,7 @@ export default async function handler(
   res: NextApiResponse
 ) {
   const videoUrl = req.body.videoUrl;
+  const publishId = req.body.publishId;
   try {
     const updatedVideo = await prisma.tiktokVideos.updateMany({
       where: {
@@ -13,6 +14,7 @@ export default async function handler(
       },
       data: {
         publishedToPlatform: true,
+        publishId,
       },
     });
 

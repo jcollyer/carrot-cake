@@ -56,13 +56,14 @@ export const sanitizeTikTokMetadata = (
       }
     }
     // Otherwise it's from Neon
-    const { id, thumbnail, scheduledDate, title } = video as NeonTikTokVideo;
+    const { id, thumbnail, scheduledDate, title, publishId } = video as NeonTikTokVideo;
     return {
       id,
       title,
       description: title,
       scheduleDate: moment(scheduledDate).format("YYYY-MM-DD"),
       thumbnail,
+      publishId,
     };
   });
 };

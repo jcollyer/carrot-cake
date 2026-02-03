@@ -493,6 +493,8 @@ export default function Home({references}: {references: { references: Reference[
                       setEditVideo={setEditVideo}
                       title="Uploaded TikTok Videos"
                       canEdit
+                      hasStatus
+                      tiktokTokens={tiktokTokens as string}
                     />
                   </>
                 )}

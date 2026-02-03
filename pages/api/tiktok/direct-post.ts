@@ -26,6 +26,8 @@ export default async function GET(req: Request) {
       yourBrand,
       scheduledDate,
     } = video;
+
+    let publishId = null;
   
     if (new Date(scheduledDate) > new Date()) {
       console.log(`video: "${title}" scheduledDate is in the future:`, scheduledDate);
@@ -62,6 +64,7 @@ export default async function GET(req: Request) {
         const data = await response.json();
         if (response.ok) {
           console.log("Video posted successfully:", data);
+          publishId = data.data.publish_id;
         } else {
           console.error("Error posting video:", data);
         }
@@ -79,6 +82,7 @@ export default async function GET(req: Request) {
             },
             body: JSON.stringify({
               videoUrl,
+              publishId
             }),
           }
         );
