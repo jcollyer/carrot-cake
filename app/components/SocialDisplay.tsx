@@ -8,13 +8,11 @@ import {
   Unplug,
   HeartPlus,
   UserRoundCheck,
-  UserPlus
 } from "lucide-react";
 type SocialDisplayProps = {
   userName?: string;
   thumbnail?: string;
   videoCount?: string | number;
-  subscriberCount?: string | number;
   viewCount?: string | number;
   likesCount?: string | number;
   followsCount?: string | number;
@@ -23,7 +21,7 @@ type SocialDisplayProps = {
   type: "youtube" | "tiktok" | "instagram";
 };
 
-const SocialDisplay = ({ userName, thumbnail, videoCount, subscriberCount, viewCount, likesCount, followsCount, followersCount, onLogout, type }: SocialDisplayProps) => {
+const SocialDisplay = ({ userName, thumbnail, videoCount, viewCount, likesCount, followsCount, followersCount, onLogout, type }: SocialDisplayProps) => {
   return (
     <>
       <div className="flex gap-2 shrink-0 items-center h-12">
@@ -52,12 +50,12 @@ const SocialDisplay = ({ userName, thumbnail, videoCount, subscriberCount, viewC
               <Tooltip>
                 <TooltipTrigger asChild>
                   <div className="flex gap-1 items-center">
-                    <UserRoundPlus className="text-gray-600" size="16" strokeWidth={2.5} />
-                    <p className="text-gray-600 font-semibold">{formatBigNumber(Number(subscriberCount) || 0)}</p>
+                    <Eye className="text-gray-600" size="16" strokeWidth={2.5} />
+                    <p className="text-gray-600 font-semibold">{formatBigNumber(Number(viewCount) || 0)}</p>
                   </div>
                 </TooltipTrigger>
                 <TooltipContent>
-                  <p className="text-gray-600 font-semibold">Follower Count</p>
+                  <p className="text-gray-600 font-semibold">View Count</p>
                 </TooltipContent>
               </Tooltip>
             </TooltipProvider>
@@ -82,12 +80,12 @@ const SocialDisplay = ({ userName, thumbnail, videoCount, subscriberCount, viewC
               <Tooltip>
                 <TooltipTrigger asChild>
                   <div className="flex gap-1 items-center">
-                    <UserPlus className="text-gray-600" size="16" strokeWidth={2.5} />
-                    <p className="text-gray-600 font-semibold">{formatBigNumber(Number(followersCount) || 0)}</p>
+                    <UserRoundCheck className="text-gray-600" size="16" strokeWidth={2.5} />
+                    <p className="text-gray-600 font-semibold">{formatBigNumber(Number(followsCount) || 0)}</p>
                   </div>
                 </TooltipTrigger>
                 <TooltipContent>
-                  <p className="text-gray-600 font-semibold">Followers Count</p>
+                  <p className="text-gray-600 font-semibold">Follows Count</p>
                 </TooltipContent>
               </Tooltip>
             </TooltipProvider>
@@ -99,12 +97,12 @@ const SocialDisplay = ({ userName, thumbnail, videoCount, subscriberCount, viewC
               <Tooltip>
                 <TooltipTrigger asChild>
                   <div className="flex gap-1 items-center">
-                    <UserRoundCheck className="text-gray-600" size="16" strokeWidth={2.5} />
-                    <p className="text-gray-600 font-semibold">{formatBigNumber(Number(followsCount) || 0)}</p>
+                    <UserRoundPlus className="text-gray-600" size="16" strokeWidth={2.5} />
+                    <p className="text-gray-600 font-semibold">{formatBigNumber(Number(followersCount) || 0)}</p>
                   </div>
                 </TooltipTrigger>
                 <TooltipContent>
-                  <p className="text-gray-600 font-semibold">Follows Count</p>
+                  <p className="text-gray-600 font-semibold">Followers Count</p>
                 </TooltipContent>
               </Tooltip>
             </TooltipProvider>
@@ -113,8 +111,8 @@ const SocialDisplay = ({ userName, thumbnail, videoCount, subscriberCount, viewC
               <Tooltip>
                 <TooltipTrigger asChild>
                   <div className="flex gap-1 items-center">
-                    <Eye className="text-gray-600" size="16" strokeWidth={2.5} />
-                    <p className="text-gray-600 font-semibold">{formatBigNumber(Number(viewCount) || 0)}</p>
+                    <UserRoundPlus className="text-gray-600" size="16" strokeWidth={2.5} />
+                    <p className="text-gray-600 font-semibold">{formatBigNumber(Number(followersCount) || 0)}</p>
                   </div>
                 </TooltipTrigger>
                 <TooltipContent>

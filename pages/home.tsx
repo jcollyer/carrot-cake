@@ -434,7 +434,7 @@ export default function Home({references}: {references: { references: Reference[
                         userName={ytUserInfo.userName}
                         thumbnail={ytUserInfo.thumbnail}
                         videoCount={ytUserInfo.videoCount}
-                        subscriberCount={ytUserInfo.subscriberCount}
+                        followersCount={ytUserInfo.subscriberCount}
                         viewCount={ytUserInfo.viewCount}
                         type="youtube"
                         onLogout={() => {
@@ -479,6 +479,7 @@ export default function Home({references}: {references: { references: Reference[
                         thumbnail={tiktokUserInfo.avatar_url}
                         videoCount={tiktokUserInfo.video_count}
                         likesCount={tiktokUserInfo.likes_count}
+                        followersCount={tiktokUserInfo.follower_count}
                         onLogout={() => {
                           deleteCookie("tiktok-tokens");
                           setTiktokVideos([]);

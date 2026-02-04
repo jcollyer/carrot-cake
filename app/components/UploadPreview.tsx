@@ -22,7 +22,7 @@ import { Progress } from "@/app/components/primitives/Progress";
 import Spinner from "@/app/components/primitives/Spinner";
 import { Check, ChevronDown, TriangleAlert } from "lucide-react";
 import Image from "next/image";
-import formatBigNumber from "@/app/utils/formatBigNumbers";
+import formatFileSize from "@/app/utils/formatFileSize";
 import { cn } from "@/app/utils/cn";
 import { ReactNode, useEffect, useState } from "react";
 import { InstagramVideoProps, SanitizedVideoProps, TikTokVideoProps } from "@/types";
@@ -131,7 +131,7 @@ const UploadPreview = ({
                 </div>
                 <div className="relative flex flex-col p-4">
                   <p className="text-sm text-gray-400">Size</p>
-                  <p className="text-xs text-gray-300 font-medium truncate">{formatBigNumber(video?.file.size)}</p>
+                  <p className="text-xs text-gray-300 font-medium truncate">{formatFileSize(video?.file.size)}</p>
                 </div>
               </div>
             </div>
