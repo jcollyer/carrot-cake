@@ -1,5 +1,5 @@
 import type { SanitizedVideoProps } from "@/types";
-import { ChevronLeft, ChevronRight, ImageUp, Pencil, Smartphone } from "lucide-react";
+import { ChevronLeft, ChevronRight, ImageUp, Pencil, RefreshCcw, Smartphone } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/app/components/primitives/Tooltip";
 import { useState, useMemo, useEffect } from "react";
 import { cn } from "@/app/utils/cn";
@@ -237,7 +237,22 @@ export default function Calendar({ scheduledVideos = [], canEdit = false, setEdi
                               </TooltipTrigger>
                               <TooltipContent>
                                 <div className="flex gap-2 items-center">
-                                  <ImageUp className="text-gray-600" size="16" strokeWidth={2.5} />
+                                  {videoStatuses[video.publishId || ""]?.data?.status === "PROCESSING_DOWNLOAD" && (
+                                    <ButtonIcon
+                                      icon={RefreshCcw}
+                                      label="refresh status"
+                                      size={16}
+                                      strokeWidth={2.5}
+                                      onClick={async (e) => {
+                                        e.stopPropagation();
+                                        const status = await getVideoStatus(video.publishId || "");
+                                        setVideoStatuses((prev) => ({
+                                          ...prev,
+                                          [video.publishId || ""]: status,
+                                        }));
+                                      }}
+                                    />
+                                  )}
                                   <p className="text-gray-600 font-semibold">Tiktok upload status: {videoStatuses[video.publishId || ""]?.data?.status}</p>
                                 </div>
                               </TooltipContent>

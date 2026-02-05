@@ -71,7 +71,7 @@ export default async function GET(req: Request) {
       } catch (error) {
         throw new Error(`error posting to api/tiktok/direct-post-init: ${error}`);
       }
-      // Updata the Neon database to set publishedToPlatform to true
+      // Update the Neon database to set publishedToPlatform to true
       try {
         const response = await fetch(
           `${baseUrl}/api/tiktok/schedule-videos/mark-as-published`,

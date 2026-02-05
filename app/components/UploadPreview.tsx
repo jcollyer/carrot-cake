@@ -79,7 +79,7 @@ const UploadPreview = ({
             clearInterval(interval);
             return 100;
           }
-          return prevProgress + 0.1;
+          return prevProgress + 0.15;
         });
       }, 10);
 
@@ -288,6 +288,7 @@ const UploadPreview = ({
             ) : (
               <DialogClose asChild>
                 <Button
+                disabled={progress < 100}
                   variant="outline"
                   onClick={() => {
                     setConfirmUploadVideoModalOpen(false);
