@@ -83,13 +83,32 @@ const InstagramUploadDialogContent = ({ videos, setVideos, references, setResetV
     }
   }
 
-  const onSubmit = async (index?: number) => {
+  const onSubmit = async (index?: number, publishNow?: boolean) => {
     if (!accessToken) {
       console.error("No access token found");
       return;
     }
     if (index !== undefined) {
-      await scheduleVideoToInstagram(videos[index]);
+      if (publishNow) {
+        videos[index].scheduleDate = new Date().toISOString();
+        await scheduleVideoToInstagram(videos[index])
+
+        // Wait 5 seconds to make sure video appears in Neon before calling direct-post
+        setTimeout(async () => {
+          await fetch("/api/instagram/direct-post", {
+            method: "GET",
+          })
+            .then(response => response.json())
+            .then(async ({ message }) => {
+              console.log(message);
+            })
+            .catch(error => {
+              console.error("Fetch error:", error);
+            });
+        }, 5000);
+      } else {
+        await scheduleVideoToInstagram(videos[index]);
+      }
     } else {
       if (!!videos && videos.length > 0) {
         for (const video of videos) {

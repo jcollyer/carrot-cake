@@ -183,7 +183,7 @@ const UploadPreview = ({
               <p className="text-sm font-medium">Scheduled Date</p>
               <p className="text-xs text-gray-500">Video release</p>
             </div>
-            <div className="flex gap-2 items-center">
+            <div className="flex gap-2 items-center w-full">
               <input
                 disabled={publishNow}
                 onKeyDown={(e) => e.key === 'Enter' && e.preventDefault()}
@@ -195,7 +195,7 @@ const UploadPreview = ({
                   !!videos && setVideos(videos.map((video) => ({ ...video, scheduleDate: e.target.value }))) :
                   !!videos && setVideos(videos.map((v, i) => i === index ? { ...v, scheduleDate: e.target.value } : v))}
               />
-                <label className={cn("flex shrink-0 gap-2 items-center border px-2 py-3 rounded cursor-pointer", {
+                <label className={cn("flex shrink-0 text-center gap-2 items-center border px-2 py-3 rounded cursor-pointer", {
                   "border-blue-500 bg-blue-100": publishNow,
                 })}>
                   <input
