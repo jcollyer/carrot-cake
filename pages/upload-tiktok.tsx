@@ -237,6 +237,8 @@ export default function UploadTikTokPage({ references }: { references: Reference
               service="TikTok"
               video={video}
               index={index}
+              editAll={editAll}
+              sequentialDate={sequentialDate}
               avatarUrl={tiktokCreatorInfo?.creator_avatar_url || ""}
               nickname={tiktokCreatorInfo?.creator_nickname || ""}
               onSubmit={onSubmit}

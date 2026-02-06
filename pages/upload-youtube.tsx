@@ -146,6 +146,8 @@ export default function UploadYouTubePage({ references }: { references: Referenc
               service="YouTube"
               video={video}
               index={index}
+              editAll={editAll}
+              sequentialDate={sequentialDate}
               avatarUrl={ytUserInfo?.thumbnail || ""}
               nickname={ytUserInfo?.userName || ""}
               onSubmit={onSubmit}

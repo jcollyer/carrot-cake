@@ -34,11 +34,11 @@ type UploadPreviewProps = {
   videos: (TikTokVideoProps | InstagramVideoProps | SanitizedVideoProps)[];
   setVideos: React.Dispatch<React.SetStateAction<(TikTokVideoProps | InstagramVideoProps | SanitizedVideoProps)[]>>;
   index: number;
-  editAll?: boolean;
-  sequentialDate?: {
+  editAll: boolean;
+  sequentialDate: {
     date: string;
     interval: number;
-  };
+  } | undefined;
   avatarUrl: string | null;
   nickname: string;
   onSubmit: (index?: number, publishNow?: boolean) => void;

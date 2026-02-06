@@ -211,6 +211,8 @@ export default function UploadInstagramPage({ references }: { references: Refere
               service="Instagram"
               video={video}
               index={index}
+              editAll={editAll}
+              sequentialDate={sequentialDate}
               avatarUrl={igUserInfo?.profile_picture_url || ""}
               nickname={igUserInfo?.username || ""}
               onSubmit={onSubmit}

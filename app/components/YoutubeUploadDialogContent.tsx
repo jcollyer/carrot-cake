@@ -12,19 +12,17 @@ import { Switch } from "@/app/components/primitives/Switch";
 import KeyReferenceAddButton from "@/app/components/KeyReferenceAddButton";
 import KeyReferenceMenuButton from "@/app/components/KeyReferenceMenuButton";
 import SequentialScheduleSwitch from "@/app/components/SequentialScheduleSwitch";
+import UploadPreview from "@/app/components/UploadPreview";
+import UploadTextarea from "@/app/components/UploadTextarea";
 import TagsInput from "@/app/components/TagsInput";
 import { useGetYouTubeUserInfo } from "@/app/hooks/use-get-youtube-user-info";
 import { useUploadYoutubeVideo } from "@/app/hooks/use-upload-youtube-video";
 import { Reference } from "@prisma/client";
 import { useEffect, useState } from "react";
-import { RotateCcw, CloudUpload, Upload } from "lucide-react";
+import { RotateCcw, CloudUpload } from "lucide-react";
 import { getCookie } from "cookies-next"
-import moment from "moment";
 import { CATEGORIES } from "@/app/constants";
 import { SanitizedVideoProps, YouTubeUserInfo } from "@/types"
-import UploadPreview from "@/app/components/UploadPreview";
-import UploadTextarea from "./UploadTextarea";
-
 
 type YoutubeUploadDialogContentProps = {
   videos: SanitizedVideoProps[];
@@ -116,6 +114,8 @@ const YoutubeUploadDialogContent = ({
           video={video}
           index={index}
           avatarUrl={ytUserInfo?.thumbnail || ""}
+          sequentialDate={sequentialDate}
+          editAll={editAll}
           nickname={ytUserInfo?.userName || ""}
           onSubmit={onSubmit}
           disabled={videos[index]?.title === ""}

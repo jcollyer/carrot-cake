@@ -16,13 +16,13 @@ import Button from "@/app/components/primitives/Button";
 import UploadPreview from "@/app/components/UploadPreview";
 import { Progress } from "@/app/components/primitives/Progress";
 import { Switch, SwitchThumb } from "@/app/components/primitives/Switch";
+import SequentialScheduleSwitch from "@/app/components/SequentialScheduleSwitch";
 import { cn } from "@/app/utils/cn";
 import { ALL_PRIVACY_STATUS_OPTIONS, VIDEO_ACCESS_OPTIONS } from "@/app/constants";
 import { useEffect, useState } from "react";
 import { getCookie } from "cookies-next"
 import { TikTokUserCreatorInfo, TikTokVideoProps } from "@/types";
-import SequentialScheduleSwitch from "./SequentialScheduleSwitch";
-import { CloudUpload, Info, RotateCcw, TriangleAlert, Upload } from "lucide-react";
+import { CloudUpload, Info, RotateCcw, TriangleAlert } from "lucide-react";
 import { Reference } from "@prisma/client";
 import UploadTextarea from "./UploadTextarea";
 
