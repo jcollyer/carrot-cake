@@ -100,6 +100,14 @@ const UploadPreview = ({
                 <Check size={18} strokeWidth={4} className="text-white" />
               </div>
               <p className="text-lg font-semibold">Your Video is Ready</p>
+              {videos.length > 1 && (<Button variant="outline" size="small" onClick={() => setVideos((prev) => {
+                const currentVideos = [...prev]
+                const updatedVideos = currentVideos.filter((_, i) => i !== index)
+                return updatedVideos;
+              })}>
+                Remove Video
+              </Button>
+              )}
             </div>
             <div className="flex flex-col rounded-lg overflow-hidden bg-black">
               <video
@@ -195,20 +203,20 @@ const UploadPreview = ({
                   !!videos && setVideos(videos.map((video) => ({ ...video, scheduleDate: e.target.value }))) :
                   !!videos && setVideos(videos.map((v, i) => i === index ? { ...v, scheduleDate: e.target.value } : v))}
               />
-                <label className={cn("flex shrink-0 text-center gap-2 items-center border px-2 py-3 rounded cursor-pointer", {
-                  "border-blue-500 bg-blue-100": publishNow,
-                })}>
-                  <input
-                    type="checkbox"
-                    checked={publishNow}
-                    className="size-4"
-                    onChange={() => {
-                      setPublishNow(!publishNow);
-                    }}
-                  />
-                  <p className="text-xs font-semibold">Upload Now</p>
+              <label className={cn("flex shrink-0 text-center gap-2 items-center border px-2 py-3 rounded cursor-pointer", {
+                "border-blue-500 bg-blue-100": publishNow,
+              })}>
+                <input
+                  type="checkbox"
+                  checked={publishNow}
+                  className="size-4"
+                  onChange={() => {
+                    setPublishNow(!publishNow);
+                  }}
+                />
+                <p className="text-xs font-semibold">Upload Now</p>
 
-                </label>
+              </label>
             </div>
           </div>
 
@@ -288,7 +296,7 @@ const UploadPreview = ({
             ) : (
               <DialogClose asChild>
                 <Button
-                disabled={progress < 100}
+                  disabled={progress < 100}
                   variant="outline"
                   onClick={() => {
                     setConfirmUploadVideoModalOpen(false);
