@@ -64,7 +64,10 @@ export default async function GET(req: Request) {
         const data = await response.json();
         if (response.ok) {
           console.log("Video posted successfully:", data);
+          console.log(`Video -----------------: ${data.data}`);
+          console.log(`Video -----------------: ${data.data.publish_id}`);
           publishId = data.data.publish_id;
+          console.log(`Video publishId -----------------: ${publishId}`);
         } else {
           console.error("Error posting video:", data);
         }
@@ -73,6 +76,7 @@ export default async function GET(req: Request) {
       }
       // Update the Neon database to set publishedToPlatform to true
       try {
+        console.log(`Marking video as published in database-------: ${videoUrl} (publishId: ${publishId})`);
         const response = await fetch(
           `${baseUrl}/api/tiktok/schedule-videos/mark-as-published`,
           {
