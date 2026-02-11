@@ -40,7 +40,7 @@ export const useSetTiktokVideos = () => {
         yourBrand: false,
         brandedContent: false,
         uploadProgress: 0,
-        draft: true,
+        draft: false,
       },
     ]);
 
