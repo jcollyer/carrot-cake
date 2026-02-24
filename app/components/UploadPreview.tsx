@@ -161,7 +161,7 @@ const UploadPreview = ({
               <div className="flex gap-2 items-center px-4 py-3 rounded bg-gray-100">
                 <div className="relative flex gap-2 items-center">
                   {avatarUrl ? (
-                    <img src={avatarUrl} alt={`${service} User Thumbnail`} width="40" height="40" className="rounded-full" />) : (
+                    <Image src={avatarUrl} alt={`${service} User Thumbnail`} width="40" height="40" className="rounded-full" />) : (
                     <Spinner size="small" />
                   )}
                   <div className="absolute -bottom-px -right-px">

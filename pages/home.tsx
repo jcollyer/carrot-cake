@@ -563,7 +563,7 @@ export default function Home({references}: {references: { references: Reference[
             <CircleX className="ml-auto text-gray-500 hover:text-gray-900 cursor-pointer" size="34" strokeWidth={1} onClick={() => closeEditVideo()} />
           </div>
           <div className="flex flex-col gap-8">
-            <img src={editVideo.thumbnail ?? undefined} alt="Thumbnail" width="340" height="210" />
+            <Image src={editVideo.thumbnail || "/placeholder.png"} alt="Thumbnail" width="340" height="210" />
             <div className="flex gap-2 items-center">
               <p className="font-semibold">Title:</p>
               <input

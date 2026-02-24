@@ -9,6 +9,8 @@ import {
   HeartPlus,
   UserRoundCheck,
 } from "lucide-react";
+import Image from "next/image";
+
 type SocialDisplayProps = {
   userName?: string;
   thumbnail?: string;
@@ -25,7 +27,7 @@ const SocialDisplay = ({ userName, thumbnail, videoCount, viewCount, likesCount,
   return (
     <>
       <div className="flex gap-2 shrink-0 items-center h-12">
-        <img src={thumbnail} alt={`${type} user thumbnail`} width="35" height="35" className="rounded-full" />
+        <Image src={thumbnail || ""} alt={`${type} user thumbnail`} width={35} height={35} className="rounded-full" />
         <h2 className="text-2xl font-bold text-gray-800">{userName}</h2>
       </div>
       <div className="flex gap-4">

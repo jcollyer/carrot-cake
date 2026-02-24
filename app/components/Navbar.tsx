@@ -19,7 +19,7 @@ export default function Navbar() {
           {session && (
             <MenuProvider>
               <MenuButton>
-                <img src={user?.image || ""} alt="User Avatar" className="w-10 h-10 rounded-full" />
+                <Image src={user?.image || ""} alt="User Avatar" width={40} height={40} className="w-10 h-10 rounded-full" />
               </MenuButton>
               <Menu>
                 <MenuItem>
