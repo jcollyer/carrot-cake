@@ -1,14 +1,14 @@
 import Button from "@/app/components/primitives/Button";
 import FeatureCard from "@/app/components/FeatureCard";
 import VerticalCarousel from "@/app/components/VerticalCarousel";
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { useRouter } from "next/router";
 import Image from "next/image";
 import { useSession, signIn } from "next-auth/react"
 
 const slides = [
   <div className="flex gap-3 items-center">
-    <Image src="/yt_logo.png" alt="Carrot Cake Logo" width="20" height="2" className="h-[15px]" />
+    <Image src="/youtube_logo.png" alt="Carrot Cake Logo" width="20" height="20" />
     <h3 className="font-bold text-gray-600">Youtube </h3>
   </div>,
   <div className="flex gap-3 items-center">
@@ -20,7 +20,7 @@ const slides = [
     <h3 className="font-bold text-gray-600">Instagram</h3>
   </div>,
   <div className="flex gap-3 items-center">
-    <Image src="/yt_logo.png" alt="Carrot Cake Logo" width="20" height="2" className="h-[15px]" />
+    <Image src="/youtube_logo.png" alt="Carrot Cake Logo" width="20" height="20" />
     <h3 className="font-bold text-gray-600">Youtube </h3>
   </div>,
   <div className="flex gap-3 items-center">
@@ -32,7 +32,7 @@ const slides = [
     <h3 className="font-bold text-gray-600">Instagram</h3>
   </div>,
   <div className="flex gap-3 items-center">
-    <Image src="/yt_logo.png" alt="Carrot Cake Logo" width="20" height="2" className="h-[15px]" />
+    <Image src="/youtube_logo.png" alt="Carrot Cake Logo" width="20" height="20" />
     <h3 className="font-bold text-gray-600">Youtube </h3>
   </div>,
 ];

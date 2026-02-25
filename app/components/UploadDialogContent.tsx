@@ -6,42 +6,62 @@ import {
   DialogFooter,
   DialogTitle,
 } from "@/app/components/primitives/Dialog";
+import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/app/components/primitives/Select";
 import { Progress } from "@/app/components/primitives/Progress";
 import { Switch } from "@/app/components/primitives/Switch";
 import KeyReferenceAddButton from "@/app/components/KeyReferenceAddButton";
 import KeyReferenceMenuButton from "@/app/components/KeyReferenceMenuButton";
 import SequentialScheduleSwitch from "@/app/components/SequentialScheduleSwitch";
+import TiktokSpecificFields from "@/app/components/TiktokSpecificFields";
+import UploadPreview from "@/app/components/UploadPreview";
+import UploadTextarea from "@/app/components/UploadTextarea";
 import TagsInput from "@/app/components/TagsInput";
+import { useGetYouTubeUserInfo } from "@/app/hooks/use-get-youtube-user-info";
+import { useUploadYoutubeVideo } from "@/app/hooks/use-upload-youtube-video";
 import { Reference } from "@prisma/client";
 import { useEffect, useState } from "react";
-import { RotateCcw, CloudUpload, Video, Videotape, Play } from "lucide-react";
-import { getCookie } from "cookies-next"
-import moment from "moment";
-import { InstagramUserInfo, InstagramVideoProps } from "@/types"
+import { RotateCcw, CloudUpload, Play, Video, Videotape } from "lucide-react";
 import { cn } from "@/app/utils/cn";
-import UploadPreview from "@/app/components/UploadPreview";
-import UploadTextarea from "./UploadTextarea";
+import { getCookie } from "cookies-next"
+import { CATEGORIES } from "@/app/constants";
+
+import { SanitizedVideoProps, YouTubeUserInfo } from "@/types"
+import { TikTokUserCreatorInfo, TikTokVideoProps } from "@/types";
 
 const MEDIA_TYPES = [{ name: "Stories", icon: Play }, { name: "Videos", icon: Video }, { name: "Reels", icon: Videotape }];
 
-type InstagramUploadDialogContentProps = {
-  videos: InstagramVideoProps[];
+type UploadDialogContentProps = {
+  videos: SanitizedVideoProps[];
   setVideos: React.Dispatch<React.SetStateAction<any[]>>;
-  references: Reference[];
+  references?: Reference[];
   setResetVideos: (reset: boolean) => void;
   setUploadVideoModalOpen: (open: boolean) => void;
-};
+  type: "tiktok" | "instagram" | "youtube";
+}
 
-const InstagramUploadDialogContent = ({ videos, setVideos, references, setResetVideos, setUploadVideoModalOpen }: InstagramUploadDialogContentProps) => {
-  const tokens = getCookie("ig-access-token");
-  const accessToken = !!tokens && JSON.parse(tokens as string).access_token;
-  const [localReferences, setLocalReferences] = useState<Reference[]>(references || []);
-  const [igUserInfo, setIgUserInfo] = useState<InstagramUserInfo | null>(null);
+const UploadDialogContent = ({
+  videos,
+  setVideos,
+  references,
+  setResetVideos,
+  setUploadVideoModalOpen,
+  type,
+}: UploadDialogContentProps) => {
+  const tokens = getCookie("youtube-tokens");
   const [editAll, setEditAll] = useState<boolean>(false);
+  const [localReferences, setLocalReferences] = useState<Reference[]>(references || []);
+  const [ytUserInfo, setYtUserInfo] = useState<YouTubeUserInfo | null>(null);
   const [sequentialDate, setSequentialDate] = useState<{ date: string, interval: number }>();
   const [confirmUploadVideoModalOpen, setConfirmUploadVideoModalOpen] = useState<boolean>(false);
   const [uploadingAfterSubmit, setUploadingAfterSubmit] = useState<boolean>(false);
   const [progress, setProgress] = useState<number>(0);
+    const [editMultiple, setEditMultiple] = useState<{ [service: string]: boolean }>({
+    instagram: type === "instagram",
+    tiktok: type === "tiktok",
+    youtube: type === "youtube",
+  });
+    const [tiktokCreatorInfo, setTiktokCreatorInfo] = useState<TikTokUserCreatorInfo>();
+
 
   useEffect(() => {
     if (uploadingAfterSubmit) {
@@ -59,60 +79,17 @@ const InstagramUploadDialogContent = ({ videos, setVideos, references, setResetV
     }
   }, [uploadingAfterSubmit, progress]);
 
-  async function scheduleVideoToInstagram(video: InstagramVideoProps) {
-    try {
-      fetch("/api/instagram/schedule-videos/create", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          videoUrl: video.url,
-          videoType: video.mediaType,
-          videoCaption: video.caption,
-          scheduledDate: new Date(video.scheduleDate || new Date()),
-          thumbnail: video.thumbnail,
-          accessToken,
-          InstagramuserId: igUserInfo?.id,
-        }),
-      }).catch((error) => {
-        console.error("Error scheduling video:", error);
-      });
-    } catch (error) {
-      console.error("Error scheduling video:", error);
-    }
-  }
+  const onSubmit = async () => {
+    const accessToken = !!tokens && JSON.parse(tokens as string).access_token;
 
-  const onSubmit = async (index?: number, publishNow?: boolean) => {
     if (!accessToken) {
       console.error("No access token found");
       return;
     }
-    if (index !== undefined) {
-      if (publishNow) {
-        videos[index].scheduleDate = new Date().toISOString();
-        await scheduleVideoToInstagram(videos[index])
-
-        // Wait 5 seconds to make sure video appears in Neon before calling direct-post
-        setTimeout(async () => {
-          await fetch("/api/instagram/direct-post", {
-            method: "GET",
-          })
-            .then(response => response.json())
-            .then(async ({ message }) => {
-              console.log(message);
-            })
-            .catch(error => {
-              console.error("Fetch error:", error);
-            });
-        }, 5000);
-      } else {
-        await scheduleVideoToInstagram(videos[index]);
-      }
-    } else {
-      if (!!videos && videos.length > 0) {
-        for (const video of videos) {
-          await scheduleVideoToInstagram(video);
+    if (!!videos.length) {
+      for (const [i, video] of videos.entries()) {
+        useUploadYoutubeVideo({ accessToken, video, videos, setVideos });
+        if (i === videos.length - 1) {
         }
       }
     }
@@ -121,16 +98,15 @@ const InstagramUploadDialogContent = ({ videos, setVideos, references, setResetV
   useEffect(() => {
     const getUserInfo = async () => {
       if (tokens) {
-        const data = await fetch("/api/instagram/get-user-data")
-          .then((data) => data.json());
-        setIgUserInfo({ ...data });
+        const data = await useGetYouTubeUserInfo({ tokens: tokens as string })
+        setYtUserInfo({ ...data })
       }
     }
     getUserInfo()
   }, [tokens]);
 
   return (
-    <form encType="multipart/form-data" className="flex flex-col gap-6 overflow-y-auto max-h-[80vh]">
+    <div className="flex flex-col gap-6 overflow-y-auto max-h-[80vh]">
       <div className="flex justify-between items-center mb-4">
         {videos && videos.length > 1 && (
           <div className="flex flex-col gap-1">
@@ -149,34 +125,27 @@ const InstagramUploadDialogContent = ({ videos, setVideos, references, setResetV
       {videos && videos.length > 0 && videos.map((video, index) => (
         <UploadPreview
           key={video.file.name}
-          service="Instagram"
+          service="YouTube"
           video={video}
           index={index}
+          references={references}
+          avatarUrl={ytUserInfo?.thumbnail || ""}
           sequentialDate={sequentialDate}
           editAll={editAll}
-          avatarUrl={igUserInfo?.profile_picture_url || ""}
-          nickname={igUserInfo?.username || ""}
+          nickname={ytUserInfo?.userName || ""}
           onSubmit={onSubmit}
-          disabled={!!video.url ? false : true}
+          disabled={videos[index]?.title === ""}
           setResetVideos={setResetVideos}
           setUploadVideoModalOpen={setUploadVideoModalOpen}
           videos={videos}
           setVideos={setVideos}
+          editMultiple={editMultiple}
+          setEditMultiple={setEditMultiple}
         >
-          <div className="flex flex-col gap-4 w-full">
-            <UploadTextarea
-              editAll={editAll}
-              videos={videos}
-              setVideos={setVideos}
-              index={index}
-              localReferences={localReferences}
-              setLocalReferences={setLocalReferences}
-              header="Video Caption"
-              placeholder="Main video caption"
-              type="caption"
-            />
-
-            <div className="flex gap-2">
+          {/* instagram video specific fields */}
+          {editMultiple?.instagram && (
+          <div className="flex flex-col gap-4 w-full border-2 border-blue-600 rounded p-4">
+          <div className="flex gap-2">
               <div className="shrink-0">
                 <p className="text-sm font-medium">Select Media Type</p>
                 <p className="text-xs text-gray-500">Choose the type of<br /> media you are uploading</p>
@@ -247,50 +216,141 @@ const InstagramUploadDialogContent = ({ videos, setVideos, references, setResetV
               </div>
             </div>
           </div>
+          )}
+          {/* youtube video specific fields */}
+          {editMultiple?.youtube && (
+          <div className="flex flex-col gap-4 w-full border-2 border-red-600 rounded p-4">
+            <UploadTextarea
+              editAll={editAll}
+              videos={videos}
+              setVideos={setVideos}
+              index={index}
+              localReferences={localReferences}
+              setLocalReferences={setLocalReferences}
+              header="Description"
+              placeholder="Description displayed on YouTube"
+              type="description"
+            />
+
+            <div className="flex gap-2">
+              <div className="shrink-0">
+                <p className="text-sm font-medium">Video category</p>
+                <p className="text-xs text-gray-500">Genre type</p>
+              </div>
+              <div className="w-full">
+                <Select
+                  onValueChange={(value) => editAll ?
+                    !!videos && setVideos(videos.map((video) => ({ ...video, categoryId: value }))) :
+                    !!videos && setVideos(videos.map((v, i) => i === index ? { ...v, categoryId: value } : v))}
+                  value={videos && videos[index]?.categoryId}
+                >
+                  <SelectTrigger className="outline-0 border border-gray-300 bg-transparent rounded h-10">
+                    <SelectValue placeholder="Select an option" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {CATEGORIES.map((item) => (
+                      <SelectItem key={item.id} value={item.id}>
+                        {item.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+
+            <div className="flex gap-2">
+              <div className="shrink-0">
+                <p className="text-sm font-medium">Video Tags</p>
+                <p className="text-xs text-gray-500">Keywords</p>
+              </div>
+              <TagsInput
+                onAddTags={(tag) => editAll ?
+                  !!videos && setVideos(videos.map((video) => ({ ...video, tags: video.tags ? `${video.tags},${tag}` : tag }))) :
+                  !!videos && setVideos(videos.map((v, i) => i === index ? { ...v, tags: v.tags ? `${v.tags},${tag}` : tag } : v))}
+                onRemoveTags={(indexToRemove) => editAll ? !!videos && setVideos(videos.map((video) => {
+                  let tagsArr = video.tags?.split(",")
+                  tagsArr?.splice(indexToRemove, 1)
+                  const tagsString = tagsArr?.join(",")
+                  return { ...video, tags: tagsString }
+                })) : setVideos(videos.map((v, i) => {
+                  let tagsArr = video.tags?.split(",")
+                  tagsArr?.splice(indexToRemove, 1)
+                  const tagsString = tagsArr?.join(",")
+                  return i === index ? { ...v, tags: tagsString } : { ...v }
+                }))}
+                tags={videos[index]?.tags?.split(",") || []}
+              />
+              <div className="flex items-start pr-1">
+                <KeyReferenceAddButton
+                  type="tags"
+                  value={videos && videos[index]?.["tags"] || ""}
+                  localReferences={localReferences}
+                  setLocalReferences={setLocalReferences}
+                />
+                <KeyReferenceMenuButton
+                  type="tags"
+                  localReferences={localReferences}
+                  setLocalReferences={setLocalReferences}
+                  callback={(key, value) => editAll ?
+                    setVideos(videos.map((video) => ({ ...video, [key]: value }))) :
+                    setVideos(videos.map((v, i) => i === index ? { ...v, [key]: value } : v))}
+                />
+              </div>
+            </div>
+          </div>
+          )}
+          {/* tiktok video specific fields */}
+          {editMultiple?.tiktok && (
+<TiktokSpecificFields
+            videos={videos as unknown as TikTokVideoProps[]}
+            setVideos={setVideos}
+            index={index}
+            editAll={editAll}
+            tiktokCreatorInfo={tiktokCreatorInfo}
+          />
+          )}
         </UploadPreview>
       ))}
 
-      {videos && videos.length > 1 && (
-        <>
-          <div className="flex gap-2 mt-5">
-            <Button
-              variant="secondary"
-              type="button"
-              onClick={() => {
-                setVideos([])
-              }}
-              className="flex flex-1 gap-2"
-            >
-              <RotateCcw strokeWidth={2} />
-              Reset Video{videos && videos?.length > 1 ? "s" : ""}
-            </Button>
-            <Button
-              variant="secondary"
-              type="submit"
-              // disabled={!videos?.every(v => v.privacyStatus !== "" || !v.directPost)}
-              onClick={(e) => {
-                e.preventDefault();
-                setConfirmUploadVideoModalOpen(true);
-              }}
-              className="flex flex-1 items-center gap-2"
-            >
-              <CloudUpload />
-              Upload {videos && videos.length} Video{videos && videos.length > 1 ? "s" : ""} to Instagram
-            </Button>
-          </div>
-        </>
+      {!!videos.length && videos.length > 1 && (
+        <div className="flex gap-2 mt-5">
+          <Button
+            variant="secondary"
+            type="button"
+            onClick={() => {
+              setVideos([])
+            }}
+            disabled={false}
+            className="flex flex-1 gap-2"
+          >
+            <RotateCcw strokeWidth={2} />
+            Reset Video{videos && videos?.length > 1 ? "s" : ""}
+          </Button>
+          <Button
+            variant="secondary"
+            type="button"
+            onClick={() => {
+              setConfirmUploadVideoModalOpen(true);
+            }}
+            disabled={false}
+            className="flex gap-2 items-center flex-1"
+          >
+            <CloudUpload />
+            {`Upload ${videos.length} Video${videos.length > 1 ? "s" : ""} to YouTube`}
+          </Button>
+        </div>
       )}
       <Dialog
         open={confirmUploadVideoModalOpen}
         onOpenChange={setConfirmUploadVideoModalOpen}
       >
         <DialogContent className="sm:max-w-3xl" aria-describedby="Upload Video Dialog">
-          <DialogTitle>Upload Video to TikTok</DialogTitle>
+          <DialogTitle>Upload Video to YouTube</DialogTitle>
           {uploadingAfterSubmit ? (
             <>
               <Progress value={progress} />
               <p className="text-sm text-gray-600 dark:text-gray-400">
-                Your video is being uploaded to TikTok. This may take a few minutes depending on the size of your video and your internet connection. You may close this dialog and continue using the app while the upload is in progress.
+                Your video is being uploaded to YouTube. This may take a few minutes depending on the size of your video and your internet connection. You may close this dialog and continue using the app while the upload is in progress.
               </p>
             </>
           ) : (
@@ -339,8 +399,8 @@ const InstagramUploadDialogContent = ({ videos, setVideos, references, setResetV
           </DialogFooter>
         </DialogContent>
       </Dialog>
-    </form>
-  )
-}
+    </div>
+  );
+};
 
-export default InstagramUploadDialogContent;
+export default UploadDialogContent;

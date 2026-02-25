@@ -6,15 +6,17 @@ type UploadTextareaProps = {
   editAll: boolean;
   videos: any[];
   setVideos: Dispatch<SetStateAction<any[]>>;
+  editMultiple?: { [service: string]: boolean };
+  setEditMultiple?: Dispatch<SetStateAction<{ [service: string]: boolean }>>;
   index: number;
-  localReferences:  {
+  localReferences: {
     title: string;
     value: string;
     type: string;
     id: string;
     userId: string | null;
     publish: boolean;
-}[];
+  }[];
   setLocalReferences: Dispatch<SetStateAction<{
     id: string;
     userId: string | null;
@@ -22,15 +24,41 @@ type UploadTextareaProps = {
     value: string;
     type: string;
     publish: boolean;
-}[]>>
+  }[]>>
   header: string;
   placeholder: string;
   type: string;
 }
 
-const UploadTextarea = ({ editAll, videos, setVideos, index, localReferences, setLocalReferences, header, placeholder, type }: UploadTextareaProps) => {
+const UploadTextarea = ({
+  editAll,
+  videos,
+  setVideos,
+  index,
+  localReferences,
+  setLocalReferences,
+  editMultiple,
+  setEditMultiple,
+  header,
+  placeholder,
+  type
+}: UploadTextareaProps) => {
+  console.log('-----', editMultiple)
   return (
-    <div className="flex flex-col gap-2">
+    <div className="relative flex flex-col gap-2">
+      {!!editMultiple && Object.values(editMultiple).filter(Boolean).length > 0 && (
+        <div className="absolute top-0 right-0 flex gap-1">
+          {editMultiple?.instagram && (
+            <p className="bg-yellow-100 text-yellow-800 text-xs px-1 py-px rounded">IG</p>
+          )}
+          {editMultiple?.youtube && (
+            <p className="bg-yellow-100 text-yellow-800 text-xs px-1 py-px rounded">YT</p>
+          )}
+          {editMultiple?.tiktok && (
+            <p className="bg-yellow-100 text-yellow-800 text-xs px-1 py-px rounded">TT</p>
+          )}
+        </div>
+      )}
       <p className="text-sm font-medium">{header}</p>
       <div className="relative group/caption">
         <textarea
@@ -43,7 +71,7 @@ const UploadTextarea = ({ editAll, videos, setVideos, index, localReferences, se
           value={videos && videos[index]?.[type]}
           maxLength={100}
         />
-        <div className="absolute bottom-4 right-4 text-xs text-gray-500">{videos && videos[index]?.[type].length}/100</div>
+        <div className="absolute bottom-4 right-4 text-xs text-gray-500">{videos && videos[index]?.[type]?.length}/100</div>
         <div className="absolute hidden group-hover/caption:flex top-1/2 right-2 -translate-y-1/2">
           <KeyReferenceAddButton
             type={type}

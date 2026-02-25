@@ -1,4 +1,5 @@
 import Button from "@/app/components/primitives/Button";
+import UploadTextarea from "@/app/components/UploadTextarea";
 import {
   Dialog,
   DialogClose,
@@ -24,6 +25,7 @@ import { Check, ChevronDown, TriangleAlert } from "lucide-react";
 import Image from "next/image";
 import formatFileSize from "@/app/utils/formatFileSize";
 import { cn } from "@/app/utils/cn";
+import { Reference } from "@prisma/client";
 import { ReactNode, useEffect, useState } from "react";
 import { InstagramVideoProps, SanitizedVideoProps, TikTokVideoProps } from "@/types";
 import moment from "moment";
@@ -32,6 +34,7 @@ type UploadPreviewProps = {
   children: ReactNode;
   video: TikTokVideoProps | InstagramVideoProps | SanitizedVideoProps;
   videos: (TikTokVideoProps | InstagramVideoProps | SanitizedVideoProps)[];
+  references?: Reference[];
   setVideos: React.Dispatch<React.SetStateAction<(TikTokVideoProps | InstagramVideoProps | SanitizedVideoProps)[]>>;
   index: number;
   editAll: boolean;
@@ -47,11 +50,14 @@ type UploadPreviewProps = {
   disabledReason?: string;
   setResetVideos?: (reset: boolean) => void;
   setUploadVideoModalOpen?: (open: boolean) => void;
+  editMultiple: { [service: string]: boolean };
+  setEditMultiple: React.Dispatch<React.SetStateAction<{ [service: string]: boolean }>>;
 };
 
 const UploadPreview = ({
   video,
   videos,
+  references,
   setVideos,
   index,
   editAll,
@@ -64,12 +70,15 @@ const UploadPreview = ({
   disabledReason,
   children,
   setResetVideos,
-  setUploadVideoModalOpen
+  setUploadVideoModalOpen,
+  editMultiple,
+  setEditMultiple
 }: UploadPreviewProps) => {
   const [confirmUploadVideoModalOpen, setConfirmUploadVideoModalOpen] = useState<boolean>(false);
   const [uploadingAfterSubmit, setUploadingAfterSubmit] = useState<boolean>(false);
   const [progress, setProgress] = useState<number>(0);
   const [publishNow, setPublishNow] = useState<boolean>(false);
+  const [localReferences, setLocalReferences] = useState<Reference[]>(references || []);
 
   useEffect(() => {
     if (uploadingAfterSubmit) {
@@ -95,19 +104,48 @@ const UploadPreview = ({
       <div className="flex flex-col">
         {(video?.url && video?.thumbnail) ? (
           <>
-            <div className="flex gap-2 items-center mb-6">
-              <div className="bg-green-600 rounded-full p-1">
-                <Check size={18} strokeWidth={4} className="text-white" />
+            <div className="flex flex-col gap-2 mb-6">
+              <div className="flex gap-2 items-center">
+                <div className="bg-green-600 rounded-full p-1">
+                  <Check size={18} strokeWidth={4} className="text-white" />
+                </div>
+                <p className="text-lg font-semibold">Your Video is Ready</p>
+                {videos.length > 1 && (<Button variant="outline" size="small" onClick={() => setVideos((prev) => {
+                  const currentVideos = [...prev]
+                  const updatedVideos = currentVideos.filter((_, i) => i !== index)
+                  return updatedVideos;
+                })}>
+                  Remove Video
+                </Button>
+                )}
               </div>
-              <p className="text-lg font-semibold">Your Video is Ready</p>
-              {videos.length > 1 && (<Button variant="outline" size="small" onClick={() => setVideos((prev) => {
-                const currentVideos = [...prev]
-                const updatedVideos = currentVideos.filter((_, i) => i !== index)
-                return updatedVideos;
-              })}>
-                Remove Video
-              </Button>
-              )}
+              <div className="flex gap-2">
+                <p className="text-sm text-gray-600">Apply changes to:</p>
+                <label className="flex items-center gap-1 text-sm text-gray-600">
+                  <input
+                    type="checkbox"
+                    checked={editMultiple["youtube"]}
+                    onChange={() => setEditMultiple((prev) => ({ ...prev, youtube: !prev.youtube }))}
+                  />
+                  YouTube
+                </label>
+                <label className="flex items-center gap-1 text-sm text-gray-600">
+                  <input
+                    type="checkbox"
+                    checked={editMultiple["instagram"]}
+                    onChange={() => setEditMultiple((prev) => ({ ...prev, instagram: !prev.instagram }))}
+                  />
+                  Instagram
+                </label>
+                <label className="flex items-center gap-1 text-sm text-gray-600">
+                  <input
+                    type="checkbox"
+                    checked={editMultiple["tiktok"]}
+                    onChange={() => setEditMultiple((prev) => ({ ...prev, tiktok: !prev.tiktok }))}
+                  />
+                  TikTok
+                </label>
+              </div>
             </div>
             <div className="flex flex-col rounded-lg overflow-hidden bg-black">
               <video
@@ -219,6 +257,20 @@ const UploadPreview = ({
               </label>
             </div>
           </div>
+
+          <UploadTextarea
+            editAll={editAll}
+            videos={videos}
+            setVideos={setVideos}
+            index={index}
+            localReferences={localReferences}
+            setLocalReferences={setLocalReferences}
+            editMultiple={editMultiple}
+            setEditMultiple={setEditMultiple}
+            header="Caption"
+            placeholder="Add a title that describes your video"
+            type="title"
+          />
 
           {children}
 

@@ -7,9 +7,7 @@ import {
   DialogFooter,
   DialogTitle,
 } from "@/app/components/primitives/Dialog";
-import InstagramUploadDialogContent from "@/app/components/InstagramUploadDialogContent";
-import TiktokUploadDialogContent from "@/app/components/TiktokUploadDialogContent";
-import YoutubeUploadDialogContent from "@/app/components/YoutubeUploadDialogContent";
+import UploadDialogContent from "@/app/components/UploadDialogContent";
 import useSetTiktokVideos from "@/app/hooks/use-set-tiktok-videos";
 import useSetInstagramVideos from "@/app/hooks/use-set-instagram-videos";
 import useSetYoutubeVideos from "@/app/hooks/use-set-youtube-videos";
@@ -40,13 +38,13 @@ const UploadVideo = ({ type, setResetVideos, references }: UploadVideoProps) => 
         reader.onload = async (event) => {
           const fileData = event.target?.result;
           if (!fileData) return;
-          
+
           const duration = await getVideoDuration(file) as number;
           if (duration > 3600) {
             alert("Video duration exceeds the maximum allowed length of 60 minutes.");
             return;
           }
-          
+
           if (type === "tiktok") {
             await setTiktokVideos(file, index, fileData as ArrayBuffer, setVideos);
           }
@@ -87,30 +85,14 @@ const UploadVideo = ({ type, setResetVideos, references }: UploadVideoProps) => 
             <DialogTitle>My Dialog Title</DialogTitle>
           </VisuallyHidden>
           {videos.length === 0 && (<div className="flex items-center justify-center mt-10"><Spinner /></div>)}
-          {type === "tiktok" && <TiktokUploadDialogContent
+          <UploadDialogContent
             videos={videos}
             setVideos={setVideos}
             setResetVideos={setResetVideos}
             setUploadVideoModalOpen={setUploadVideoModalOpen}
             references={references}
+            type={type}
           />
-          }
-          {type === "instagram" && <InstagramUploadDialogContent
-            videos={videos}
-            setVideos={setVideos}
-            setResetVideos={setResetVideos}
-            setUploadVideoModalOpen={setUploadVideoModalOpen}
-            references={references}
-          />
-          }
-          {type === "youtube" && <YoutubeUploadDialogContent
-            videos={videos}
-            setVideos={setVideos}
-            setResetVideos={setResetVideos}
-            setUploadVideoModalOpen={setUploadVideoModalOpen}
-            references={references}
-          />
-          }
           <DialogClose asChild>
             <Button variant="secondary" className="w-fit ml-auto mt-4">Close</Button>
           </DialogClose>
