@@ -14,7 +14,8 @@
     "db-push": "npx prisma db push",
     "migrate": "npx prisma migrate dev && prisma migrate deploy",
     "cron-tiktok": "curl http://localhost:3000/api/tiktok/cron/post-videos -H \"Authorization: Bearer 4@3Lng<W2=zz\"",
-    "cron-instagram": "curl http://localhost:3000/api/instagram/cron/post-videos -H \"Authorization: Bearer 4@3Lng<W2=zz\""
+    "cron-instagram": "curl http://localhost:3000/api/instagram/cron/post-videos -H \"Authorization: Bearer 4@3Lng<W2=zz\"",
+    "cron-refresh-tiktok": "curl http://localhost:3000/api/tiktok/cron/refresh-token -H \"Authorization: Bearer 4@3Lng<W2=zz\""
   },
   "dependencies": {
     "@ariakit/react": "^0.4.15",

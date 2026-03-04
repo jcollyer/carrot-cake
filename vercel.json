@@ -8,6 +8,10 @@
     {
       "path": "/api/tiktok/cron/post-videos",
       "schedule": "0 17 * * *"
+    },
+    {
+      "path": "/api/tiktok/cron/refresh-token",
+      "schedule": "0 0 * * *"
     }
   ]
 }
