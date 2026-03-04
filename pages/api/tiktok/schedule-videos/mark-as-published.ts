@@ -7,7 +7,7 @@ export default async function handler(
 ) {
   const videoUrl = req.body.videoUrl;
   const publishId = req.body.publishId;
-  console.log(`mark-as-published:------------ ${videoUrl} (publishId: ${publishId})`);
+  console.log(`mark-as-published: ${videoUrl} (publishId: ${publishId})`);
   try {
     const updatedVideo = await prisma.tiktokVideos.updateMany({
       where: {

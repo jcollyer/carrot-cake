@@ -29,7 +29,6 @@ export default async function GET(req: Request, res: Response) {
       const body = new URLSearchParams(
         params as Record<string, string>,
       ).toString();
-      console.log("Refreshing token with params:--->", body);
 
       const response = await fetch(tokenEndpoint, {
         method: "POST",

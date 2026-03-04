@@ -43,7 +43,7 @@ const UploadTextarea = ({
   placeholder,
   type
 }: UploadTextareaProps) => {
-  console.log('-----', editMultiple)
+
   return (
     <div className="relative flex flex-col gap-2">
       {!!editMultiple && Object.values(editMultiple).filter(Boolean).length > 0 && (
