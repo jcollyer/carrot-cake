@@ -47,7 +47,8 @@ const UploadDialogContent = ({
   setUploadVideoModalOpen,
   type,
 }: UploadDialogContentProps) => {
-  const tokens = getCookie("youtube-tokens");
+  const youtubeTokens = getCookie("youtube-tokens");
+  const tikTokAccessTokens = getCookie("tiktok-tokens") as string;
   const [editAll, setEditAll] = useState<boolean>(false);
   const [localReferences, setLocalReferences] = useState<Reference[]>(references || []);
   const [ytUserInfo, setYtUserInfo] = useState<YouTubeUserInfo | null>(null);
@@ -55,12 +56,29 @@ const UploadDialogContent = ({
   const [confirmUploadVideoModalOpen, setConfirmUploadVideoModalOpen] = useState<boolean>(false);
   const [uploadingAfterSubmit, setUploadingAfterSubmit] = useState<boolean>(false);
   const [progress, setProgress] = useState<number>(0);
-    const [editMultiple, setEditMultiple] = useState<{ [service: string]: boolean }>({
+  const [editMultiple, setEditMultiple] = useState<{ [service: string]: boolean }>({
     instagram: type === "instagram",
     tiktok: type === "tiktok",
     youtube: type === "youtube",
   });
-    const [tiktokCreatorInfo, setTiktokCreatorInfo] = useState<TikTokUserCreatorInfo>();
+  const [tiktokCreatorInfo, setTiktokCreatorInfo] = useState<TikTokUserCreatorInfo>();
+
+  const getTikTokCreatorInfo = async () => {
+    fetch("/api/tiktok/get-creator-info", {
+      method: "GET",
+    })
+      .then(response => response.json())
+      .then(async ({ data }) => {
+        await setTiktokCreatorInfo({ ...data });
+      })
+      .catch(error => {
+        console.error("Fetch error:", error);
+      });
+  }
+
+  useEffect(() => {
+    getTikTokCreatorInfo();
+  }, []);
 
 
   useEffect(() => {
@@ -79,8 +97,44 @@ const UploadDialogContent = ({
     }
   }, [uploadingAfterSubmit, progress]);
 
-  const onSubmit = async () => {
-    const accessToken = !!tokens && JSON.parse(tokens as string).access_token;
+  async function scheduleVideoToTikTok(video: TikTokVideoProps) {
+    try {
+      fetch("/api/tiktok/schedule-videos/create", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          videoUrl: video.url,
+          scheduledDate: new Date(video.scheduleDate || new Date()),
+          thumbnail: video.thumbnail,
+          accessToken: JSON.parse(tikTokAccessTokens)?.access_token,
+          refreshToken: JSON.parse(tikTokAccessTokens)?.refresh_token,
+          title: video.title,
+          yourBrand: video.yourBrand,
+          brandedContent: video.brandedContent,
+          privacyStatus: video.privacyStatus,
+          commercialUseContent: video.commercialUseContent,
+          commercialUseOrganic: video.commercialUseOrganic,
+          disableDuet: video.interactionType.duet,
+          disableComment: video.interactionType.comment,
+          disableStitch: video.interactionType.stitch,
+          draft: video.draft,
+        }),
+      }).then(response => response.json())
+        .then(async ({ data }) => {
+          console.log("Scheduled video response:", data);
+        })
+        .catch(error => {
+          console.error("Fetch error:", error);
+        });
+    } catch (error) {
+      console.error("Error scheduling video:", error);
+    }
+  }
+
+  const onSubmitYouTube = async () => {
+    const accessToken = !!youtubeTokens && JSON.parse(youtubeTokens as string).access_token;
 
     if (!accessToken) {
       console.error("No access token found");
@@ -95,15 +149,50 @@ const UploadDialogContent = ({
     }
   };
 
+  const onSubmitTikTok = async (index?: number, publishNow?: boolean) => {
+    if (!tikTokAccessTokens) {
+      console.error("No access token found");
+      return;
+    }
+    if (index !== undefined) {
+      if (publishNow) {
+        videos[index].scheduleDate = new Date().toISOString();
+        await scheduleVideoToTikTok(videos[index] as unknown as TikTokVideoProps);
+
+        // Wait 5 seconds to make sure video appears in Neon before calling direct-post
+        setTimeout(async () => {
+          await fetch("/api/tiktok/direct-post", {
+            method: "GET",
+          })
+            .then(response => response.json())
+            .then(async ({ message }) => {
+              console.log(message);
+            })
+            .catch(error => {
+              console.error("Fetch error:", error);
+            });
+        }, 5000);
+      } else {
+        await scheduleVideoToTikTok(videos[index] as unknown as TikTokVideoProps);
+      }
+    } else {
+      if (!!videos && videos.length > 0) {
+        for (const video of videos) {
+          await scheduleVideoToTikTok(video as unknown as TikTokVideoProps);
+        }
+      }
+    }
+  };
+
   useEffect(() => {
     const getUserInfo = async () => {
-      if (tokens) {
-        const data = await useGetYouTubeUserInfo({ tokens: tokens as string })
+      if (youtubeTokens) {
+        const data = await useGetYouTubeUserInfo({ tokens: youtubeTokens as string })
         setYtUserInfo({ ...data })
       }
     }
     getUserInfo()
-  }, [tokens]);
+  }, [youtubeTokens]);
 
   return (
     <div className="flex flex-col gap-6 overflow-y-auto max-h-[80vh]">
@@ -125,7 +214,7 @@ const UploadDialogContent = ({
       {videos && videos.length > 0 && videos.map((video, index) => (
         <UploadPreview
           key={video.file.name}
-          service="YouTube"
+          service={type === "youtube" ? "YouTube" : type === "tiktok" ? "TikTok" : "Instagram"}
           video={video}
           index={index}
           references={references}
@@ -133,7 +222,8 @@ const UploadDialogContent = ({
           sequentialDate={sequentialDate}
           editAll={editAll}
           nickname={ytUserInfo?.userName || ""}
-          onSubmit={onSubmit}
+          onSubmitYouTube={onSubmitYouTube}
+          onSubmitTikTok={onSubmitTikTok}
           disabled={videos[index]?.title === ""}
           setResetVideos={setResetVideos}
           setUploadVideoModalOpen={setUploadVideoModalOpen}
@@ -144,170 +234,170 @@ const UploadDialogContent = ({
         >
           {/* instagram video specific fields */}
           {editMultiple?.instagram && (
-          <div className="flex flex-col gap-4 w-full border-2 border-blue-600 rounded p-4">
-          <div className="flex gap-2">
-              <div className="shrink-0">
-                <p className="text-sm font-medium">Select Media Type</p>
-                <p className="text-xs text-gray-500">Choose the type of<br /> media you are uploading</p>
+            <div className="flex flex-col gap-4 w-full border-2 border-blue-600 rounded p-4">
+              <div className="flex gap-2">
+                <div className="shrink-0">
+                  <p className="text-sm font-medium">Select Media Type</p>
+                  <p className="text-xs text-gray-500">Choose the type of<br /> media you are uploading</p>
+                </div>
+                <div className="flex gap-4 flex-1">
+                  {Object.values(MEDIA_TYPES).map((option) => (
+                    <button
+                      key={option.name}
+                      className={cn("flex flex-col flex-1 items-center gap-2 mb-2 border border-gray-300 rounded p-2", {
+                        "border-blue-500": videos[index]?.mediaType === option.name,
+                      })}
+                      type="button"
+                      onClick={() => editAll ?
+                        !!videos && setVideos(videos.map((video) => ({ ...video, mediaType: option.name as "Stories" | "Videos" | "Reels" }))) :
+                        !!videos && setVideos(videos.map((v, i) => i === index ? { ...v, mediaType: option.name as "Stories" | "Videos" | "Reels" } : v))}
+                    >
+                      <option.icon strokeWidth={1.5} size={16} className={cn("text-gray-600", {
+                        "text-blue-500": videos[index]?.mediaType === option.name,
+                      })} />
+                      <p className={cn("text-sm capitalize", {
+                        "text-blue-500": videos[index]?.mediaType === option.name,
+                        "text-gray-500": videos[index]?.mediaType !== option.name,
+                      })}>
+                        {option.name}
+                      </p>
+                    </button>
+                  ))}
+                </div>
               </div>
-              <div className="flex gap-4 flex-1">
-                {Object.values(MEDIA_TYPES).map((option) => (
-                  <button
-                    key={option.name}
-                    className={cn("flex flex-col flex-1 items-center gap-2 mb-2 border border-gray-300 rounded p-2", {
-                      "border-blue-500": videos[index]?.mediaType === option.name,
-                    })}
-                    type="button"
-                    onClick={() => editAll ?
-                      !!videos && setVideos(videos.map((video) => ({ ...video, mediaType: option.name as "Stories" | "Videos" | "Reels" }))) :
-                      !!videos && setVideos(videos.map((v, i) => i === index ? { ...v, mediaType: option.name as "Stories" | "Videos" | "Reels" } : v))}
-                  >
-                    <option.icon strokeWidth={1.5} size={16} className={cn("text-gray-600", {
-                      "text-blue-500": videos[index]?.mediaType === option.name,
-                    })} />
-                    <p className={cn("text-sm capitalize", {
-                      "text-blue-500": videos[index]?.mediaType === option.name,
-                      "text-gray-500": videos[index]?.mediaType !== option.name,
-                    })}>
-                      {option.name}
-                    </p>
-                  </button>
-                ))}
-              </div>
-            </div>
 
-            <div className="flex gap-2">
-              <div className="shrink-0">
-                <p className="text-sm font-medium">Video Tags</p>
-                <p className="text-xs text-gray-500">Keywords</p>
-              </div>
-              <TagsInput
-                onAddTags={(tag) => editAll ?
-                  !!videos && setVideos(videos.map((video) => ({ ...video, tags: video.tags ? `${video.tags},${tag}` : tag }))) :
-                  !!videos && setVideos(videos.map((v, i) => i === index ? { ...v, tags: v.tags ? `${v.tags},${tag}` : tag } : v))}
-                onRemoveTags={(indexToRemove) => editAll ? !!videos && setVideos(videos.map((video) => {
-                  let tagsArr = video.tags?.split(",")
-                  tagsArr?.splice(indexToRemove, 1)
-                  const tagsString = tagsArr?.join(",")
-                  return { ...video, tags: tagsString }
-                })) : setVideos(videos.map((v, i) => {
-                  let tagsArr = video.tags?.split(",")
-                  tagsArr?.splice(indexToRemove, 1)
-                  const tagsString = tagsArr?.join(",")
-                  return i === index ? { ...v, tags: tagsString } : { ...v }
-                }))}
-                tags={videos[index]?.tags?.split(",") || []}
-              />
-              <div className="flex items-start pr-1">
-                <KeyReferenceAddButton
-                  type="tags"
-                  value={videos && videos[index]?.["tags"] || ""}
-                  localReferences={localReferences}
-                  setLocalReferences={setLocalReferences}
+              <div className="flex gap-2">
+                <div className="shrink-0">
+                  <p className="text-sm font-medium">Video Tags</p>
+                  <p className="text-xs text-gray-500">Keywords</p>
+                </div>
+                <TagsInput
+                  onAddTags={(tag) => editAll ?
+                    !!videos && setVideos(videos.map((video) => ({ ...video, tags: video.tags ? `${video.tags},${tag}` : tag }))) :
+                    !!videos && setVideos(videos.map((v, i) => i === index ? { ...v, tags: v.tags ? `${v.tags},${tag}` : tag } : v))}
+                  onRemoveTags={(indexToRemove) => editAll ? !!videos && setVideos(videos.map((video) => {
+                    let tagsArr = video.tags?.split(",")
+                    tagsArr?.splice(indexToRemove, 1)
+                    const tagsString = tagsArr?.join(",")
+                    return { ...video, tags: tagsString }
+                  })) : setVideos(videos.map((v, i) => {
+                    let tagsArr = video.tags?.split(",")
+                    tagsArr?.splice(indexToRemove, 1)
+                    const tagsString = tagsArr?.join(",")
+                    return i === index ? { ...v, tags: tagsString } : { ...v }
+                  }))}
+                  tags={videos[index]?.tags?.split(",") || []}
                 />
-                <KeyReferenceMenuButton
-                  type="tags"
-                  localReferences={localReferences}
-                  setLocalReferences={setLocalReferences}
-                  callback={(key, value) => editAll ?
-                    setVideos(videos.map((video) => ({ ...video, [key]: value }))) :
-                    setVideos(videos.map((v, i) => i === index ? { ...v, [key]: value } : v))}
-                />
+                <div className="flex items-start pr-1">
+                  <KeyReferenceAddButton
+                    type="tags"
+                    value={videos && videos[index]?.["tags"] || ""}
+                    localReferences={localReferences}
+                    setLocalReferences={setLocalReferences}
+                  />
+                  <KeyReferenceMenuButton
+                    type="tags"
+                    localReferences={localReferences}
+                    setLocalReferences={setLocalReferences}
+                    callback={(key, value) => editAll ?
+                      setVideos(videos.map((video) => ({ ...video, [key]: value }))) :
+                      setVideos(videos.map((v, i) => i === index ? { ...v, [key]: value } : v))}
+                  />
+                </div>
               </div>
             </div>
-          </div>
           )}
           {/* youtube video specific fields */}
           {editMultiple?.youtube && (
-          <div className="flex flex-col gap-4 w-full border-2 border-red-600 rounded p-4">
-            <UploadTextarea
-              editAll={editAll}
-              videos={videos}
-              setVideos={setVideos}
-              index={index}
-              localReferences={localReferences}
-              setLocalReferences={setLocalReferences}
-              header="Description"
-              placeholder="Description displayed on YouTube"
-              type="description"
-            />
-
-            <div className="flex gap-2">
-              <div className="shrink-0">
-                <p className="text-sm font-medium">Video category</p>
-                <p className="text-xs text-gray-500">Genre type</p>
-              </div>
-              <div className="w-full">
-                <Select
-                  onValueChange={(value) => editAll ?
-                    !!videos && setVideos(videos.map((video) => ({ ...video, categoryId: value }))) :
-                    !!videos && setVideos(videos.map((v, i) => i === index ? { ...v, categoryId: value } : v))}
-                  value={videos && videos[index]?.categoryId}
-                >
-                  <SelectTrigger className="outline-0 border border-gray-300 bg-transparent rounded h-10">
-                    <SelectValue placeholder="Select an option" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {CATEGORIES.map((item) => (
-                      <SelectItem key={item.id} value={item.id}>
-                        {item.label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-
-            <div className="flex gap-2">
-              <div className="shrink-0">
-                <p className="text-sm font-medium">Video Tags</p>
-                <p className="text-xs text-gray-500">Keywords</p>
-              </div>
-              <TagsInput
-                onAddTags={(tag) => editAll ?
-                  !!videos && setVideos(videos.map((video) => ({ ...video, tags: video.tags ? `${video.tags},${tag}` : tag }))) :
-                  !!videos && setVideos(videos.map((v, i) => i === index ? { ...v, tags: v.tags ? `${v.tags},${tag}` : tag } : v))}
-                onRemoveTags={(indexToRemove) => editAll ? !!videos && setVideos(videos.map((video) => {
-                  let tagsArr = video.tags?.split(",")
-                  tagsArr?.splice(indexToRemove, 1)
-                  const tagsString = tagsArr?.join(",")
-                  return { ...video, tags: tagsString }
-                })) : setVideos(videos.map((v, i) => {
-                  let tagsArr = video.tags?.split(",")
-                  tagsArr?.splice(indexToRemove, 1)
-                  const tagsString = tagsArr?.join(",")
-                  return i === index ? { ...v, tags: tagsString } : { ...v }
-                }))}
-                tags={videos[index]?.tags?.split(",") || []}
+            <div className="flex flex-col gap-4 w-full border-2 border-red-600 rounded p-4">
+              <UploadTextarea
+                editAll={editAll}
+                videos={videos}
+                setVideos={setVideos}
+                index={index}
+                localReferences={localReferences}
+                setLocalReferences={setLocalReferences}
+                header="Description"
+                placeholder="Description displayed on YouTube"
+                type="description"
               />
-              <div className="flex items-start pr-1">
-                <KeyReferenceAddButton
-                  type="tags"
-                  value={videos && videos[index]?.["tags"] || ""}
-                  localReferences={localReferences}
-                  setLocalReferences={setLocalReferences}
+
+              <div className="flex gap-2">
+                <div className="shrink-0">
+                  <p className="text-sm font-medium">Video category</p>
+                  <p className="text-xs text-gray-500">Genre type</p>
+                </div>
+                <div className="w-full">
+                  <Select
+                    onValueChange={(value) => editAll ?
+                      !!videos && setVideos(videos.map((video) => ({ ...video, categoryId: value }))) :
+                      !!videos && setVideos(videos.map((v, i) => i === index ? { ...v, categoryId: value } : v))}
+                    value={videos && videos[index]?.categoryId}
+                  >
+                    <SelectTrigger className="outline-0 border border-gray-300 bg-transparent rounded h-10">
+                      <SelectValue placeholder="Select an option" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {CATEGORIES.map((item) => (
+                        <SelectItem key={item.id} value={item.id}>
+                          {item.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+
+              <div className="flex gap-2">
+                <div className="shrink-0">
+                  <p className="text-sm font-medium">Video Tags</p>
+                  <p className="text-xs text-gray-500">Keywords</p>
+                </div>
+                <TagsInput
+                  onAddTags={(tag) => editAll ?
+                    !!videos && setVideos(videos.map((video) => ({ ...video, tags: video.tags ? `${video.tags},${tag}` : tag }))) :
+                    !!videos && setVideos(videos.map((v, i) => i === index ? { ...v, tags: v.tags ? `${v.tags},${tag}` : tag } : v))}
+                  onRemoveTags={(indexToRemove) => editAll ? !!videos && setVideos(videos.map((video) => {
+                    let tagsArr = video.tags?.split(",")
+                    tagsArr?.splice(indexToRemove, 1)
+                    const tagsString = tagsArr?.join(",")
+                    return { ...video, tags: tagsString }
+                  })) : setVideos(videos.map((v, i) => {
+                    let tagsArr = video.tags?.split(",")
+                    tagsArr?.splice(indexToRemove, 1)
+                    const tagsString = tagsArr?.join(",")
+                    return i === index ? { ...v, tags: tagsString } : { ...v }
+                  }))}
+                  tags={videos[index]?.tags?.split(",") || []}
                 />
-                <KeyReferenceMenuButton
-                  type="tags"
-                  localReferences={localReferences}
-                  setLocalReferences={setLocalReferences}
-                  callback={(key, value) => editAll ?
-                    setVideos(videos.map((video) => ({ ...video, [key]: value }))) :
-                    setVideos(videos.map((v, i) => i === index ? { ...v, [key]: value } : v))}
-                />
+                <div className="flex items-start pr-1">
+                  <KeyReferenceAddButton
+                    type="tags"
+                    value={videos && videos[index]?.["tags"] || ""}
+                    localReferences={localReferences}
+                    setLocalReferences={setLocalReferences}
+                  />
+                  <KeyReferenceMenuButton
+                    type="tags"
+                    localReferences={localReferences}
+                    setLocalReferences={setLocalReferences}
+                    callback={(key, value) => editAll ?
+                      setVideos(videos.map((video) => ({ ...video, [key]: value }))) :
+                      setVideos(videos.map((v, i) => i === index ? { ...v, [key]: value } : v))}
+                  />
+                </div>
               </div>
             </div>
-          </div>
           )}
           {/* tiktok video specific fields */}
           {editMultiple?.tiktok && (
-<TiktokSpecificFields
-            videos={videos as unknown as TikTokVideoProps[]}
-            setVideos={setVideos}
-            index={index}
-            editAll={editAll}
-            tiktokCreatorInfo={tiktokCreatorInfo}
-          />
+            <TiktokSpecificFields
+              videos={videos as unknown as TikTokVideoProps[]}
+              setVideos={setVideos}
+              index={index}
+              editAll={editAll}
+              tiktokCreatorInfo={tiktokCreatorInfo}
+            />
           )}
         </UploadPreview>
       ))}
@@ -373,7 +463,7 @@ const UploadDialogContent = ({
                 </DialogClose>
                 <Button
                   onClick={() => {
-                    onSubmit();
+                    onSubmitYouTube();
                     setUploadingAfterSubmit(true);
                   }}
                 >

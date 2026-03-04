@@ -44,7 +44,8 @@ type UploadPreviewProps = {
   } | undefined;
   avatarUrl: string | null;
   nickname: string;
-  onSubmit: (index?: number, publishNow?: boolean) => void;
+  onSubmitYouTube: (index?: number, publishNow?: boolean) => void;
+  onSubmitTikTok?: (index?: number, publishNow?: boolean) => void;
   disabled: boolean;
   service: "TikTok" | "Instagram" | "YouTube";
   disabledReason?: string;
@@ -64,7 +65,8 @@ const UploadPreview = ({
   sequentialDate,
   avatarUrl,
   nickname,
-  onSubmit,
+  onSubmitYouTube,
+  onSubmitTikTok,
   disabled,
   service,
   disabledReason,
@@ -338,7 +340,11 @@ const UploadPreview = ({
                 </DialogClose>
                 <Button
                   onClick={() => {
-                    onSubmit(index, publishNow);
+                    if (service === "TikTok") {
+                      onSubmitTikTok?.(index, publishNow);
+                    } else {
+                      onSubmitYouTube?.(index, publishNow);
+                    }
                     setUploadingAfterSubmit(true);
                   }}
                 >
