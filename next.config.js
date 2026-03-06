@@ -15,7 +15,7 @@ module.exports = {
       },
       {
         protocol: "https",
-        hostname: "scontent-sjc3-1.cdninstagram.com",
+        hostname: "scontent-*",
       },
       {
         protocol: "https",
