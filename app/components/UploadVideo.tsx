@@ -77,6 +77,7 @@ const UploadVideo = ({ type, setResetVideos, references }: UploadVideoProps) => 
           setUploadVideoModalOpen(open);
           if (!open) {
             setVideos([]);
+            setResetVideos?.(true);
           }
         }}
       >

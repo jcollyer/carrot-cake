@@ -79,7 +79,7 @@ const UploadDialogContent = ({
     youtube: type === "youtube",
   });
   const [tiktokCreatorInfo, setTiktokCreatorInfo] = useState<TikTokUserCreatorInfo>();
-    const [publishNow, setPublishNow] = useState<boolean>(false);
+  const [publishNow, setPublishNow] = useState<boolean>(false);
 
   const getTikTokCreatorInfo = async () => {
     fetch("/api/tiktok/get-creator-info", {
@@ -162,7 +162,7 @@ const UploadDialogContent = ({
     }
     if (!!videos.length) {
       for (const [i, video] of videos.entries()) {
-        useUploadYoutubeVideo({ accessToken, video, videos, setVideos });
+        // useUploadYoutubeVideo({ accessToken, video, videos, setVideos });
         if (i === videos.length - 1) {
         }
       }
@@ -288,7 +288,7 @@ const UploadDialogContent = ({
     const isYoutubeDisabled = (video?.type === "youtube" || editMultiple.youtube) && video?.title === "";
     const isTikTokDisabled = (video?.type === "tiktok" || editMultiple.tiktok) && video.directPost && (video.privacyStatus === "" || (video.disclose && (!video.yourBrand && !video.brandedContent)));
     const isInstagramDisabled = (video?.type === "instagram" || editMultiple.instagram) && !video?.videoType;
-    
+
     return isYoutubeDisabled || isTikTokDisabled || isInstagramDisabled;
   }, [videos]);
 
@@ -489,7 +489,6 @@ const UploadDialogContent = ({
                 type="title"
               />
 
-
               {/* instagram video specific fields */}
               {editMultiple?.instagram && (
                 <div className="flex flex-col gap-4 w-full border-2 border-blue-600 rounded p-4">
@@ -687,23 +686,17 @@ const UploadDialogContent = ({
             onOpenChange={setConfirmUploadVideoModalOpen}
           >
             <DialogContent className="sm:max-w-3xl" aria-describedby="Upload Video Dialog">
-              <DialogTitle>Upload Video to {type}</DialogTitle>
+              <DialogTitle>{`Upload Video to ${type === "youtube" ? "YouTube" : type === "tiktok" ? "TikTok" : "Instagram"}`}</DialogTitle>
               {uploadingAfterSubmit ? (
                 <>
                   <Progress value={progress} />
                   <p className="text-sm text-gray-600 dark:text-gray-400">
-                    Your video is being uploaded to {type}. This may take a few minutes depending on the size of your video and your internet connection. You may close this dialog and continue using the app while the upload is in progress.
+                    {`Your video is being uploaded to ${type === "youtube" ? "YouTube" : type === "tiktok" ? "TikTok" : "Instagram"}. This may take a few minutes depending on the size of your video and your internet connection. You may close this dialog and continue using the app while the upload is in progress.`}
                   </p>
                 </>
               ) : (
                 <div className="text-sm text-gray-600 dark:text-gray-400">
                   Please ensure that you have reviewed all the details and settings before proceeding with the upload.
-                  {type === "tiktok" && (
-                    <div className="flex gap-2 items-center bg-amber-100 text-amber-900 text-sm p-3 mt-4 rounded">
-                      <TriangleAlert size={18} />
-                      By posting, you agree to TikTok"s <a href="https://www.tiktok.com/legal/page/global/music-usage-confirmation/en" target="_blank" className="text-amber-600 underline">Music Usage Confirmation</a>.
-                    </div>
-                  )}
                 </div>
               )}
               <DialogFooter>
@@ -731,13 +724,12 @@ const UploadDialogContent = ({
                         setUploadingAfterSubmit(true);
                       }}
                     >
-                      Upload Video
+                      Upload {videos && videos.length} Video{videos && videos.length > 1 ? "s" : ""}
                     </Button>
                   </>
                 ) : (
                   <DialogClose asChild>
                     <Button
-                      disabled={progress < 100}
                       variant="outline"
                       onClick={() => {
                         setConfirmUploadVideoModalOpen(false);
@@ -745,7 +737,6 @@ const UploadDialogContent = ({
                         setUploadingAfterSubmit(false);
                         setResetVideos?.(true);
                         setProgress(0);
-                        setVideos([]);
                       }}
                     >
                       Close
@@ -785,64 +776,6 @@ const UploadDialogContent = ({
           </Button>
         </div>
       )}
-      <Dialog
-        open={confirmUploadVideoModalOpen}
-        onOpenChange={setConfirmUploadVideoModalOpen}
-      >
-        <DialogContent className="sm:max-w-3xl" aria-describedby="Upload Video Dialog">
-          <DialogTitle>{`Upload Video to ${type === "youtube" ? "YouTube" : type === "tiktok" ? "TikTok" : "Instagram"}`}</DialogTitle>
-          {uploadingAfterSubmit ? (
-            <>
-              <Progress value={progress} />
-              <p className="text-sm text-gray-600 dark:text-gray-400">
-                {`Your video is being uploaded to ${type === "youtube" ? "YouTube" : type === "tiktok" ? "TikTok" : "Instagram"}. This may take a few minutes depending on the size of your video and your internet connection. You may close this dialog and continue using the app while the upload is in progress.`}
-              </p>
-            </>
-          ) : (
-            <div className="text-sm text-gray-600 dark:text-gray-400">
-              Please ensure that you have reviewed all the details and settings before proceeding with the upload.
-            </div>
-          )}
-          <DialogFooter>
-            {!uploadingAfterSubmit ? (
-              <>
-                <DialogClose asChild>
-                  <Button
-                    variant="outline"
-                    onClick={() => {
-                      setConfirmUploadVideoModalOpen(false);
-                    }}
-                  >
-                    Cancel
-                  </Button>
-                </DialogClose>
-                <Button
-                  onClick={() => {
-                    setUploadingAfterSubmit(true);
-                  }}
-                >
-                  Upload {videos && videos.length} Video{videos && videos.length > 1 ? "s" : ""}
-                </Button>
-              </>
-            ) : (
-              <DialogClose asChild>
-                <Button
-                  variant="outline"
-                  onClick={() => {
-                    setConfirmUploadVideoModalOpen(false);
-                    setUploadVideoModalOpen?.(false);
-                    setUploadingAfterSubmit(false);
-                    setResetVideos?.(true);
-                    setProgress(0);
-                  }}
-                >
-                  Close
-                </Button>
-              </DialogClose>
-            )}
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
     </div>
   );
 };
