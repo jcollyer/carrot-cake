@@ -19,13 +19,13 @@ import TagsInput from "@/app/components/TagsInput";
 import { useGetYouTubeUserInfo } from "@/app/hooks/use-get-youtube-user-info";
 import { useUploadYoutubeVideo } from "@/app/hooks/use-upload-youtube-video";
 import { Reference } from "@prisma/client";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { RotateCcw, CloudUpload, Play, Video, Videotape } from "lucide-react";
 import { cn } from "@/app/utils/cn";
 import { getCookie } from "cookies-next"
 import { CATEGORIES } from "@/app/constants";
 
-import { SanitizedVideoProps, YouTubeUserInfo } from "@/types"
+import { InstagramUserInfo, InstagramVideoProps, SanitizedVideoProps, YouTubeUserInfo } from "@/types"
 import { TikTokUserCreatorInfo, TikTokVideoProps } from "@/types";
 
 const MEDIA_TYPES = [{ name: "Stories", icon: Play }, { name: "Videos", icon: Video }, { name: "Reels", icon: Videotape }];
@@ -49,9 +49,11 @@ const UploadDialogContent = ({
 }: UploadDialogContentProps) => {
   const youtubeTokens = getCookie("youtube-tokens");
   const tikTokAccessTokens = getCookie("tiktok-tokens") as string;
+   const igAccessTokens = getCookie("ig-access-token");
   const [editAll, setEditAll] = useState<boolean>(false);
   const [localReferences, setLocalReferences] = useState<Reference[]>(references || []);
   const [ytUserInfo, setYtUserInfo] = useState<YouTubeUserInfo | null>(null);
+  const [igUserInfo, setIgUserInfo] = useState<InstagramUserInfo | null>(null);
   const [sequentialDate, setSequentialDate] = useState<{ date: string, interval: number }>();
   const [confirmUploadVideoModalOpen, setConfirmUploadVideoModalOpen] = useState<boolean>(false);
   const [uploadingAfterSubmit, setUploadingAfterSubmit] = useState<boolean>(false);
@@ -77,8 +79,10 @@ const UploadDialogContent = ({
   }
 
   useEffect(() => {
-    getTikTokCreatorInfo();
-  }, []);
+    if(type === "tiktok") {
+      getTikTokCreatorInfo();
+    } 
+  }, [type]);
 
 
   useEffect(() => {
@@ -149,6 +153,65 @@ const UploadDialogContent = ({
     }
   };
 
+  async function scheduleVideoToInstagram(video: InstagramVideoProps) {
+    try {
+      fetch("/api/instagram/schedule-videos/create", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          videoUrl: video.url,
+          videoType: video.videoType,
+          videoCaption: video.caption,
+          scheduledDate: new Date(video.scheduleDate || new Date()),
+          thumbnail: video.thumbnail,
+          accessToken: !!igAccessTokens && JSON.parse(igAccessTokens as string).access_token,
+          InstagramuserId: igUserInfo?.id,
+        }),
+      }).catch((error) => {
+        console.error("Error scheduling video:", error);
+      });
+    } catch (error) {
+      console.error("Error scheduling video:", error);
+    }
+  }
+
+  const onSubmitInstagram = async (index?: number, publishNow?: boolean) => {
+    if (!igAccessTokens || !JSON.parse(igAccessTokens as string).access_token) {
+      console.error("No access token found");
+      return;
+    }
+    if (index !== undefined) {
+      if (publishNow) {
+        videos[index].scheduleDate = new Date().toISOString();
+        await scheduleVideoToInstagram(videos[index] as unknown as InstagramVideoProps);
+
+        // Wait 5 seconds to make sure video appears in Neon before calling direct-post
+        setTimeout(async () => {
+          await fetch("/api/instagram/direct-post", {
+            method: "GET",
+          })
+            .then(response => response.json())
+            .then(async ({ message }) => {
+              console.log(message);
+            })
+            .catch(error => {
+              console.error("Fetch error:", error);
+            });
+        }, 5000);
+      } else {
+        await scheduleVideoToInstagram(videos[index] as unknown as InstagramVideoProps);
+      }
+    } else {
+      if (!!videos && videos.length > 0) {
+        for (const video of videos) {
+          await scheduleVideoToInstagram(video as unknown as InstagramVideoProps);
+        }
+      }
+    }
+  };
+
   const onSubmitTikTok = async (index?: number, publishNow?: boolean) => {
     if (!tikTokAccessTokens) {
       console.error("No access token found");
@@ -194,6 +257,26 @@ const UploadDialogContent = ({
     getUserInfo()
   }, [youtubeTokens]);
 
+  useEffect(() => {
+    const getUserInfo = async () => {
+      if (igAccessTokens) {
+        const data = await fetch("/api/instagram/get-user-data")
+          .then((data) => data.json());
+        setIgUserInfo({ ...data });
+      }
+    }
+    getUserInfo()
+  }, [igAccessTokens]);
+
+  const isDisabled = useMemo(() => (video: SanitizedVideoProps, index: number):boolean => {
+    const isYoutubeDisabled = (video?.type === "youtube" || editMultiple.youtube) && videos[index]?.title === "";
+    const isTikTokDisabled = (video?.type === "tiktok" || editMultiple.tiktok) && video.directPost && (video.privacyStatus === "" || (video.disclose && (!video.yourBrand && !video.brandedContent)));
+    const isInstagramDisabled = (video?.type === "instagram" || editMultiple.instagram) && !videos[index]?.videoType;
+    console.log('------', {isYoutubeDisabled, isTikTokDisabled, isInstagramDisabled, bool: videos[index]})
+    return isYoutubeDisabled || isTikTokDisabled || isInstagramDisabled;
+  }, [videos]);
+
+
   return (
     <div className="flex flex-col gap-6 overflow-y-auto max-h-[80vh]">
       <div className="flex justify-between items-center mb-4">
@@ -224,7 +307,8 @@ const UploadDialogContent = ({
           nickname={ytUserInfo?.userName || ""}
           onSubmitYouTube={onSubmitYouTube}
           onSubmitTikTok={onSubmitTikTok}
-          disabled={videos[index]?.title === ""}
+          onSubmitInstagram={onSubmitInstagram}
+          disabled={isDisabled(video, index)}
           setResetVideos={setResetVideos}
           setUploadVideoModalOpen={setUploadVideoModalOpen}
           videos={videos}
@@ -245,19 +329,19 @@ const UploadDialogContent = ({
                     <button
                       key={option.name}
                       className={cn("flex flex-col flex-1 items-center gap-2 mb-2 border border-gray-300 rounded p-2", {
-                        "border-blue-500": videos[index]?.mediaType === option.name,
+                        "border-blue-500": videos[index]?.videoType === option.name,
                       })}
                       type="button"
                       onClick={() => editAll ?
-                        !!videos && setVideos(videos.map((video) => ({ ...video, mediaType: option.name as "Stories" | "Videos" | "Reels" }))) :
-                        !!videos && setVideos(videos.map((v, i) => i === index ? { ...v, mediaType: option.name as "Stories" | "Videos" | "Reels" } : v))}
+                        !!videos && setVideos(videos.map((video) => ({ ...video, videoType: option.name as "Stories" | "Videos" | "Reels" }))) :
+                        !!videos && setVideos(videos.map((v, i) => i === index ? { ...v, videoType: option.name as "Stories" | "Videos" | "Reels" } : v))}
                     >
                       <option.icon strokeWidth={1.5} size={16} className={cn("text-gray-600", {
-                        "text-blue-500": videos[index]?.mediaType === option.name,
+                        "text-blue-500": videos[index]?.videoType === option.name,
                       })} />
                       <p className={cn("text-sm capitalize", {
-                        "text-blue-500": videos[index]?.mediaType === option.name,
-                        "text-gray-500": videos[index]?.mediaType !== option.name,
+                        "text-blue-500": videos[index]?.videoType === option.name,
+                        "text-gray-500": videos[index]?.videoType !== option.name,
                       })}>
                         {option.name}
                       </p>
@@ -463,7 +547,6 @@ const UploadDialogContent = ({
                 </DialogClose>
                 <Button
                   onClick={() => {
-                    onSubmitYouTube();
                     setUploadingAfterSubmit(true);
                   }}
                 >

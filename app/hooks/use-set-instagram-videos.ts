@@ -19,7 +19,7 @@ export const useSetInstagramVideos = () => {
     const thumb = await generateVideoThumb(file);
     const resolution = await getVideoResolution(file);
     const thumbArrayBuffer = base64ToArrayBuffer(
-      (thumb as string).split(",")[1]
+      (thumb as string).split(",")[1],
     );
 
     setVideos((prev) => [
@@ -29,7 +29,7 @@ export const useSetInstagramVideos = () => {
         url: "",
         scheduleDate: moment().format("YYYY-MM-DDTHH:mm"),
         tags: undefined,
-        mediaType: "Stories",
+        videoType: "Stories",
         uploadProgress: 0,
         location: "",
         file,
@@ -42,7 +42,7 @@ export const useSetInstagramVideos = () => {
     fetch(
       `/api/s3/presigned?fileName=${
         file.name.split(".mp4")[0]
-      }-thumb.png&contentType=image/png&s3Bucket=AWS_S3_IG_THUMBS_BUCKET_NAME&region=us-east-2`
+      }-thumb.png&contentType=image/png&s3Bucket=AWS_S3_IG_THUMBS_BUCKET_NAME&region=us-east-2`,
     )
       .then((res) => res.json())
       .then((res) => {
@@ -54,14 +54,14 @@ export const useSetInstagramVideos = () => {
         }).then(async (data) => {
           const thumbnail = data?.url?.split("?")[0];
           setVideos((prev) =>
-            prev.map((v, i) => (i === index ? { ...v, thumbnail } : v))
+            prev.map((v, i) => (i === index ? { ...v, thumbnail } : v)),
           );
         });
       });
 
     // Upload the video to S3
     fetch(
-      `/api/s3/presigned?fileName=${file.name}&contentType=${file.type}&s3Bucket=AWS_S3_IG_BUCKET_NAME&region=us-east-2`
+      `/api/s3/presigned?fileName=${file.name}&contentType=${file.type}&s3Bucket=AWS_S3_IG_BUCKET_NAME&region=us-east-2`,
     )
       .then((res) => res.json())
       .then((res) => {
@@ -73,7 +73,7 @@ export const useSetInstagramVideos = () => {
         }).then(async (data) => {
           const url = data?.url?.split("?")[0];
           setVideos((prev) =>
-            prev.map((v, i) => (i === index ? { ...v, url } : v))
+            prev.map((v, i) => (i === index ? { ...v, url } : v)),
           );
         });
       });

@@ -36,8 +36,24 @@ export type SanitizedVideoProps = {
   title: string;
   thumbnail?: string;
   mediaType?: "IMAGE" | "VIDEO" | "CAROUSEL_ALBUM";
+  // Instagram specific
+  videoType?: "Stories" | "Videos" | "Reels";
+  // TikTok specific
+  privacyStatus?: string;
+  commercialUseContent?: boolean;
+  commercialUseOrganic?: boolean;
+  interactionType?: {
+    comment: boolean;
+    duet: boolean;
+    stitch: boolean;
+  };
+  directPost?: boolean;
+  disclose?: boolean;
+  yourBrand?: boolean;
+  brandedContent?: boolean;
   // Internal types
   uploadProgress?: number;
+  type?: "youtube" | "tiktok" | "instagram";
 };
 
 export interface TikTokVideo {
@@ -119,9 +135,10 @@ export interface InstagramVideoFromPlatform {
 }
 
 export type InstagramVideoProps = {
+  id?: string;
   url?: string;
   caption: string;
-  mediaType: "Stories" | "Videos" | "Reels";
+  videoType?: "Stories" | "Videos" | "Reels";
   tags?: string;
   location?: string;
   scheduleDate?: string;

@@ -46,6 +46,7 @@ type UploadPreviewProps = {
   nickname: string;
   onSubmitYouTube: (index?: number, publishNow?: boolean) => void;
   onSubmitTikTok?: (index?: number, publishNow?: boolean) => void;
+  onSubmitInstagram?: (index?: number, publishNow?: boolean) => void;
   disabled: boolean;
   service: "TikTok" | "Instagram" | "YouTube";
   disabledReason?: string;
@@ -67,6 +68,7 @@ const UploadPreview = ({
   nickname,
   onSubmitYouTube,
   onSubmitTikTok,
+  onSubmitInstagram,
   disabled,
   service,
   disabledReason,
@@ -340,9 +342,11 @@ const UploadPreview = ({
                 </DialogClose>
                 <Button
                   onClick={() => {
-                    if (service === "TikTok") {
+                    if (service === "TikTok" || editMultiple?.tiktok) {
                       onSubmitTikTok?.(index, publishNow);
-                    } else {
+                    } else if (service === "Instagram" || editMultiple?.instagram) {
+                      onSubmitInstagram?.(index, publishNow);
+                    } else if (service === "YouTube" || editMultiple?.youtube) {
                       onSubmitYouTube?.(index, publishNow);
                     }
                     setUploadingAfterSubmit(true);

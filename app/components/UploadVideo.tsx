@@ -52,7 +52,7 @@ const UploadVideo = ({ type, setResetVideos, references }: UploadVideoProps) => 
             await setInstagramVideos({ file, index, fileData: fileData as ArrayBuffer, setVideos });
           }
           if (type === "youtube") {
-            await setYoutubeVideos(file, setVideos);
+            await setYoutubeVideos(file, index, setVideos);
           }
         }
         reader.readAsArrayBuffer(file);
