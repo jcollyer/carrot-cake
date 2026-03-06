@@ -32,7 +32,7 @@ export const useSetYoutubeVideos = () => {
         thumbnail: thumb || transparentImage,
         uploadProgress: 0,
       },
-    ]);
+  ]);
 
 
     // Upload the thumbnail to S3

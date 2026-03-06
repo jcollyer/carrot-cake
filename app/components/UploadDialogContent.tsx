@@ -162,7 +162,7 @@ const UploadDialogContent = ({
     }
     if (!!videos.length) {
       for (const [i, video] of videos.entries()) {
-        // useUploadYoutubeVideo({ accessToken, video, videos, setVideos });
+        useUploadYoutubeVideo({ accessToken, video, videos, setVideos });
         if (i === videos.length - 1) {
         }
       }
@@ -714,13 +714,9 @@ const UploadDialogContent = ({
                     </DialogClose>
                     <Button
                       onClick={() => {
-                        if (type === "tiktok" || editMultiple?.tiktok) {
-                          onSubmitTikTok?.(index, publishNow);
-                        } else if (type === "instagram" || editMultiple?.instagram) {
-                          onSubmitInstagram?.(index, publishNow);
-                        } else if (type === "youtube" || editMultiple?.youtube) {
-                          onSubmitYouTube?.();
-                        }
+                        if (type === "tiktok" || editMultiple?.tiktok) onSubmitTikTok?.(index, publishNow);
+                        if (type === "instagram" || editMultiple?.instagram) onSubmitInstagram?.(index, publishNow);
+                        if (type === "youtube" || editMultiple?.youtube) onSubmitYouTube?.();
                         setUploadingAfterSubmit(true);
                       }}
                     >
