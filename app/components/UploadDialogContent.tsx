@@ -80,6 +80,7 @@ const UploadDialogContent = ({
   });
   const [tiktokCreatorInfo, setTiktokCreatorInfo] = useState<TikTokUserCreatorInfo>();
   const [publishNow, setPublishNow] = useState<boolean>(false);
+  const [publishAll, setPublishAll] = useState<boolean>(false);
 
   const getTikTokCreatorInfo = async () => {
     fetch("/api/tiktok/get-creator-info", {
@@ -136,9 +137,9 @@ const UploadDialogContent = ({
           privacyStatus: video.privacyStatus,
           commercialUseContent: video.commercialUseContent,
           commercialUseOrganic: video.commercialUseOrganic,
-          disableDuet: video.interactionType.duet,
-          disableComment: video.interactionType.comment,
-          disableStitch: video.interactionType.stitch,
+          disableDuet: !video.interactionType.duet,
+          disableComment: !video.interactionType.comment,
+          disableStitch: !video.interactionType.stitch,
           draft: video.draft,
         }),
       }).then(response => response.json())
@@ -193,7 +194,7 @@ const UploadDialogContent = ({
     }
   }
 
-  const onSubmitInstagram = async (index?: number, publishNow?: boolean) => {
+  const onSubmitInstagram = async ({index, publishNow}: {index?: number, publishNow?: boolean}) => {
     if (!igAccessTokens || !JSON.parse(igAccessTokens as string).access_token) {
       console.error("No access token found");
       return;
@@ -228,7 +229,7 @@ const UploadDialogContent = ({
     }
   };
 
-  const onSubmitTikTok = async (index?: number, publishNow?: boolean) => {
+  const onSubmitTikTok = async ({index, publishNow}: {index?: number, publishNow?: boolean}) => {
     if (!tikTokAccessTokens) {
       console.error("No access token found");
       return;
@@ -686,7 +687,7 @@ const UploadDialogContent = ({
             onOpenChange={setConfirmUploadVideoModalOpen}
           >
             <DialogContent className="sm:max-w-3xl" aria-describedby="Upload Video Dialog">
-              <DialogTitle>{`Upload Video to ${type === "youtube" ? "YouTube" : type === "tiktok" ? "TikTok" : "Instagram"}`}</DialogTitle>
+              <DialogTitle>{`Upload Video${videos.length > 1 ? "s" : ""} to ${type === "youtube" ? "YouTube" : type === "tiktok" ? "TikTok" : "Instagram"}`}</DialogTitle>
               {uploadingAfterSubmit ? (
                 <>
                   <Progress value={progress} />
@@ -714,10 +715,16 @@ const UploadDialogContent = ({
                     </DialogClose>
                     <Button
                       onClick={() => {
-                        if (type === "tiktok" || editMultiple?.tiktok) onSubmitTikTok?.(index, publishNow);
-                        if (type === "instagram" || editMultiple?.instagram) onSubmitInstagram?.(index, publishNow);
+                        if (type === "tiktok" || editMultiple?.tiktok) onSubmitTikTok?.({ ...(!publishAll && {index}), publishNow });
+                        if (type === "instagram" || editMultiple?.instagram) onSubmitInstagram?.({ ...(!publishAll && {index}), publishNow });
                         if (type === "youtube" || editMultiple?.youtube) onSubmitYouTube?.();
                         setUploadingAfterSubmit(true);
+                        setConfirmUploadVideoModalOpen(false);
+                        setUploadVideoModalOpen?.(false);
+                        setResetVideos?.(true);
+                        setPublishAll(false);
+                        setVideos([]);
+                        setProgress(0);
                       }}
                     >
                       Upload {videos && videos.length} Video{videos && videos.length > 1 ? "s" : ""}
@@ -732,6 +739,7 @@ const UploadDialogContent = ({
                         setUploadVideoModalOpen?.(false);
                         setUploadingAfterSubmit(false);
                         setResetVideos?.(true);
+                        setPublishAll(false); 
                         setProgress(0);
                       }}
                     >
@@ -763,8 +771,9 @@ const UploadDialogContent = ({
             type="button"
             onClick={() => {
               setConfirmUploadVideoModalOpen(true);
+              setPublishAll(true);
             }}
-            disabled={false}
+            disabled={videos.some((video) => isDisabled(video))}
             className="flex gap-2 items-center flex-1"
           >
             <CloudUpload />

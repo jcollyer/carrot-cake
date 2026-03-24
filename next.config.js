@@ -1,3 +1,4 @@
+
 module.exports = {
   images: {
     remotePatterns: [
@@ -19,8 +20,8 @@ module.exports = {
       },
       {
         protocol: "https",
-        hostname: "p16-common-sign.tiktokcdn-us.com",
-      },
+        hostname: "*.tiktokcdn*",
+      }
     ],
   },
 };

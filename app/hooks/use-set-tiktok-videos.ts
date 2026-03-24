@@ -4,12 +4,17 @@ import generateVideoThumb from "@/app/utils/generateVideoThumb";
 import { base64ToArrayBuffer } from "@/app/utils/base64ToArrayBuffer";
 
 export const useSetTiktokVideos = () => {
-  const setTiktokVideos = async (
+  const setTiktokVideos = async ({
+    file,
+    index,
+    fileData,
+    setVideos,
+  }:{
     file: File,
     index: number,
     fileData: ArrayBuffer,
     setVideos: React.Dispatch<React.SetStateAction<any[]>>,
-  ) => {
+  }) => {
     const resolution = await getVideoResolution(file);
     const thumb = await generateVideoThumb(file);
     const thumbArrayBuffer = base64ToArrayBuffer(

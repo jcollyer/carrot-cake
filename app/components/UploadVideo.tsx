@@ -46,7 +46,7 @@ const UploadVideo = ({ type, setResetVideos, references }: UploadVideoProps) => 
           }
 
           if (type === "tiktok") {
-            await setTiktokVideos(file, index, fileData as ArrayBuffer, setVideos);
+            await setTiktokVideos({ file, index, fileData: fileData as ArrayBuffer, setVideos });
           }
           if (type === "instagram") {
             await setInstagramVideos({ file, index, fileData: fileData as ArrayBuffer, setVideos });
