@@ -96,10 +96,10 @@ const UploadDialogContent = ({
   }
 
   useEffect(() => {
-    if (type === "tiktok") {
+    if (Object.keys(editMultiple).some(key => key === "tiktok" && editMultiple[key])) {
       getTikTokCreatorInfo();
     }
-  }, [type]);
+  }, [editMultiple]);
 
 
   useEffect(() => {
@@ -487,7 +487,7 @@ const UploadDialogContent = ({
                 setEditMultiple={setEditMultiple}
                 header="Caption"
                 placeholder="Add a title that describes your video"
-                type="title"
+                type={video.type === "instagram" ? "videoCaption" : "title"}
               />
 
               {/* instagram video specific fields */}
@@ -687,7 +687,7 @@ const UploadDialogContent = ({
             onOpenChange={setConfirmUploadVideoModalOpen}
           >
             <DialogContent className="sm:max-w-3xl" aria-describedby="Upload Video Dialog">
-              <DialogTitle>{`Upload Video${videos.length > 1 ? "s" : ""} to ${type === "youtube" ? "YouTube" : type === "tiktok" ? "TikTok" : "Instagram"}`}</DialogTitle>
+              <DialogTitle>{`Upload Video${videos.length > 1 ? "s" : ""} to ${Object.entries(editMultiple).filter(([_, value]) => value).map(([key]) => key.charAt(0).toUpperCase() + key.slice(1)).join(", ")}`}</DialogTitle>
               {uploadingAfterSubmit ? (
                 <>
                   <Progress value={progress} />
@@ -777,7 +777,7 @@ const UploadDialogContent = ({
             className="flex gap-2 items-center flex-1"
           >
             <CloudUpload />
-            {`Upload ${videos.length} Video${videos.length > 1 ? "s" : ""} to ${type === "youtube" ? "YouTube" : type === "tiktok" ? "TikTok" : "Instagram"}`}
+            {`Upload ${videos.length} Video${videos.length > 1 ? "s" : ""} to ${Object.entries(editMultiple).filter(([_, value]) => value).map(([key]) => key).join(", ")}`}
           </Button>
         </div>
       )}

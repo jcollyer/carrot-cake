@@ -1,5 +1,5 @@
 import Button from "@/app/components/primitives/Button";
-import { CloudUpload, Youtube } from "lucide-react";
+import { CloudUpload } from "lucide-react";
 import {
   Dialog,
   DialogClose,
