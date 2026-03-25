@@ -313,7 +313,7 @@ const UploadDialogContent = ({
           className="grid grid-cols-2 gap-8 md:flex md:gap-6"
         >
           <div className="flex flex-col">
-            {(video?.url && video?.thumbnail) ? (
+            {(video.type !== "youtube" || video?.url) && video?.thumbnail ? (
               <>
                 <div className="flex flex-col gap-2 mb-6">
                   <div className="flex gap-2 items-center">
