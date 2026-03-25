@@ -365,7 +365,7 @@ const UploadDialogContent = ({
                     className="bg-black h-[470px]"
                   >
                     <source
-                      src={video?.url ?? null}
+                      src={video?.url}
                       type={video?.file.type}
                     />
                     Your browser does not support the video tag.
