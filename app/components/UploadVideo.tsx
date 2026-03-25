@@ -14,16 +14,19 @@ import useSetYoutubeVideos from "@/app/hooks/use-set-youtube-videos";
 import Spinner from "./primitives/Spinner";
 import { VisuallyHidden } from "@/app/components/primitives/VisuallyHidden";
 import getVideoDuration from "@/app/utils/getVideoDuration";
+import getVideoResolution from "@/app/utils/getVideoResolution";
 import { Reference } from "@prisma/client";
 import { useDropzone } from "react-dropzone";
 import { useCallback } from "react";
 import { useState } from "react";
+import moment from "moment";
 
 type UploadVideoProps = {
   type: "tiktok" | "instagram" | "youtube";
   setResetVideos: React.Dispatch<React.SetStateAction<boolean>>;
   references: Reference[];
 };
+
 const UploadVideo = ({ type, setResetVideos, references }: UploadVideoProps) => {
   const { setTiktokVideos } = useSetTiktokVideos();
   const { setInstagramVideos } = useSetInstagramVideos();
@@ -34,6 +37,7 @@ const UploadVideo = ({ type, setResetVideos, references }: UploadVideoProps) => 
   const onDrop = useCallback((acceptedFiles: any) => {
     if (acceptedFiles.length) {
       acceptedFiles.forEach(async (file: any, index: number) => {
+        
         const reader = new FileReader();
         reader.onload = async (event) => {
           const fileData = event.target?.result;
@@ -54,6 +58,44 @@ const UploadVideo = ({ type, setResetVideos, references }: UploadVideoProps) => 
           if (type === "youtube") {
             await setYoutubeVideos(file, index, setVideos);
           }
+              const resolution = await getVideoResolution(file);
+          // Initialize video in state
+          setVideos((prev) => [
+            ...(prev || []),
+            {
+              file,
+              id: "",
+              url: "",
+              title: "",
+              thumbnail: "",
+              resolution,
+              scheduleDate: moment().format("YYYY-MM-DDTHH:MM"),
+              uploadProgress: 0,
+              draft: false,
+              tags: undefined,
+              type,
+              // TikTok specific fields
+              privacyStatus: "",
+              commercialUseContent: false,
+              commercialUseOrganic: false,
+              interactionType: {
+                comment: false,
+                duet: false,
+                stitch: false,
+              },
+              directPost: true,
+              disclose: false,
+              yourBrand: false,
+              brandedContent: false,
+              // Youtube specific fields
+              categoryId: "1",
+              description: "",
+              // Instagram specific fields
+              caption: "",
+              videoType: "Stories",
+              location: "",
+            },
+          ]);
         }
         reader.readAsArrayBuffer(file);
         setUploadVideoModalOpen(true);

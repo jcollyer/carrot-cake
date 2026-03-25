@@ -1,8 +1,6 @@
-import { InstagramVideoProps } from "@/types";
-import moment from "moment";
 import generateVideoThumb from "@/app/utils/generateVideoThumb";
 import { base64ToArrayBuffer } from "@/app/utils/base64ToArrayBuffer";
-import getVideoResolution from "@/app/utils/getVideoResolution";
+import { InstagramVideoProps } from "@/types";
 
 export const useSetInstagramVideos = () => {
   const setInstagramVideos = async ({
@@ -17,26 +15,9 @@ export const useSetInstagramVideos = () => {
     setVideos: React.Dispatch<React.SetStateAction<InstagramVideoProps[]>>;
   }) => {
     const thumb = await generateVideoThumb(file);
-    const resolution = await getVideoResolution(file);
     const thumbArrayBuffer = base64ToArrayBuffer(
       (thumb as string).split(",")[1],
     );
-
-    setVideos((prev) => [
-      ...prev,
-      {
-        caption: "",
-        url: "",
-        scheduleDate: moment().format("YYYY-MM-DDTHH:mm"),
-        tags: undefined,
-        videoType: "Stories",
-        uploadProgress: 0,
-        location: "",
-        file,
-        resolution,
-        thumbnail: thumb as string,
-      },
-    ]);
 
     // Upload the thumbnail to S3
     fetch(

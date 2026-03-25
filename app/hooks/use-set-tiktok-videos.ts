@@ -1,5 +1,3 @@
-import moment from "moment";
-import getVideoResolution from "@/app/utils/getVideoResolution";
 import generateVideoThumb from "@/app/utils/generateVideoThumb";
 import { base64ToArrayBuffer } from "@/app/utils/base64ToArrayBuffer";
 
@@ -15,39 +13,10 @@ export const useSetTiktokVideos = () => {
     fileData: ArrayBuffer,
     setVideos: React.Dispatch<React.SetStateAction<any[]>>,
   }) => {
-    const resolution = await getVideoResolution(file);
     const thumb = await generateVideoThumb(file);
     const thumbArrayBuffer = base64ToArrayBuffer(
       (thumb as string).split(",")[1]
     );
-
-    // Initialize video in state
-    setVideos((prev) => [
-      ...(prev || []),
-      {
-        file,
-        id: "",
-        url: "",
-        title: "",
-        thumbnail: "",
-        resolution,
-        privacyStatus: "",
-        commercialUseContent: false,
-        commercialUseOrganic: false,
-        interactionType: {
-          comment: false,
-          duet: false,
-          stitch: false,
-        },
-        scheduleDate: moment().format("YYYY-MM-DDTHH:MM"),
-        directPost: true,
-        disclose: false,
-        yourBrand: false,
-        brandedContent: false,
-        uploadProgress: 0,
-        draft: false,
-      },
-    ]);
 
     // Upload the thumbnail to S3
     await fetch(

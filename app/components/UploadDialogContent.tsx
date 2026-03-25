@@ -80,7 +80,6 @@ const UploadDialogContent = ({
   });
   const [tiktokCreatorInfo, setTiktokCreatorInfo] = useState<TikTokUserCreatorInfo>();
   const [publishNow, setPublishNow] = useState<boolean>(false);
-  const [publishAll, setPublishAll] = useState<boolean>(false);
 
   const getTikTokCreatorInfo = async () => {
     fetch("/api/tiktok/get-creator-info", {
@@ -137,9 +136,9 @@ const UploadDialogContent = ({
           privacyStatus: video.privacyStatus,
           commercialUseContent: video.commercialUseContent,
           commercialUseOrganic: video.commercialUseOrganic,
-          disableDuet: !video.interactionType.duet,
-          disableComment: !video.interactionType.comment,
-          disableStitch: !video.interactionType.stitch,
+          disableDuet: !video.interactionType?.duet,
+          disableComment: !video.interactionType?.comment,
+          disableStitch: !video.interactionType?.stitch,
           draft: video.draft,
         }),
       }).then(response => response.json())
@@ -194,70 +193,64 @@ const UploadDialogContent = ({
     }
   }
 
-  const onSubmitInstagram = async ({index, publishNow}: {index?: number, publishNow?: boolean}) => {
+  const onSubmitInstagram = async ({ publishNow }: { publishNow?: boolean }) => {
     if (!igAccessTokens || !JSON.parse(igAccessTokens as string).access_token) {
       console.error("No access token found");
       return;
     }
-    if (index !== undefined) {
-      if (publishNow) {
-        videos[index].scheduleDate = new Date().toISOString();
-        await scheduleVideoToInstagram(videos[index] as unknown as InstagramVideoProps);
 
-        // Wait 5 seconds to make sure video appears in Neon before calling direct-post
-        setTimeout(async () => {
-          await fetch("/api/instagram/direct-post", {
-            method: "GET",
-          })
-            .then(response => response.json())
-            .then(async ({ message }) => {
-              console.log(message);
+    if (!!videos && videos.length > 0) {
+      for (const video of videos) {
+        if (publishNow) {
+          video.scheduleDate = new Date().toISOString();
+          await scheduleVideoToInstagram(video as unknown as InstagramVideoProps);
+
+          // Wait 5 seconds to make sure video appears in Neon before calling direct-post
+          setTimeout(async () => {
+            await fetch("/api/instagram/direct-post", {
+              method: "GET",
             })
-            .catch(error => {
-              console.error("Fetch error:", error);
-            });
-        }, 5000);
-      } else {
-        await scheduleVideoToInstagram(videos[index] as unknown as InstagramVideoProps);
-      }
-    } else {
-      if (!!videos && videos.length > 0) {
-        for (const video of videos) {
+              .then(response => response.json())
+              .then(async ({ message }) => {
+                console.log(message);
+              })
+              .catch(error => {
+                console.error("Fetch error:", error);
+              });
+          }, 5000);
+        } else {
           await scheduleVideoToInstagram(video as unknown as InstagramVideoProps);
         }
       }
     }
   };
 
-  const onSubmitTikTok = async ({index, publishNow}: {index?: number, publishNow?: boolean}) => {
+  const onSubmitTikTok = async ({ publishNow }: { publishNow?: boolean }) => {
     if (!tikTokAccessTokens) {
       console.error("No access token found");
       return;
     }
-    if (index !== undefined) {
-      if (publishNow) {
-        videos[index].scheduleDate = new Date().toISOString();
-        await scheduleVideoToTikTok(videos[index] as unknown as TikTokVideoProps);
 
-        // Wait 5 seconds to make sure video appears in Neon before calling direct-post
-        setTimeout(async () => {
-          await fetch("/api/tiktok/direct-post", {
-            method: "GET",
-          })
-            .then(response => response.json())
-            .then(async ({ message }) => {
-              console.log(message);
+    if (!!videos && videos.length > 0) {
+      for (const video of videos) {
+        if (publishNow) {
+          video.scheduleDate = new Date().toISOString();
+          await scheduleVideoToTikTok(video as unknown as TikTokVideoProps);
+
+          // Wait 5 seconds to make sure video appears in Neon before calling direct-post
+          setTimeout(async () => {
+            await fetch("/api/tiktok/direct-post", {
+              method: "GET",
             })
-            .catch(error => {
-              console.error("Fetch error:", error);
-            });
-        }, 5000);
-      } else {
-        await scheduleVideoToTikTok(videos[index] as unknown as TikTokVideoProps);
-      }
-    } else {
-      if (!!videos && videos.length > 0) {
-        for (const video of videos) {
+              .then(response => response.json())
+              .then(async ({ message }) => {
+                console.log(message);
+              })
+              .catch(error => {
+                console.error("Fetch error:", error);
+              });
+          }, 5000);
+        } else {
           await scheduleVideoToTikTok(video as unknown as TikTokVideoProps);
         }
       }
@@ -484,10 +477,9 @@ const UploadDialogContent = ({
                 localReferences={localReferences}
                 setLocalReferences={setLocalReferences}
                 editMultiple={editMultiple}
-                setEditMultiple={setEditMultiple}
                 header="Caption"
                 placeholder="Add a title that describes your video"
-                type={video.type === "instagram" ? "videoCaption" : "title"}
+                type={video.type === "instagram" ? "caption" : "title"}
               />
 
               {/* instagram video specific fields */}
@@ -715,14 +707,13 @@ const UploadDialogContent = ({
                     </DialogClose>
                     <Button
                       onClick={() => {
-                        if (type === "tiktok" || editMultiple?.tiktok) onSubmitTikTok?.({ ...(!publishAll && {index}), publishNow });
-                        if (type === "instagram" || editMultiple?.instagram) onSubmitInstagram?.({ ...(!publishAll && {index}), publishNow });
-                        if (type === "youtube" || editMultiple?.youtube) onSubmitYouTube?.();
+                        if (Object.keys(editMultiple).some(key => key === "tiktok" && editMultiple[key])) onSubmitTikTok?.({ publishNow });
+                        if (Object.keys(editMultiple).some(key => key === "instagram" && editMultiple[key])) onSubmitInstagram?.({ publishNow });
+                        if (Object.keys(editMultiple).some(key => key === "youtube" && editMultiple[key])) onSubmitYouTube?.();
                         setUploadingAfterSubmit(true);
                         setConfirmUploadVideoModalOpen(false);
                         setUploadVideoModalOpen?.(false);
                         setResetVideos?.(true);
-                        setPublishAll(false);
                         setVideos([]);
                         setProgress(0);
                       }}
@@ -739,7 +730,6 @@ const UploadDialogContent = ({
                         setUploadVideoModalOpen?.(false);
                         setUploadingAfterSubmit(false);
                         setResetVideos?.(true);
-                        setPublishAll(false); 
                         setProgress(0);
                       }}
                     >
@@ -771,7 +761,6 @@ const UploadDialogContent = ({
             type="button"
             onClick={() => {
               setConfirmUploadVideoModalOpen(true);
-              setPublishAll(true);
             }}
             disabled={videos.some((video) => isDisabled(video))}
             className="flex gap-2 items-center flex-1"

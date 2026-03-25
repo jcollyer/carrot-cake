@@ -7,7 +7,6 @@ type UploadTextareaProps = {
   videos: any[];
   setVideos: Dispatch<SetStateAction<any[]>>;
   editMultiple?: { [service: string]: boolean };
-  setEditMultiple?: Dispatch<SetStateAction<{ [service: string]: boolean }>>;
   index: number;
   localReferences: {
     title: string;
@@ -38,7 +37,6 @@ const UploadTextarea = ({
   localReferences,
   setLocalReferences,
   editMultiple,
-  setEditMultiple,
   header,
   placeholder,
   type
