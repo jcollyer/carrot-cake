@@ -92,30 +92,7 @@ const UploadDialogContent = ({
       .catch(error => {
         console.error("Fetch error:", error);
       });
-  }
-
-  useEffect(() => {
-    if (Object.keys(editMultiple).some(key => key === "tiktok" && editMultiple[key])) {
-      getTikTokCreatorInfo();
-    }
-  }, [editMultiple]);
-
-
-  useEffect(() => {
-    if (uploadingAfterSubmit) {
-      const interval = setInterval(() => {
-        setProgress((prevProgress) => {
-          if (prevProgress >= 100) {
-            clearInterval(interval);
-            return 100;
-          }
-          return prevProgress + 0.1;
-        });
-      }, 10);
-
-      return () => clearInterval(interval);
-    }
-  }, [uploadingAfterSubmit, progress]);
+  };
 
   async function scheduleVideoToTikTok(video: TikTokVideoProps) {
     try {
@@ -151,22 +128,6 @@ const UploadDialogContent = ({
     } catch (error) {
       console.error("Error scheduling video:", error);
     }
-  }
-
-  const onSubmitYouTube = async () => {
-    const accessToken = !!youtubeTokens && JSON.parse(youtubeTokens as string).access_token;
-
-    if (!accessToken) {
-      console.error("No access token found");
-      return;
-    }
-    if (!!videos.length) {
-      for (const [i, video] of videos.entries()) {
-        useUploadYoutubeVideo({ accessToken, video, videos, setVideos });
-        if (i === videos.length - 1) {
-        }
-      }
-    }
   };
 
   async function scheduleVideoToInstagram(video: InstagramVideoProps) {
@@ -191,11 +152,11 @@ const UploadDialogContent = ({
     } catch (error) {
       console.error("Error scheduling video:", error);
     }
-  }
+  };
 
   const onSubmitInstagram = async ({ publishNow }: { publishNow?: boolean }) => {
     if (!igAccessTokens || !JSON.parse(igAccessTokens as string).access_token) {
-      console.error("No access token found");
+      console.error("No Instagram access token found");
       return;
     }
 
@@ -227,7 +188,7 @@ const UploadDialogContent = ({
 
   const onSubmitTikTok = async ({ publishNow }: { publishNow?: boolean }) => {
     if (!tikTokAccessTokens) {
-      console.error("No access token found");
+      console.error("No TikTok access token found");
       return;
     }
 
@@ -257,6 +218,43 @@ const UploadDialogContent = ({
     }
   };
 
+  const onSubmitYouTube = async () => {
+    const accessToken = !!youtubeTokens && JSON.parse(youtubeTokens as string).access_token;
+
+    if (!accessToken) {
+      console.error("No YouTube access token found");
+      return;
+    }
+    if (!!videos.length) {
+      for (const video of videos) {
+        await useUploadYoutubeVideo({ accessToken, video });
+      }
+    }
+  };
+
+  useEffect(() => {
+    if (Object.keys(editMultiple).some(key => key === "tiktok" && editMultiple[key])) {
+      getTikTokCreatorInfo();
+    }
+  }, [editMultiple]);
+
+
+  useEffect(() => {
+    if (uploadingAfterSubmit) {
+      const interval = setInterval(() => {
+        setProgress((prevProgress) => {
+          if (prevProgress >= 100) {
+            clearInterval(interval);
+            return 100;
+          }
+          return prevProgress + 0.1;
+        });
+      }, 10);
+
+      return () => clearInterval(interval);
+    }
+  }, [uploadingAfterSubmit, progress]);
+
   useEffect(() => {
     const getUserInfo = async () => {
       if (youtubeTokens) {
@@ -282,7 +280,6 @@ const UploadDialogContent = ({
     const isYoutubeDisabled = (video?.type === "youtube" || editMultiple.youtube) && video?.title === "";
     const isTikTokDisabled = (video?.type === "tiktok" || editMultiple.tiktok) && video.directPost && (video.privacyStatus === "" || (video.disclose && (!video.yourBrand && !video.brandedContent)));
     const isInstagramDisabled = (video?.type === "instagram" || editMultiple.instagram) && !video?.videoType;
-
     return isYoutubeDisabled || isTikTokDisabled || isInstagramDisabled;
   }, [videos]);
 

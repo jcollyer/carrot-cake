@@ -5,39 +5,32 @@ import { YT_UPLOAD_URL } from "@/app/constants";
 type useUploadYoutubeVideoProps = {
   accessToken: string;
   video: SanitizedVideoProps;
-  videos: SanitizedVideoProps[];
-  setVideos: React.Dispatch<React.SetStateAction<SanitizedVideoProps[]>>;
 };
 
 export const useUploadYoutubeVideo = async ({
   accessToken,
   video,
-  videos,
-  setVideos,
 }: useUploadYoutubeVideoProps) => {
   const tokens = getCookie("youtube-tokens");
   try {
-    const location = await fetch(
-      YT_UPLOAD_URL,
-      {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${String(accessToken)}`,
+    const location = await fetch(YT_UPLOAD_URL, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${String(accessToken)}`,
+      },
+      body: JSON.stringify({
+        snippet: {
+          categoryId: video.categoryId,
+          description: video.description,
+          title: video.title,
+          tags: video.tags,
         },
-        body: JSON.stringify({
-          snippet: {
-            categoryId: video.categoryId,
-            description: video.description,
-            title: video.title,
-            tags: video.tags,
-          },
-          status: {
-            privacyStatus: "private",
-            publishAt: new Date(video.scheduleDate ?? new Date()).toISOString(),
-          },
-        }),
-      }
-    );
+        status: {
+          privacyStatus: "private",
+          publishAt: new Date(video.scheduleDate ?? new Date()).toISOString(),
+        },
+      }),
+    });
 
     // Url to upload video file from the location header
     const videoUrl = await location.headers.get("Location");
@@ -52,11 +45,6 @@ export const useUploadYoutubeVideo = async ({
     if (!res.ok) {
       console.error("Error uploading video:", res.statusText);
       return;
-    }
-
-    if (res.status === 200) {
-      // remove uploaded video
-      setVideos(videos.filter((_, i) => i !== 0));
     }
   } catch {
     // If the access token is expired, refresh it and try again
@@ -85,7 +73,7 @@ export const useUploadYoutubeVideo = async ({
       }).then(async (res) => {
         const { access_token } = await res.json();
         // Try uploading the video again with the new access token
-        await useUploadYoutubeVideo({ accessToken: access_token, video, videos, setVideos });
+        await useUploadYoutubeVideo({ accessToken: access_token, video });
       });
     } catch (error) {
       console.error("Error refreshing token:", error);

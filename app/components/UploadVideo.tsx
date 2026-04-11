@@ -37,7 +37,7 @@ const UploadVideo = ({ type, setResetVideos, references }: UploadVideoProps) => 
   const onDrop = useCallback((acceptedFiles: any) => {
     if (acceptedFiles.length) {
       acceptedFiles.forEach(async (file: any, index: number) => {
-        
+
         const reader = new FileReader();
         reader.onload = async (event) => {
           const fileData = event.target?.result;
@@ -58,10 +58,9 @@ const UploadVideo = ({ type, setResetVideos, references }: UploadVideoProps) => 
           if (type === "youtube") {
             await setYoutubeVideos(file, index, setVideos);
           }
-              const resolution = await getVideoResolution(file);
+          const resolution = await getVideoResolution(file);
           // Initialize video in state
           setVideos((prev) => [
-            ...(prev || []),
             {
               file,
               id: "",
@@ -95,6 +94,7 @@ const UploadVideo = ({ type, setResetVideos, references }: UploadVideoProps) => 
               videoType: "Stories",
               location: "",
             },
+            ...(prev || []),
           ]);
         }
         reader.readAsArrayBuffer(file);
