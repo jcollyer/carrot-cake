@@ -54,6 +54,11 @@ type UploadDialogContentProps = {
   type: "tiktok" | "instagram" | "youtube";
 }
 
+type SubmitPlatformsOptions = {
+  publishNow?: boolean;
+  videosToSubmit: SanitizedVideoProps[];
+};
+
 const UploadDialogContent = ({
   videos,
   setVideos,
@@ -96,7 +101,7 @@ const UploadDialogContent = ({
 
   async function scheduleVideoToTikTok(video: TikTokVideoProps) {
     try {
-      fetch("/api/tiktok/schedule-videos/create", {
+      const response = await fetch("/api/tiktok/schedule-videos/create", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -118,21 +123,19 @@ const UploadDialogContent = ({
           disableStitch: !video.interactionType?.stitch,
           draft: video.draft,
         }),
-      }).then(response => response.json())
-        .then(async ({ data }) => {
-          console.log("Scheduled video response:", data);
-        })
-        .catch(error => {
-          console.error("Fetch error:", error);
-        });
+      });
+
+      const { data } = await response.json();
+      console.log("Scheduled video response:", data);
     } catch (error) {
       console.error("Error scheduling video:", error);
+      throw error;
     }
   };
 
   async function scheduleVideoToInstagram(video: InstagramVideoProps) {
     try {
-      fetch("/api/instagram/schedule-videos/create", {
+      await fetch("/api/instagram/schedule-videos/create", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -146,89 +149,146 @@ const UploadDialogContent = ({
           accessToken: !!igAccessTokens && JSON.parse(igAccessTokens as string).access_token,
           InstagramuserId: igUserInfo?.id,
         }),
-      }).catch((error) => {
-        console.error("Error scheduling video:", error);
       });
     } catch (error) {
       console.error("Error scheduling video:", error);
+      throw error;
     }
   };
 
-  const onSubmitInstagram = async ({ publishNow }: { publishNow?: boolean }) => {
+  async function triggerDirectPost(platform: "instagram" | "tiktok") {
+    try {
+      const response = await fetch(`/api/${platform}/direct-post`, {
+        method: "GET",
+      });
+
+      const { message } = await response.json();
+      console.log(message);
+    } catch (error) {
+      console.error("Fetch error:", error);
+      throw error;
+    }
+  }
+
+  async function waitForDirectPostWindow() {
+    await new Promise((resolve) => window.setTimeout(resolve, 5000));
+  }
+
+  const onSubmitInstagram = async ({ publishNow, videosToSubmit }: SubmitPlatformsOptions) => {
     if (!igAccessTokens || !JSON.parse(igAccessTokens as string).access_token) {
       console.error("No Instagram access token found");
       return;
     }
 
-    if (!!videos && videos.length > 0) {
-      for (const video of videos) {
-        if (publishNow) {
-          video.scheduleDate = new Date().toISOString();
-          await scheduleVideoToInstagram(video as unknown as InstagramVideoProps);
+    if (!videosToSubmit.length) {
+      return;
+    }
 
-          // Wait 5 seconds to make sure video appears in Neon before calling direct-post
-          setTimeout(async () => {
-            await fetch("/api/instagram/direct-post", {
-              method: "GET",
-            })
-              .then(response => response.json())
-              .then(async ({ message }) => {
-                console.log(message);
-              })
-              .catch(error => {
-                console.error("Fetch error:", error);
-              });
-          }, 5000);
-        } else {
-          await scheduleVideoToInstagram(video as unknown as InstagramVideoProps);
-        }
-      }
+    if (publishNow) {
+      // Schedule all videos in parallel with the current timestamp, then trigger
+      // direct-post once after a single delay (rather than one delay per video).
+      await Promise.all(
+        videosToSubmit.map((video) =>
+          scheduleVideoToInstagram({
+            ...video,
+            scheduleDate: new Date().toISOString(),
+          } as unknown as InstagramVideoProps)
+        )
+      );
+      await waitForDirectPostWindow();
+      await triggerDirectPost("instagram");
+    } else {
+      await Promise.all(
+        videosToSubmit.map((video) =>
+          scheduleVideoToInstagram(video as unknown as InstagramVideoProps)
+        )
+      );
     }
   };
 
-  const onSubmitTikTok = async ({ publishNow }: { publishNow?: boolean }) => {
+  const onSubmitTikTok = async ({ publishNow, videosToSubmit }: SubmitPlatformsOptions) => {
     if (!tikTokAccessTokens) {
       console.error("No TikTok access token found");
       return;
     }
 
-    if (!!videos && videos.length > 0) {
-      for (const video of videos) {
-        if (publishNow) {
-          video.scheduleDate = new Date().toISOString();
-          await scheduleVideoToTikTok(video as unknown as TikTokVideoProps);
+    if (!videosToSubmit.length) {
+      return;
+    }
 
-          // Wait 5 seconds to make sure video appears in Neon before calling direct-post
-          setTimeout(async () => {
-            await fetch("/api/tiktok/direct-post", {
-              method: "GET",
-            })
-              .then(response => response.json())
-              .then(async ({ message }) => {
-                console.log(message);
-              })
-              .catch(error => {
-                console.error("Fetch error:", error);
-              });
-          }, 5000);
-        } else {
-          await scheduleVideoToTikTok(video as unknown as TikTokVideoProps);
-        }
-      }
+    if (publishNow) {
+      // Schedule all videos in parallel with the current timestamp, then trigger
+      // direct-post once after a single delay (rather than one delay per video).
+      await Promise.all(
+        videosToSubmit.map((video) =>
+          scheduleVideoToTikTok({
+            ...video,
+            scheduleDate: new Date().toISOString(),
+          } as unknown as TikTokVideoProps)
+        )
+      );
+      await waitForDirectPostWindow();
+      await triggerDirectPost("tiktok");
+    } else {
+      await Promise.all(
+        videosToSubmit.map((video) =>
+          scheduleVideoToTikTok(video as unknown as TikTokVideoProps)
+        )
+      );
     }
   };
 
-  const onSubmitYouTube = async () => {
+  const onSubmitYouTube = async ({ videosToSubmit }: SubmitPlatformsOptions) => {
     const accessToken = !!youtubeTokens && JSON.parse(youtubeTokens as string).access_token;
 
     if (!accessToken) {
       console.error("No YouTube access token found");
       return;
     }
-    if (!!videos.length) {
-      for (const video of videos) {
-        await useUploadYoutubeVideo({ accessToken, video });
-      }
+
+    if (videosToSubmit.length) {
+      await Promise.all(
+        videosToSubmit.map((video) => useUploadYoutubeVideo({ accessToken, video }))
+      );
+    }
+  };
+
+  const handleUpload = async () => {
+    const videosToSubmit = videos.map((video) => ({
+      ...video,
+      file: video.file,
+    }));
+
+    const submitTasks: Promise<void>[] = [];
+
+    if (editMultiple.tiktok) {
+      submitTasks.push(onSubmitTikTok({ publishNow, videosToSubmit }));
+    }
+
+    if (editMultiple.instagram) {
+      submitTasks.push(onSubmitInstagram({ publishNow, videosToSubmit }));
+    }
+
+    if (editMultiple.youtube) {
+      submitTasks.push(onSubmitYouTube({ videosToSubmit }));
+    }
+
+    if (!submitTasks.length) {
+      return;
+    }
+
+    setUploadingAfterSubmit(true);
+    setProgress(0);
+
+    try {
+      await Promise.all(submitTasks);
+      setConfirmUploadVideoModalOpen(false);
+      setUploadVideoModalOpen?.(false);
+      setResetVideos?.(true);
+      setVideos([]);
+    } catch (error) {
+      console.error("Error uploading videos:", error);
+      setUploadingAfterSubmit(false);
     }
   };
 
@@ -703,16 +763,8 @@ const UploadDialogContent = ({
                       </Button>
                     </DialogClose>
                     <Button
-                      onClick={() => {
-                        if (Object.keys(editMultiple).some(key => key === "tiktok" && editMultiple[key])) onSubmitTikTok?.({ publishNow });
-                        if (Object.keys(editMultiple).some(key => key === "instagram" && editMultiple[key])) onSubmitInstagram?.({ publishNow });
-                        if (Object.keys(editMultiple).some(key => key === "youtube" && editMultiple[key])) onSubmitYouTube?.();
-                        setUploadingAfterSubmit(true);
-                        setConfirmUploadVideoModalOpen(false);
-                        setUploadVideoModalOpen?.(false);
-                        setResetVideos?.(true);
-                        setVideos([]);
-                        setProgress(0);
+                      onClick={async () => {
+                        await handleUpload();
                       }}
                     >
                       Upload {videos && videos.length} Video{videos && videos.length > 1 ? "s" : ""}
