@@ -1,4 +1,7 @@
 import { NextApiRequest, NextApiResponse } from "next";
+import { setTikTokCookie, upsertTikTokAccountTokens } from "@/lib/tiktok-auth";
+import { authOptions } from "@/pages/api/auth/[...nextauth]";
+import { getServerSession } from "next-auth/next";
 const querystring = require("querystring");
 
 const isDev = process.env.NODE_ENV === "development";
@@ -12,6 +15,7 @@ export default async function handler(
   res: NextApiResponse
 ) {
   try {
+    const session = await getServerSession(req, res, authOptions);
     const { code } = req.query;
     const decode = decodeURI(code as string);
     const tokenEndpoint = "https://open.tiktokapis.com/v2/oauth/token/";
@@ -41,13 +45,11 @@ export default async function handler(
     }
     const tokens = await response.json();
 
-    // Set the tokens in a cookie
-    res.setHeader(
-      "Set-Cookie",
-      `tiktok-tokens=${encodeURIComponent(
-        JSON.stringify(tokens)
-      )}; Path=/; Max-Age=86400`
-    );
+    if (session?.user?.id) {
+      await upsertTikTokAccountTokens(session.user.id, tokens);
+    }
+
+    setTikTokCookie(res, tokens);
 
     // Hack to close the window
     res.send(

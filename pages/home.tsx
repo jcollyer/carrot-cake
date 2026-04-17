@@ -139,10 +139,26 @@ export default function Home({references}: {references: { references: Reference[
 
   const getTikTokUserInfo = async () => {
     fetch("/api/tiktok/get-user-info")
-      .then(response => response.json())
-      .then(({ data }) => {
+      .then(async (response) => {
+        if (!response.ok) {
+          if (response.status === 401) {
+            return null;
+          }
+
+          throw new Error(`Failed to fetch TikTok user info: ${response.status}`);
+        }
+
+        return response.json();
+      })
+      .then((result) => {
+        if (!result?.data) {
+          return;
+        }
+
+        const { data } = result;
         const { user } = data;
         setTiktokUserInfo({ ...user });
+        setTiktokTokens(getCookie("tiktok-tokens"));
         setTabOpen("tiktok");
       })
       .catch(error => {
@@ -340,11 +356,8 @@ export default function Home({references}: {references: { references: Reference[
   }, [youtubeTokens]);
 
   useEffect(() => {
-    if (tiktokTokens) {
-      getTikTokUserInfo();
-      // getTikTokUserVideos();
-      getUserTikTokVideosFromNeon();
-    }
+    getTikTokUserInfo();
+    getUserTikTokVideosFromNeon();
   }, [tiktokTokens, resetVideos]);
 
   useEffect(() => {

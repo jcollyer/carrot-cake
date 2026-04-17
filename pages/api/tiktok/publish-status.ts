@@ -1,4 +1,4 @@
-import { getTokensCookie } from "@/app/utils/getTokensCookie";
+import { getValidTikTokTokens } from "@/lib/tiktok-auth";
 import { NextApiRequest, NextApiResponse } from "next";
 
 export default async function handler(
@@ -6,9 +6,10 @@ export default async function handler(
   res: NextApiResponse,
 ) {
   const publishId = req.body.publishId;
-  const { cookie } = req.headers;
-
-  const accessToken = getTokensCookie(cookie, "tiktok-tokens").access_token;
+  const tokens = await getValidTikTokTokens(req, res);
+  if (!tokens?.access_token) {
+    return res.status(401).json({ error: "TikTok account not connected" });
+  }
 
   try {
     const response = await fetch(
@@ -16,7 +17,7 @@ export default async function handler(
       {
         method: "POST",
         headers: {
-          Authorization: `Bearer ${accessToken}`,
+          Authorization: `Bearer ${tokens.access_token}`,
           "Content-Type": "application/json",
         },
         body: JSON.stringify({

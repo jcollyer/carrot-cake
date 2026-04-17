@@ -9,6 +9,23 @@ export default async function GET(req: Request, res: Response) {
   }
 
   try {
+    const refreshedAccountsResponse = await fetch(
+      `${baseUrl}/api/tiktok/account/refresh-tokens`,
+      {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${process.env.CRON_SECRET}`,
+        },
+      },
+    );
+
+    if (!refreshedAccountsResponse.ok) {
+      console.error(
+        "Failed to refresh TikTok account tokens:",
+        await refreshedAccountsResponse.text(),
+      );
+    }
+
     const tiktokVideos = await fetch(
       `${baseUrl}/api/tiktok/schedule-videos/get-all`,
     );
@@ -63,6 +80,6 @@ export default async function GET(req: Request, res: Response) {
   }
 
   return Response.json({
-    message: `Cron job executed successfully, updating tokens for videos`,
+    message: `Cron job executed successfully, updating tokens for videos and accounts`,
   });
 }
