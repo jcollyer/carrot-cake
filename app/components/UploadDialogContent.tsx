@@ -387,33 +387,35 @@ const UploadDialogContent = ({
                     </Button>
                     )}
                   </div>
-                  <div className="flex gap-2">
-                    <p className="text-sm text-gray-600">Apply changes to:</p>
-                    <label className="flex items-center gap-1 text-sm text-gray-600">
-                      <input
-                        type="checkbox"
-                        checked={editMultiple["youtube"]}
-                        onChange={() => setEditMultiple((prev) => ({ ...prev, youtube: !prev.youtube }))}
-                      />
-                      YouTube
-                    </label>
-                    <label className="flex items-center gap-1 text-sm text-gray-600">
-                      <input
-                        type="checkbox"
-                        checked={editMultiple["instagram"]}
-                        onChange={() => setEditMultiple((prev) => ({ ...prev, instagram: !prev.instagram }))}
-                      />
-                      Instagram
-                    </label>
-                    <label className="flex items-center gap-1 text-sm text-gray-600">
-                      <input
-                        type="checkbox"
-                        checked={editMultiple["tiktok"]}
-                        onChange={() => setEditMultiple((prev) => ({ ...prev, tiktok: !prev.tiktok }))}
-                      />
-                      TikTok
-                    </label>
-                  </div>
+                  {type !== "youtube" && (
+                    <div className="flex gap-2">
+                      <p className="text-sm text-gray-600">Apply changes to:</p>
+                      <label className="flex items-center gap-1 text-sm text-gray-600">
+                        <input
+                          type="checkbox"
+                          checked={editMultiple["youtube"]}
+                          onChange={() => setEditMultiple((prev) => ({ ...prev, youtube: !prev.youtube }))}
+                        />
+                        YouTube
+                      </label>
+                      <label className="flex items-center gap-1 text-sm text-gray-600">
+                        <input
+                          type="checkbox"
+                          checked={editMultiple["instagram"]}
+                          onChange={() => setEditMultiple((prev) => ({ ...prev, instagram: !prev.instagram }))}
+                        />
+                        Instagram
+                      </label>
+                      <label className="flex items-center gap-1 text-sm text-gray-600">
+                        <input
+                          type="checkbox"
+                          checked={editMultiple["tiktok"]}
+                          onChange={() => setEditMultiple((prev) => ({ ...prev, tiktok: !prev.tiktok }))}
+                        />
+                        TikTok
+                      </label>
+                    </div>
+                  )}
                 </div>
                 <div className="flex flex-col rounded-lg overflow-hidden bg-black">
                   <video
