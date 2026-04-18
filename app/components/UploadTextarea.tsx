@@ -42,6 +42,17 @@ const UploadTextarea = ({
   type
 }: UploadTextareaProps) => {
 
+  // When multiple platforms are active, a single textarea must populate the
+  // correct field for every selected service.  Instagram reads `caption` while
+  // TikTok / YouTube read `title`, so we always write to all relevant fields
+  // to avoid the other platform receiving an empty value.
+  const getFieldUpdates = (value: string): Record<string, string> => {
+    const updates: Record<string, string> = { [type]: value };
+    if (editMultiple?.instagram) updates.caption = value;
+    if (editMultiple?.tiktok || editMultiple?.youtube) updates.title = value;
+    return updates;
+  };
+
   return (
     <div className="relative flex flex-col gap-2">
       {!!editMultiple && Object.values(editMultiple).filter(Boolean).length > 0 && (
@@ -60,9 +71,12 @@ const UploadTextarea = ({
       <p className="text-sm font-medium">{header}</p>
       <div className="relative group/caption">
         <textarea
-          onChange={event => editAll ?
-            !!videos && setVideos(videos.map((video) => ({ ...video, [type]: event.currentTarget.value }))) :
-            !!videos && setVideos(videos.map((v, i) => i === index ? { ...v, [type]: event.currentTarget.value } : v))}
+          onChange={event => {
+            const updates = getFieldUpdates(event.currentTarget.value);
+            editAll
+              ? !!videos && setVideos(videos.map((video) => ({ ...video, ...updates })))
+              : !!videos && setVideos(videos.map((v, i) => i === index ? { ...v, ...updates } : v));
+          }}
           className="border border-gray-300 rounded min-h-12 w-full px-2 py-1 outline-0 bg-transparent"
           placeholder={placeholder}
           name={type}
@@ -81,9 +95,12 @@ const UploadTextarea = ({
             type={type}
             localReferences={localReferences}
             setLocalReferences={setLocalReferences}
-            callback={(key, value) => editAll ?
-              setVideos(videos.map((video) => ({ ...video, [key]: value }))) :
-              setVideos(videos.map((v, i) => i === index ? { ...v, [key]: value } : v))}
+            callback={(key, value) => {
+              const updates = getFieldUpdates(value);
+              editAll
+                ? setVideos(videos.map((video) => ({ ...video, ...updates })))
+                : setVideos(videos.map((v, i) => i === index ? { ...v, ...updates } : v));
+            }}
           />
         </div>
       </div>
