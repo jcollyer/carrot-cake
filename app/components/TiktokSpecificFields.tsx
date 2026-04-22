@@ -2,7 +2,7 @@ import { Switch, SwitchThumb } from "@/app/components/primitives/Switch";
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/app/components/primitives/Select";
 import { ALL_PRIVACY_STATUS_OPTIONS, VIDEO_ACCESS_OPTIONS } from "@/app/constants";
 import { TikTokUserCreatorInfo, TikTokVideoProps } from "@/types";
-import { Info } from "lucide-react";
+import { Info, Music2 } from "lucide-react";
 import { cn } from "@/app/utils/cn";
 
 const TiktokSpecificFields = ({
@@ -19,7 +19,10 @@ const TiktokSpecificFields = ({
   tiktokCreatorInfo?: TikTokUserCreatorInfo;
 }) => {
   return (
-    <div className="flex flex-col gap-4 w-full border-2 border-gray-600 rounded p-4">
+    <div className="relative flex flex-col gap-4 w-full border-2 border-gray-600 rounded p-4">
+      <div className="absolute -top-3 left-2 bg-white rounded-full">
+        <Music2 size={22} className="text-gray-600"  />
+      </div>
       <div className="flex flex-col gap-2">
         <p className="text-sm font-medium">Who can view this video</p>
         <div className="w-full">

@@ -32,7 +32,7 @@ import { useGetYouTubeUserInfo } from "@/app/hooks/use-get-youtube-user-info";
 import { useUploadYoutubeVideo } from "@/app/hooks/use-upload-youtube-video";
 import { Reference } from "@prisma/client";
 import { useEffect, useMemo, useState } from "react";
-import { Check, ChevronDown, RotateCcw, CloudUpload, Play, TriangleAlert, Video, Videotape } from "lucide-react";
+import { Check, ChevronDown, RotateCcw, CloudUpload, Play, TriangleAlert, Video, Videotape, Youtube, Instagram, Music2 } from "lucide-react";
 import { cn } from "@/app/utils/cn";
 import Image from "next/image";
 import formatFileSize from "@/app/utils/formatFileSize";
@@ -367,7 +367,7 @@ const UploadDialogContent = ({
       {videos && videos.length > 0 && videos.map((video, index) => (
         <div
           key={video.file.name}
-          className="grid grid-cols-2 gap-8 md:flex md:gap-6"
+          className="flex flex-col md:flex-row gap-6"
         >
           <div className="flex flex-col">
             {video?.thumbnail ? (
@@ -378,41 +378,65 @@ const UploadDialogContent = ({
                       <Check size={18} strokeWidth={4} className="text-white" />
                     </div>
                     <p className="text-lg font-semibold">Your Video is Ready</p>
-                    {videos.length > 1 && (<Button variant="outline" size="small" onClick={() => setVideos((prev) => {
-                      const currentVideos = [...prev]
-                      const updatedVideos = currentVideos.filter((_, i) => i !== index)
-                      return updatedVideos;
-                    })}>
-                      Remove Video
-                    </Button>
+                    {videos.length > 1 && (
+                      <Button
+                        variant="thin"
+                        size="xsmall"
+                        className="ml-auto"
+                        onClick={() => setVideos((prev) => {
+                          const currentVideos = [...prev]
+                          const updatedVideos = currentVideos.filter((_, i) => i !== index)
+                          return updatedVideos;
+                        })}>
+                        Remove video
+                      </Button>
                     )}
                   </div>
-                  {type !== "youtube" && (
-                    <div className="flex gap-2">
-                      <p className="text-sm text-gray-600">Apply changes to:</p>
-                      <label className="flex items-center gap-1 text-sm text-gray-600">
+                  {/* {type !== "youtube" && ( */}
+                  {true && (
+                    <div className="flex gap-2 items-center">
+                      <p className="text-sm font-semibold">Upload videos to:</p>
+                      <label className="relative flex items-center gap-1 text-sm cursor-pointer">
                         <input
                           type="checkbox"
                           checked={editMultiple["youtube"]}
                           onChange={() => setEditMultiple((prev) => ({ ...prev, youtube: !prev.youtube }))}
+                          className="peer sr-only"
                         />
-                        YouTube
+                        <Image src={`/youtube_logo.png`} alt="Youtube Logo" width="30" height="30" />
+                        {editMultiple["youtube"] && (
+                          <div className="absolute -bottom-1 -right-1 bg-green-600 rounded-full p-1">
+                            <Check size={8} strokeWidth={4} className="text-white" />
+                          </div>
+                        )}
                       </label>
-                      <label className="flex items-center gap-1 text-sm text-gray-600">
+                      <label className="relative flex items-center gap-1 text-sm cursor-pointer">
                         <input
                           type="checkbox"
                           checked={editMultiple["instagram"]}
                           onChange={() => setEditMultiple((prev) => ({ ...prev, instagram: !prev.instagram }))}
+                          className="peer sr-only"
                         />
-                        Instagram
+                        <Image src={`/instagram_logo.png`} alt="Instagram Logo" width="30" height="30" />
+                        {editMultiple["instagram"] && (
+                          <div className="absolute -bottom-1 -right-1 bg-green-600 rounded-full p-1">
+                            <Check size={8} strokeWidth={4} className="text-white" />
+                          </div>
+                        )}
                       </label>
-                      <label className="flex items-center gap-1 text-sm text-gray-600">
+                      <label className="relative flex items-center gap-1 text-sm cursor-pointer">
                         <input
                           type="checkbox"
                           checked={editMultiple["tiktok"]}
                           onChange={() => setEditMultiple((prev) => ({ ...prev, tiktok: !prev.tiktok }))}
+                          className="peer sr-only"
                         />
-                        TikTok
+                        <Image src={`/tiktok_logo.png`} alt="TikTok Logo" width="30" height="30" />
+                        {editMultiple["tiktok"] && (
+                          <div className="absolute -bottom-1 -right-1 bg-green-600 rounded-full p-1">
+                            <Check size={8} strokeWidth={4} className="text-white" />
+                          </div>
+                        )}
                       </label>
                     </div>
                   )}
@@ -540,38 +564,47 @@ const UploadDialogContent = ({
                 placeholder="Add a title that describes your video"
                 type={video.type === "instagram" ? "caption" : "title"}
               />
+              {/* youtube video specific fields */}
+              {editMultiple?.youtube && (
+                <div className="relative flex flex-col gap-4 w-full border-2 border-red-600 rounded p-4">
+                  <div className="absolute -top-3 left-2 bg-white">
+                    <Youtube size={24} className="text-red-600" />
+                  </div>
+                  <UploadTextarea
+                    editAll={editAll}
+                    videos={videos}
+                    setVideos={setVideos}
+                    index={index}
+                    localReferences={localReferences}
+                    setLocalReferences={setLocalReferences}
+                    header="Description"
+                    placeholder="Description displayed on YouTube"
+                    type="description"
+                  />
 
-              {/* instagram video specific fields */}
-              {editMultiple?.instagram && (
-                <div className="flex flex-col gap-4 w-full border-2 border-blue-600 rounded p-4">
                   <div className="flex gap-2">
                     <div className="shrink-0">
-                      <p className="text-sm font-medium">Select Media Type</p>
-                      <p className="text-xs text-gray-500">Choose the type of<br /> media you are uploading</p>
+                      <p className="text-sm font-medium">Video category</p>
+                      <p className="text-xs text-gray-500">Genre type</p>
                     </div>
-                    <div className="flex gap-4 flex-1">
-                      {Object.values(MEDIA_TYPES).map((option) => (
-                        <button
-                          key={option.name}
-                          className={cn("flex flex-col flex-1 items-center gap-2 mb-2 border border-gray-300 rounded p-2", {
-                            "border-blue-500": videos[index]?.videoType === option.name,
-                          })}
-                          type="button"
-                          onClick={() => editAll ?
-                            !!videos && setVideos(videos.map((video) => ({ ...video, videoType: option.name as "Stories" | "Videos" | "Reels" }))) :
-                            !!videos && setVideos(videos.map((v, i) => i === index ? { ...v, videoType: option.name as "Stories" | "Videos" | "Reels" } : v))}
-                        >
-                          <option.icon strokeWidth={1.5} size={16} className={cn("text-gray-600", {
-                            "text-blue-500": videos[index]?.videoType === option.name,
-                          })} />
-                          <p className={cn("text-sm capitalize", {
-                            "text-blue-500": videos[index]?.videoType === option.name,
-                            "text-gray-500": videos[index]?.videoType !== option.name,
-                          })}>
-                            {option.name}
-                          </p>
-                        </button>
-                      ))}
+                    <div className="w-full">
+                      <Select
+                        onValueChange={(value) => editAll ?
+                          !!videos && setVideos(videos.map((video) => ({ ...video, categoryId: value }))) :
+                          !!videos && setVideos(videos.map((v, i) => i === index ? { ...v, categoryId: value } : v))}
+                        value={videos && videos[index]?.categoryId}
+                      >
+                        <SelectTrigger className="outline-0 border border-gray-300 bg-transparent rounded h-10">
+                          <SelectValue placeholder="Select an option" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {CATEGORIES.map((item) => (
+                            <SelectItem key={item.id} value={item.id}>
+                              {item.label}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
                     </div>
                   </div>
 
@@ -616,44 +649,40 @@ const UploadDialogContent = ({
                   </div>
                 </div>
               )}
-              {/* youtube video specific fields */}
-              {editMultiple?.youtube && (
-                <div className="flex flex-col gap-4 w-full border-2 border-red-600 rounded p-4">
-                  <UploadTextarea
-                    editAll={editAll}
-                    videos={videos}
-                    setVideos={setVideos}
-                    index={index}
-                    localReferences={localReferences}
-                    setLocalReferences={setLocalReferences}
-                    header="Description"
-                    placeholder="Description displayed on YouTube"
-                    type="description"
-                  />
-
+              {/* instagram video specific fields */}
+              {editMultiple?.instagram && (
+                <div className="relative flex flex-col gap-4 w-full border-2 border-blue-600 rounded p-4">
+                  <div className="absolute -top-3 left-2 bg-white">
+                    <Instagram size={24} className="text-blue-600" />
+                  </div>
                   <div className="flex gap-2">
                     <div className="shrink-0">
-                      <p className="text-sm font-medium">Video category</p>
-                      <p className="text-xs text-gray-500">Genre type</p>
+                      <p className="text-sm font-medium">Select Media Type</p>
+                      <p className="text-xs text-gray-500">Choose the type of<br /> media you are uploading</p>
                     </div>
-                    <div className="w-full">
-                      <Select
-                        onValueChange={(value) => editAll ?
-                          !!videos && setVideos(videos.map((video) => ({ ...video, categoryId: value }))) :
-                          !!videos && setVideos(videos.map((v, i) => i === index ? { ...v, categoryId: value } : v))}
-                        value={videos && videos[index]?.categoryId}
-                      >
-                        <SelectTrigger className="outline-0 border border-gray-300 bg-transparent rounded h-10">
-                          <SelectValue placeholder="Select an option" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {CATEGORIES.map((item) => (
-                            <SelectItem key={item.id} value={item.id}>
-                              {item.label}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
+                    <div className="flex gap-4 flex-1">
+                      {Object.values(MEDIA_TYPES).map((option) => (
+                        <button
+                          key={option.name}
+                          className={cn("flex flex-col flex-1 items-center gap-2 mb-2 border border-gray-300 rounded p-2", {
+                            "border-blue-500": videos[index]?.videoType === option.name,
+                          })}
+                          type="button"
+                          onClick={() => editAll ?
+                            !!videos && setVideos(videos.map((video) => ({ ...video, videoType: option.name as "Stories" | "Videos" | "Reels" }))) :
+                            !!videos && setVideos(videos.map((v, i) => i === index ? { ...v, videoType: option.name as "Stories" | "Videos" | "Reels" } : v))}
+                        >
+                          <option.icon strokeWidth={1.5} size={16} className={cn("text-gray-600", {
+                            "text-blue-500": videos[index]?.videoType === option.name,
+                          })} />
+                          <p className={cn("text-sm capitalize", {
+                            "text-blue-500": videos[index]?.videoType === option.name,
+                            "text-gray-500": videos[index]?.videoType !== option.name,
+                          })}>
+                            {option.name}
+                          </p>
+                        </button>
+                      ))}
                     </div>
                   </div>
 

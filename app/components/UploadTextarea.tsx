@@ -1,5 +1,6 @@
 import KeyReferenceAddButton from "@/app/components/KeyReferenceAddButton";
 import KeyReferenceMenuButton from "@/app/components/KeyReferenceMenuButton";
+import { Instagram, Music2, Youtube } from "lucide-react";
 import { Dispatch, SetStateAction } from "react";
 
 type UploadTextareaProps = {
@@ -54,21 +55,25 @@ const UploadTextarea = ({
   };
 
   return (
-    <div className="relative flex flex-col gap-2">
-      {!!editMultiple && Object.values(editMultiple).filter(Boolean).length > 0 && (
-        <div className="absolute top-0 right-0 flex gap-1">
-          {editMultiple?.instagram && (
-            <p className="bg-yellow-100 text-yellow-800 text-xs px-1 py-px rounded">IG</p>
-          )}
-          {editMultiple?.youtube && (
-            <p className="bg-yellow-100 text-yellow-800 text-xs px-1 py-px rounded">YT</p>
-          )}
-          {editMultiple?.tiktok && (
-            <p className="bg-yellow-100 text-yellow-800 text-xs px-1 py-px rounded">TT</p>
+    <div className="flex flex-col gap-2">
+      <div className="flex gap-2 items-center">
+        <p className="text-sm font-medium">{header}</p>
+        <div>
+          {!!editMultiple && Object.values(editMultiple).filter(Boolean).length > 0 && (
+            <div className="flex gap-1 items-center">
+              {editMultiple?.youtube && (
+                <Youtube strokeWidth={2} size={25} className="text-gray-900" />
+              )}
+              {editMultiple?.instagram && (
+                <Instagram strokeWidth={3} size={19} className="text-gray-900" />
+              )}
+              {editMultiple?.tiktok && (
+                <Music2 strokeWidth={3} size={17} className="text-gray-900" />
+              )}
+            </div>
           )}
         </div>
-      )}
-      <p className="text-sm font-medium">{header}</p>
+      </div>
       <div className="relative group/caption">
         <textarea
           onChange={event => {
@@ -84,7 +89,7 @@ const UploadTextarea = ({
           maxLength={100}
         />
         <div className="absolute bottom-4 right-4 text-xs text-gray-500">{videos && videos[index]?.[type]?.length}/100</div>
-        <div className="absolute hidden group-hover/caption:flex top-1/2 right-2 -translate-y-1/2">
+        <div className="absolute z-10 hidden group-hover/caption:flex top-1/2 right-2 -translate-y-1/2">
           <KeyReferenceAddButton
             type={type}
             value={videos && videos[index]?.[type] || ""}
