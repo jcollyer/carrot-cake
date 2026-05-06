@@ -1,4 +1,10 @@
 import { NextApiRequest, NextApiResponse } from "next";
+import {
+  setInstagramCookie,
+  upsertInstagramAccountTokens,
+} from "@/lib/instagram-auth";
+import { authOptions } from "@/pages/api/auth/[...nextauth]";
+import { getServerSession } from "next-auth/next";
 
 export default async function handler(
   req: NextApiRequest,
@@ -46,11 +52,31 @@ export default async function handler(
       const longLivedAccessToken = exchangeData.access_token;
       const ttl = exchangeData.expires_in;
 
-      // Set the long-lived access token in a cookie
-      res.setHeader(
-        "Set-Cookie",
-        `ig-access-token={"access_token": "${longLivedAccessToken}", "user_id": "${userId}"}; Path=/; Max-Age=${ttl};`
-      );
+      // Persist to the Account table so we can silently re-issue the cookie
+      // on subsequent visits (and refresh the token from cron before expiry).
+      const session = await getServerSession(req, res, authOptions);
+      if (session?.user?.id) {
+        await upsertInstagramAccountTokens(
+          session.user.id,
+          {
+            access_token: longLivedAccessToken,
+            refresh_token: longLivedAccessToken,
+            expires_in: ttl,
+            user_id: String(userId),
+          },
+          String(userId),
+        );
+      }
+
+      // Set the long-lived access token cookie via the auth lib (also writes
+      // refresh_token + expires_in into the cookie payload for parity with
+      // TikTok).
+      setInstagramCookie(res, {
+        access_token: longLivedAccessToken,
+        refresh_token: longLivedAccessToken,
+        expires_in: ttl,
+        user_id: String(userId),
+      });
 
       // Hack to close the window
       res.send(

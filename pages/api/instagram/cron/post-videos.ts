@@ -11,6 +11,11 @@ export default async function GET(req: Request) {
   const instagramVideos = await fetch(
     `${baseUrl}/api/instagram/schedule-videos/get-all`
   );
+  if (!instagramVideos.ok) {
+  const text = await instagramVideos.text();
+  console.error("get-all failed:", instagramVideos.status, text);
+  return Response.json({ error: "get-all failed" }, { status: 500 });
+}
   const instagramVideosData = await instagramVideos.json();
   let videosPosted = 0;
   

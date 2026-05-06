@@ -1,20 +1,23 @@
 import { NextApiRequest, NextApiResponse } from "next";
 import { GET_IG_USER_MEDIA_URL } from "@/app/constants";
-import { getTokensCookie } from "@/app/utils/getTokensCookie";
+import { getValidInstagramTokens } from "@/lib/instagram-auth";
 
 export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse
 ) {
-  const { cookie } = req.headers;
-  const jsonTokens = getTokensCookie(cookie, "ig-access-token");
+  const tokens = await getValidInstagramTokens(req, res);
+  if (!tokens?.access_token) {
+    return res.status(401).json({ error: "Instagram not connected" });
+  }
 
-  const mediaUrl = `${GET_IG_USER_MEDIA_URL}${jsonTokens.access_token}`;
+  const accessToken = tokens.access_token;
+  const mediaUrl = `${GET_IG_USER_MEDIA_URL}${accessToken}`;
   try {
     const response = await fetch(mediaUrl, {
       method: "GET",
       headers: {
-        Authorization: `Bearer ${jsonTokens.access_token}`,
+        Authorization: `Bearer ${accessToken}`,
         "Content-Type": "application/json",
       },
     });
@@ -25,7 +28,7 @@ export default async function handler(
       );
     }
     const data = await response.json();
-    
+
     res.status(200).json(data);
   } catch (error) {
     console.error("Error fetching Instagram user media:", error);

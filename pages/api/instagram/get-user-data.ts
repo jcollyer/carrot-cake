@@ -1,14 +1,17 @@
 import { NextApiRequest, NextApiResponse } from "next";
 import { GET_IG_USER_INFO_URL } from "@/app/constants";
-import { getTokensCookie } from "@/app/utils/getTokensCookie";
+import { getValidInstagramTokens } from "@/lib/instagram-auth";
 
 export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse
 ) {
-  const { cookie } = req.headers;
-  const accessToken = getTokensCookie(cookie, "ig-access-token").access_token;
-  const userId = getTokensCookie(cookie, "ig-access-token").user_id;
+  const tokens = await getValidInstagramTokens(req, res);
+  if (!tokens?.access_token || !tokens?.user_id) {
+    return res.status(401).json({ error: "Instagram not connected" });
+  }
+
+  const { access_token: accessToken, user_id: userId } = tokens;
 
   const profileUrl = `https://graph.instagram.com/${userId}${GET_IG_USER_INFO_URL}${accessToken}`;
   try {
@@ -26,7 +29,7 @@ export default async function handler(
       );
     }
     const data = await response.json();
-    
+
     res.status(200).json(data);
   } catch (error) {
     console.error("Error fetching Instagram user info:", error);
