@@ -30,7 +30,7 @@ async function generateCodeChallengePair(): Promise<{
 }> {
   const codeVerifier: string = generateRandomString(60);
   const encoder = new TextEncoder();
-  const data: Uint8Array = encoder.encode(codeVerifier);
+  const data = Uint8Array.from(encoder.encode(codeVerifier));
   const hashBuffer: ArrayBuffer = await crypto.subtle.digest("SHA-256", data);
   const codeChallenge: string = base64urlEncode(hashBuffer);
   return { codeVerifier, codeChallenge };
