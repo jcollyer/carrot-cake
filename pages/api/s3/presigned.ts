@@ -31,7 +31,7 @@ export default async function handler(
   const uploadParams = {
     Bucket: process.env[s3Bucket || ""] || "",
     Key: fileKey,
-    ContentType: "image/png",
+    ContentType: contentType,
   };
   let command;
   try {

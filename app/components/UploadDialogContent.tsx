@@ -392,8 +392,7 @@ const UploadDialogContent = ({
                       </Button>
                     )}
                   </div>
-                  {/* {type !== "youtube" && ( */}
-                  {true && (
+                  {type !== "youtube" && (
                     <div className="flex gap-2 items-center">
                       <p className="text-sm font-semibold">Upload videos to:</p>
                       <label className="relative flex items-center gap-1 text-sm cursor-pointer">
