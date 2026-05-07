@@ -1,4 +1,5 @@
 import { Switch } from "@/app/components/primitives/Switch";
+import { formatDateOnlyLocal, parseDateOnly } from "@/app/utils/dateOnly";
 
 type SequentialScheduleSwitchProps = {
   sequentialDate: { date: string; interval: number } | undefined;
@@ -23,11 +24,11 @@ const SequentialScheduleSwitch = ({ sequentialDate, setSequentialDate, setVideos
                 scheduleDate.setDate(scheduleDate.getDate() + index * 2); // Default interval of 2 days
                 return {
                   ...video,
-                  scheduleDate: scheduleDate.toISOString().split("T")[0],
+                  scheduleDate: formatDateOnlyLocal(scheduleDate),
                 };
               });
             });
-            setSequentialDate(sequentialDate ? undefined : { date: new Date().toISOString().split("T")[0], interval: 2 })
+            setSequentialDate(sequentialDate ? undefined : { date: formatDateOnlyLocal(new Date()), interval: 2 })
           }}
           className="cursor-pointer"
         />
@@ -39,11 +40,11 @@ const SequentialScheduleSwitch = ({ sequentialDate, setSequentialDate, setVideos
             onChange={(e) => {
               setVideos(videos => {
                 return videos.map((video, index) => {
-                  const scheduleDate = new Date(e.target.value);
+                  const scheduleDate = parseDateOnly(e.target.value);
                   scheduleDate.setDate(scheduleDate.getDate() + index * sequentialDate.interval);
                   return {
                     ...video,
-                    scheduleDate: scheduleDate.toISOString().split("T")[0],
+                    scheduleDate: formatDateOnlyLocal(scheduleDate),
                   };
                 });
               });
@@ -60,11 +61,11 @@ const SequentialScheduleSwitch = ({ sequentialDate, setSequentialDate, setVideos
               onChange={(e) => {
                 setVideos(videos => {
                   return videos.map((video, index) => {
-                    const scheduleDate = new Date(sequentialDate.date);
+                    const scheduleDate = parseDateOnly(sequentialDate.date);
                     scheduleDate.setDate(scheduleDate.getDate() + index * Number(e.target.value));
                     return {
                       ...video,
-                      scheduleDate: scheduleDate.toISOString().split("T")[0],
+                      scheduleDate: formatDateOnlyLocal(scheduleDate),
                     };
                   });
                 });

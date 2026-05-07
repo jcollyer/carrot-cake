@@ -1,6 +1,7 @@
 import { NextApiRequest, NextApiResponse } from "next";
 import { oauth } from "@/pages/api/youtube/connect-yt";
 import { getTokensCookie } from "@/app/utils/getTokensCookie";
+import { parseDateOnly } from "@/app/utils/dateOnly";
 import { YouTubeVideo } from "@/types";
 const Youtube = require("youtube-api");
 
@@ -13,9 +14,10 @@ export default async function handler(
   const { cookie } = headers;
 
   const jsonTokens = getTokensCookie(cookie, "youtube-tokens");
+  const publishAt = scheduleDate ? parseDateOnly(scheduleDate).toISOString() : undefined;
 
   oauth.setCredentials(jsonTokens);
-  const inThePast = new Date(scheduleDate) < new Date();
+  const inThePast = publishAt ? new Date(publishAt) < new Date() : true;
 
   return Youtube.videos
     .update({
@@ -32,7 +34,7 @@ export default async function handler(
         ...(!inThePast && {
           status: {
             privacyStatus: "private",
-            publishAt: scheduleDate,
+            publishAt,
           },
         }),
       },

@@ -1,6 +1,7 @@
 import { SanitizedVideoProps } from "@/types";
 import { getCookie } from "cookies-next";
 import { YT_UPLOAD_URL } from "@/app/constants";
+import { parseDateOnly } from "@/app/utils/dateOnly";
 
 type useUploadYoutubeVideoProps = {
   accessToken: string;
@@ -27,7 +28,9 @@ export const useUploadYoutubeVideo = async ({
         },
         status: {
           privacyStatus: "private",
-          publishAt: new Date(video.scheduleDate ?? new Date()).toISOString(),
+          publishAt: video.scheduleDate
+            ? parseDateOnly(video.scheduleDate).toISOString()
+            : new Date().toISOString(),
         },
       }),
     });

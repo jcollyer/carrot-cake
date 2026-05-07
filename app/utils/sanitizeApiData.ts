@@ -1,4 +1,5 @@
 import moment from "moment";
+import { formatDateOnlyLocal, formatDateOnlyUTC } from "@/app/utils/dateOnly";
 import {
   SanitizedVideoProps,
   InstagramVideo,
@@ -27,8 +28,8 @@ export const sanitizeYTMetadata = (
       categoryId,
       tags: tags,
       thumbnail,
-      scheduleDate: moment(publishAt || snippet.publishedAt || "").format(
-        "YYYY-MM-DD"
+      scheduleDate: formatDateOnlyLocal(
+        new Date(publishAt || snippet.publishedAt || "")
       ),
     };
   });
@@ -61,7 +62,7 @@ export const sanitizeTikTokMetadata = (
       id,
       title,
       description: title,
-      scheduleDate: moment(scheduledDate).format("YYYY-MM-DD"),
+      scheduleDate: formatDateOnlyUTC(new Date(scheduledDate)),
       thumbnail,
       publishId,
     };
@@ -92,7 +93,7 @@ export const sanitizeInstagramMetadata = (
       id,
       title: videoCaption || "",
       description: "",
-      scheduleDate: moment(scheduledDate).format("YYYY-MM-DD"),
+      scheduleDate: formatDateOnlyUTC(new Date(scheduledDate)),
       thumbnail,
       mediaType: "VIDEO",
     };
